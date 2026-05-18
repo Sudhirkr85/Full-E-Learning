@@ -1,0 +1,57 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { signIn } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { hashPassword } from "@/lib/password";
+import { registerSchema } from "@/lib/auth-schemas";
+
+function splitName(name: string) {
+  const parts = name.trim().split(/\s+/);
+  const firstName = parts[0] ?? null;
+  const lastName = parts.length > 1 ? parts.slice(1).join(" ") : null;
+
+  return { firstName, lastName };
+}
+
+export async function registerAction(formData: FormData) {
+  const parsed = registerSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword")
+  });
+
+  if (!parsed.success) {
+    redirect("/register?error=invalid_input");
+  }
+
+  const email = parsed.data.email.toLowerCase();
+  const existingUser = await prisma.user.findUnique({
+    where: { email }
+  });
+
+  if (existingUser) {
+    redirect("/register?error=email_exists");
+  }
+
+  const passwordHash = await hashPassword(parsed.data.password);
+  const { firstName, lastName } = splitName(parsed.data.name);
+
+  await prisma.user.create({
+    data: {
+      name: parsed.data.name,
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      role: "STUDENT"
+    }
+  });
+
+  await signIn("credentials", {
+    email,
+    password: parsed.data.password,
+    redirectTo: "/dashboard"
+  });
+}

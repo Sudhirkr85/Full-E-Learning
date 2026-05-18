@@ -1,8 +1,30 @@
-.next
-node_modules
-dist
-out
-coverage
-.DS_Store
-*.log
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build output
+dist/
+
+# Coverage
+coverage/
+
+# Environment variables
 .env*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+
+# Optional
+.vercel/
+*.tsbuildinfo

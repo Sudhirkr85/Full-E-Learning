@@ -1,0 +1,769 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { AssetProvider, CourseStatus, UserRole } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/auth";
+import { reserveUniqueSlug, slugify } from "./slug";
+import { z } from "zod";
+import {
+  categoryAttachSchema,
+  categoryDeleteSchema,
+  categoryFormSchema,
+  courseCoreSchema,
+  courseDeleteSchema,
+  courseStatusFormSchema,
+  courseTeacherFormSchema,
+  lessonFormSchema,
+  resourceFormSchema,
+  sectionFormSchema
+} from "./schemas";
+
+type TeacherUser = Awaited<ReturnType<typeof requireRole>>;
+
+function parseDelimitedList(value?: string) {
+  return (value ?? "")
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function redirectWithError(path: string, error: string) {
+  redirect(`${path}?error=${error}`);
+}
+
+function revalidateCoursePaths(courseSlug?: string, courseId?: string) {
+  revalidatePath("/courses");
+  revalidatePath("/teacher/courses");
+
+  if (courseSlug) {
+    revalidatePath(`/courses/${courseSlug}`);
+  }
+
+  if (courseId) {
+    revalidatePath(`/teacher/courses/${courseId}`);
+  }
+}
+
+async function requireTeacher() {
+  return requireRole([UserRole.TEACHER]);
+}
+
+async function assertCourseAccess(courseId: string, teacherId: string) {
+  const course = await prisma.course.findFirst({
+    where: {
+      id: courseId,
+      teachers: {
+        some: {
+          teacherId
+        }
+      }
+    },
+    include: {
+      teachers: true,
+      categories: true
+    }
+  });
+
+  if (!course) {
+    redirectWithError("/teacher/courses", "not_found");
+  }
+
+  return course!;
+}
+
+async function resolveCategoryIds(categoryNames?: string[]) {
+  const names = categoryNames ?? [];
+  const categoryIds: string[] = [];
+
+  for (const name of names) {
+    const slug = slugify(name);
+    const category =
+      (await prisma.category.findUnique({ where: { slug } })) ??
+      (await prisma.category.create({ data: { name, slug } }));
+
+    categoryIds.push(category.id);
+  }
+
+  return categoryIds;
+}
+
+async function reserveCourseSlug(title: string, courseId?: string) {
+  return reserveUniqueSlug(
+    title,
+    async (candidate) => {
+      const course = await prisma.course.findUnique({
+        where: { slug: candidate },
+        select: { id: true }
+      });
+
+      return Boolean(course && course.id !== courseId);
+    },
+    undefined
+  );
+}
+
+async function reserveScopedSlug(
+  baseValue: string,
+  exists: (slug: string) => Promise<boolean>,
+  currentSlug?: string
+) {
+  return reserveUniqueSlug(baseValue, exists, currentSlug);
+}
+
+async function nextSectionOrder(courseId: string) {
+  const aggregate = await prisma.courseSection.aggregate({
+    where: { courseId },
+    _max: { orderIndex: true }
+  });
+
+  return (aggregate._max.orderIndex ?? -1) + 1;
+}
+
+async function nextLessonOrder(sectionId: string) {
+  const aggregate = await prisma.lesson.aggregate({
+    where: { sectionId },
+    _max: { orderIndex: true }
+  });
+
+  return (aggregate._max.orderIndex ?? -1) + 1;
+}
+
+async function nextResourceOrder(lessonId: string) {
+  const aggregate = await prisma.lessonResource.aggregate({
+    where: { lessonId },
+    _max: { orderIndex: true }
+  });
+
+  return (aggregate._max.orderIndex ?? -1) + 1;
+}
+
+async function assertSectionAccess(sectionId: string, teacherId: string) {
+  const section = await prisma.courseSection.findFirst({
+    where: {
+      id: sectionId,
+      course: {
+        teachers: {
+          some: {
+            teacherId
+          }
+        }
+      }
+    },
+    include: {
+      course: true
+    }
+  });
+
+  if (!section) {
+    redirectWithError("/teacher/courses", "section_not_found");
+  }
+
+  return section!;
+}
+
+async function assertLessonAccess(lessonId: string, teacherId: string) {
+  const lesson = await prisma.lesson.findFirst({
+    where: {
+      id: lessonId,
+      section: {
+        course: {
+          teachers: {
+            some: {
+              teacherId
+            }
+          }
+        }
+      }
+    },
+    include: {
+      section: {
+        include: {
+          course: true
+        }
+      }
+    }
+  });
+
+  if (!lesson) {
+    redirectWithError("/teacher/courses", "lesson_not_found");
+  }
+
+  return lesson!;
+}
+
+async function invalidateCourse(courseSlug: string, courseId?: string) {
+  revalidateCoursePaths(courseSlug, courseId);
+}
+
+export async function createCourseAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = courseCoreSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/courses/new", "invalid_input");
+  }
+
+  const data = parsed.data!;
+  const categoryNames = parseDelimitedList(data.categoryNames);
+  const courseSlug = await reserveCourseSlug(data.title);
+  const categoryIds = await resolveCategoryIds(categoryNames);
+
+  const course = await prisma.course.create({
+    data: {
+      title: data.title,
+      slug: courseSlug,
+      subtitle: data.subtitle || null,
+      description: data.description,
+      excerpt: data.excerpt || null,
+      level: data.level,
+      language: data.language,
+      priceCents: data.priceCents,
+      currency: data.currency,
+      coverImageUrl: data.coverImageUrl ?? null,
+      trailerUrl: data.trailerUrl ?? null,
+      status: CourseStatus.DRAFT,
+      teachers: {
+        create: [
+          {
+            teacherId: teacher.id,
+            isPrimary: true,
+            sortOrder: 0
+          }
+        ]
+      },
+      categories: categoryIds.length
+        ? {
+            create: categoryIds.map((categoryId, index) => ({
+              categoryId,
+              sortOrder: index
+            }))
+          }
+        : undefined
+    }
+  });
+
+  await invalidateCourse(course.slug, course.id);
+  redirect(`/teacher/courses/${course.id}?created=1`);
+}
+
+export async function updateCourseAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = courseCoreSchema.extend({ courseId: courseDeleteSchema.shape.courseId }).safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError(`/teacher/courses`, "invalid_input");
+  }
+
+  const data = parsed.data!;
+  const currentCourse = await assertCourseAccess(data.courseId, teacher.id);
+  const nextSlug = await reserveCourseSlug(data.title, currentCourse.id);
+
+  await prisma.course.update({
+    where: { id: currentCourse.id },
+    data: {
+      title: data.title,
+      slug: nextSlug,
+      subtitle: data.subtitle || null,
+      description: data.description,
+      excerpt: data.excerpt || null,
+      level: data.level,
+      language: data.language,
+      priceCents: data.priceCents,
+      currency: data.currency,
+      coverImageUrl: data.coverImageUrl ?? null,
+      trailerUrl: data.trailerUrl ?? null
+    }
+  });
+
+  await invalidateCourse(currentCourse.slug, currentCourse.id);
+  if (nextSlug !== currentCourse.slug) {
+    revalidatePath(`/courses/${nextSlug}`);
+  }
+
+  redirect(`/teacher/courses/${currentCourse.id}?updated=1`);
+}
+
+export async function toggleCourseStatusAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = courseStatusFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/courses", "invalid_status");
+  }
+
+  const data = parsed.data!;
+  const currentCourse = await assertCourseAccess(data.courseId, teacher.id);
+
+  await prisma.course.update({
+    where: { id: currentCourse.id },
+    data: {
+      status: data.status,
+      publishedAt: data.status === CourseStatus.PUBLISHED ? new Date() : null,
+      archivedAt: data.status === CourseStatus.ARCHIVED ? new Date() : null
+    }
+  });
+
+  await invalidateCourse(currentCourse.slug, currentCourse.id);
+  redirect(`/teacher/courses/${currentCourse.id}?status=updated`);
+}
+
+export async function deleteCourseAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = courseDeleteSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/courses", "invalid_delete");
+  }
+
+  const data = parsed.data!;
+  const currentCourse = await assertCourseAccess(data.courseId, teacher.id);
+  await prisma.course.delete({ where: { id: currentCourse.id } });
+  revalidateCoursePaths(currentCourse.slug, currentCourse.id);
+  redirect("/teacher/courses?deleted=1");
+}
+
+export async function createCategoryAction(formData: FormData) {
+  await requireTeacher();
+  const parsed = categoryFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/categories", "invalid_input");
+  }
+
+  const data = parsed.data!;
+  const slug = await reserveUniqueSlug(data.name, async (candidate) => Boolean(await prisma.category.findUnique({ where: { slug: candidate } })));
+
+  await prisma.category.create({
+    data: {
+      name: data.name,
+      slug,
+      description: data.description ?? null
+    }
+  });
+
+  revalidatePath("/courses");
+  revalidatePath("/teacher/categories");
+  redirect("/teacher/categories?created=1");
+}
+
+export async function updateCategoryAction(formData: FormData) {
+  await requireTeacher();
+  const schema = categoryFormSchema.extend({ categoryId: categoryDeleteSchema.shape.categoryId });
+  const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/categories", "invalid_input");
+  }
+
+  const data = parsed.data!;
+  const currentCategory = await prisma.category.findUnique({ where: { id: data.categoryId } });
+
+  if (!currentCategory) {
+    redirectWithError("/teacher/categories", "category_not_found");
+  }
+
+  const existingCategory = currentCategory!;
+
+  const slug = await reserveUniqueSlug(
+    data.name,
+    async (candidate) => Boolean(await prisma.category.findFirst({ where: { slug: candidate, NOT: { id: existingCategory.id } }, select: { id: true } })),
+    existingCategory.slug
+  );
+
+  await prisma.category.update({
+    where: { id: existingCategory.id },
+    data: {
+      name: data.name,
+      slug,
+      description: data.description ?? null
+    }
+  });
+
+  revalidatePath("/courses");
+  revalidatePath("/teacher/categories");
+  redirect("/teacher/categories?updated=1");
+}
+
+export async function deleteCategoryAction(formData: FormData) {
+  await requireTeacher();
+  const parsed = categoryDeleteSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/categories", "invalid_delete");
+  }
+
+  const data = parsed.data!;
+  await prisma.category.delete({ where: { id: data.categoryId } });
+  revalidatePath("/courses");
+  revalidatePath("/teacher/categories");
+  redirect("/teacher/categories?deleted=1");
+}
+
+export async function attachCategoryToCourseAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = categoryAttachSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/courses", "invalid_category");
+  }
+
+  const data = parsed.data!;
+  const course = await assertCourseAccess(data.courseId, teacher.id);
+  const categorySlug = slugify(data.categoryName);
+  const category =
+    (await prisma.category.findUnique({ where: { slug: categorySlug } })) ??
+    (await prisma.category.create({ data: { name: data.categoryName, slug: categorySlug } }));
+
+  const exists = await prisma.courseCategory.findFirst({
+    where: {
+      courseId: course.id,
+      categoryId: category.id
+    },
+    select: { id: true }
+  });
+
+  if (!exists) {
+    const nextOrder = course.categories.length;
+    await prisma.courseCategory.create({
+      data: {
+        courseId: course.id,
+        categoryId: category.id,
+        sortOrder: nextOrder
+      }
+    });
+  }
+
+  await invalidateCourse(course.slug, course.id);
+  redirect(`/teacher/courses/${course.id}?category=updated`);
+}
+
+export async function detachCategoryFromCourseAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const schema = z.object({ courseId: z.string().uuid(), categoryId: z.string().uuid() });
+  const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/courses", "invalid_category");
+  }
+
+  const data = parsed.data!;
+  const course = await assertCourseAccess(data.courseId, teacher.id);
+  await prisma.courseCategory.deleteMany({ where: { courseId: course.id, categoryId: data.categoryId } });
+  await invalidateCourse(course.slug, course.id);
+  redirect(`/teacher/courses/${course.id}?category=removed`);
+}
+
+export async function assignTeacherAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = courseTeacherFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/courses", "invalid_teacher");
+  }
+
+  const data = parsed.data!;
+  const course = await assertCourseAccess(data.courseId, teacher.id);
+  const targetTeacher = await prisma.user.findUnique({
+    where: { email: data.teacherEmail.toLowerCase() },
+    select: {
+      id: true,
+      role: true,
+      isActive: true
+    }
+  });
+
+  if (!targetTeacher || targetTeacher.role !== UserRole.TEACHER || !targetTeacher.isActive) {
+    redirectWithError(`/teacher/courses/${course.id}`, "teacher_not_found");
+  }
+
+  const existingTeacher = targetTeacher!;
+
+  const exists = await prisma.courseTeacher.findFirst({
+    where: {
+      courseId: course.id,
+      teacherId: existingTeacher.id
+    },
+    select: { id: true }
+  });
+
+  if (!exists) {
+    await prisma.courseTeacher.create({
+      data: {
+        courseId: course.id,
+        teacherId: existingTeacher.id,
+        isPrimary: course.teachers.length === 0,
+        sortOrder: course.teachers.length
+      }
+    });
+  }
+
+  await invalidateCourse(course.slug, course.id);
+  redirect(`/teacher/courses/${course.id}?teacher=updated`);
+}
+
+export async function removeTeacherAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const schema = z.object({ courseId: z.string().uuid(), teacherId: z.string().uuid() });
+  const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/teacher/courses", "invalid_teacher_remove");
+  }
+
+  const data = parsed.data!;
+  const course = await assertCourseAccess(data.courseId, teacher.id);
+
+  if (course.teachers.length <= 1) {
+    redirectWithError(`/teacher/courses/${course.id}`, "last_teacher");
+  }
+
+  await prisma.courseTeacher.deleteMany({ where: { courseId: course.id, teacherId: data.teacherId } });
+  await invalidateCourse(course.slug, course.id);
+  redirect(`/teacher/courses/${course.id}?teacher=removed`);
+}
+
+export async function createSectionAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = sectionFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError(`/teacher/courses`, "invalid_section");
+  }
+
+  const data = parsed.data!;
+  const course = await assertCourseAccess(data.courseId, teacher.id);
+  const slug = await reserveScopedSlug(
+    data.title,
+    async (candidate) => Boolean(await prisma.courseSection.findFirst({ where: { courseId: course.id, slug: candidate }, select: { id: true } })),
+  );
+
+  await prisma.courseSection.create({
+    data: {
+      courseId: course.id,
+      title: data.title,
+      slug,
+      description: data.description ?? null,
+      orderIndex: data.orderIndex ?? (await nextSectionOrder(course.id)),
+      isPublished: true
+    }
+  });
+
+  await invalidateCourse(course.slug, course.id);
+  redirect(`/teacher/courses/${course.id}?section=created`);
+}
+
+export async function updateSectionAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = sectionFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  const data = parsed.data;
+
+  if (!parsed.success || !data?.sectionId) {
+    redirectWithError(`/teacher/courses`, "invalid_section");
+  }
+
+  const sectionData = data!;
+  const section = await assertSectionAccess(sectionData.sectionId!, teacher.id);
+  const slug = await reserveScopedSlug(
+    sectionData.title,
+    async (candidate) => Boolean(await prisma.courseSection.findFirst({ where: { courseId: section.courseId, slug: candidate, NOT: { id: section.id } }, select: { id: true } })),
+    section.slug
+  );
+
+  await prisma.courseSection.update({
+    where: { id: section.id },
+    data: {
+      title: sectionData.title,
+      slug,
+      description: sectionData.description ?? null,
+      orderIndex: sectionData.orderIndex ?? section.orderIndex
+    }
+  });
+
+  await invalidateCourse(section.course.slug, section.courseId);
+  redirect(`/teacher/courses/${section.courseId}?section=updated`);
+}
+
+export async function deleteSectionAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = z.object({ sectionId: z.string().uuid() }).safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError(`/teacher/courses`, "invalid_section_delete");
+  }
+
+  const data = parsed.data!;
+  const section = await assertSectionAccess(data.sectionId!, teacher.id);
+  await prisma.courseSection.delete({ where: { id: section.id } });
+  await invalidateCourse(section.course.slug, section.courseId);
+  redirect(`/teacher/courses/${section.courseId}?section=deleted`);
+}
+
+export async function createLessonAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = lessonFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError(`/teacher/courses`, "invalid_lesson");
+  }
+
+  const data = parsed.data!;
+  const section = await assertSectionAccess(data.sectionId, teacher.id);
+  const slug = await reserveScopedSlug(
+    data.title,
+    async (candidate) => Boolean(await prisma.lesson.findFirst({ where: { sectionId: section.id, slug: candidate }, select: { id: true } }))
+  );
+
+  await prisma.lesson.create({
+    data: {
+      sectionId: section.id,
+      title: data.title,
+      slug,
+      description: data.description ?? null,
+      orderIndex: data.orderIndex ?? (await nextLessonOrder(section.id)),
+      contentType: data.contentType,
+      youtubeUrl: data.youtubeUrl ?? null,
+      r2AssetUrl: data.r2AssetUrl ?? null,
+      thumbnailUrl: data.thumbnailUrl ?? null,
+      transcriptUrl: data.transcriptUrl ?? null,
+      durationSeconds: data.durationSeconds ?? null,
+      isPreview: data.isPreview ?? false,
+      isPublished: data.isPublished ?? true
+    }
+  });
+
+  await invalidateCourse(section.course.slug, section.courseId);
+  redirect(`/teacher/courses/${section.courseId}?lesson=created`);
+}
+
+export async function updateLessonAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = lessonFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  const data = parsed.data;
+
+  if (!parsed.success || !data?.lessonId) {
+    redirectWithError(`/teacher/courses`, "invalid_lesson");
+  }
+
+  const lessonData = data!;
+  const lesson = await assertLessonAccess(lessonData.lessonId!, teacher.id);
+  const slug = await reserveScopedSlug(
+    lessonData.title,
+    async (candidate) => Boolean(await prisma.lesson.findFirst({ where: { sectionId: lesson.sectionId, slug: candidate, NOT: { id: lesson.id } }, select: { id: true } })),
+    lesson.slug
+  );
+
+  await prisma.lesson.update({
+    where: { id: lesson.id },
+    data: {
+      title: lessonData.title,
+      slug,
+      description: lessonData.description ?? null,
+      orderIndex: lessonData.orderIndex ?? lesson.orderIndex,
+      contentType: lessonData.contentType,
+      youtubeUrl: lessonData.youtubeUrl ?? null,
+      r2AssetUrl: lessonData.r2AssetUrl ?? null,
+      thumbnailUrl: lessonData.thumbnailUrl ?? null,
+      transcriptUrl: lessonData.transcriptUrl ?? null,
+      durationSeconds: lessonData.durationSeconds ?? null,
+      isPreview: lessonData.isPreview ?? false,
+      isPublished: lessonData.isPublished ?? true
+    }
+  });
+
+  await invalidateCourse(lesson.section.course.slug, lesson.section.courseId);
+  redirect(`/teacher/courses/${lesson.section.courseId}?lesson=updated`);
+}
+
+export async function deleteLessonAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = z.object({ lessonId: z.string().uuid() }).safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError(`/teacher/courses`, "invalid_lesson_delete");
+  }
+
+  const data = parsed.data!;
+  const lesson = await assertLessonAccess(data.lessonId!, teacher.id);
+  await prisma.lesson.delete({ where: { id: lesson.id } });
+  await invalidateCourse(lesson.section.course.slug, lesson.section.courseId);
+  redirect(`/teacher/courses/${lesson.section.courseId}?lesson=deleted`);
+}
+
+export async function createLessonResourceAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = resourceFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError(`/teacher/courses`, "invalid_resource");
+  }
+
+  const data = parsed.data!;
+  const lesson = await assertLessonAccess(data.lessonId, teacher.id);
+
+  await prisma.lessonResource.create({
+    data: {
+      lessonId: lesson.id,
+      title: data.title,
+      resourceType: data.resourceType,
+      provider: data.provider,
+      url: data.url ?? "",
+      mimeType: data.mimeType ?? null,
+      fileSizeBytes: data.fileSizeBytes ?? null,
+      orderIndex: data.orderIndex ?? (await nextResourceOrder(lesson.id)),
+      isDownloadable: data.isDownloadable ?? true
+    }
+  });
+
+  await invalidateCourse(lesson.section.course.slug, lesson.section.courseId);
+  redirect(`/teacher/courses/${lesson.section.courseId}?resource=created`);
+}
+
+export async function updateLessonResourceAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = resourceFormSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  const data = parsed.data;
+
+  if (!parsed.success || !data?.resourceId) {
+    redirectWithError(`/teacher/courses`, "invalid_resource");
+  }
+
+  const resourceData = data!;
+  const lesson = await assertLessonAccess(resourceData.lessonId!, teacher.id);
+
+  await prisma.lessonResource.update({
+    where: { id: resourceData.resourceId },
+    data: {
+      title: resourceData.title,
+      resourceType: resourceData.resourceType,
+      provider: resourceData.provider,
+      url: resourceData.url ?? "",
+      mimeType: resourceData.mimeType ?? null,
+      fileSizeBytes: resourceData.fileSizeBytes ?? null,
+      orderIndex: resourceData.orderIndex ?? 0,
+      isDownloadable: resourceData.isDownloadable ?? true
+    }
+  });
+
+  await invalidateCourse(lesson.section.course.slug, lesson.section.courseId);
+  redirect(`/teacher/courses/${lesson.section.courseId}?resource=updated`);
+}
+
+export async function deleteLessonResourceAction(formData: FormData) {
+  const teacher = await requireTeacher();
+  const parsed = z.object({ resourceId: z.string().uuid(), lessonId: z.string().uuid() }).safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError(`/teacher/courses`, "invalid_resource_delete");
+  }
+
+  const data = parsed.data!;
+  const lesson = await assertLessonAccess(data.lessonId, teacher.id);
+  await prisma.lessonResource.delete({ where: { id: data.resourceId } });
+  await invalidateCourse(lesson.section.course.slug, lesson.section.courseId);
+  redirect(`/teacher/courses/${lesson.section.courseId}?resource=deleted`);
+}

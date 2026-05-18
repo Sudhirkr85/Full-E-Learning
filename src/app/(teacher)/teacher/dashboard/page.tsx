@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { makeMetadata } from "@/lib/site";
 import { requireRole } from "@/lib/auth";
@@ -24,16 +26,24 @@ export default async function TeacherDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Published courses</CardTitle>
-            <CardDescription>Placeholder metric card.</CardDescription>
+            <CardDescription>Manage course shells, categories, and teaching assignments.</CardDescription>
           </CardHeader>
-          <CardContent>Course management will live here.</CardContent>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link href="/teacher/courses">Open course manager</Link>
+            </Button>
+          </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Pending reviews</CardTitle>
-            <CardDescription>Placeholder metric card.</CardDescription>
+            <CardTitle>Categories</CardTitle>
+            <CardDescription>Organize the catalog taxonomy used by public course pages.</CardDescription>
           </CardHeader>
-          <CardContent>Review flow not implemented yet.</CardContent>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link href="/teacher/categories">Manage categories</Link>
+            </Button>
+          </CardContent>
         </Card>
       </div>
     </div>

@@ -21,8 +21,8 @@ export const footerNav = [
 
 export const studentNav = [
   { label: "Overview", href: "/student/dashboard" },
-  { label: "My Courses", href: "/student/dashboard" },
-  { label: "Progress", href: "/student/dashboard" }
+  { label: "My Courses", href: "/student/courses" },
+  { label: "Continue Learning", href: "/student/courses" }
 ];
 
 export const teacherNav = [

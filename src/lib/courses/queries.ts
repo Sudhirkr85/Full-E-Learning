@@ -63,13 +63,45 @@ const courseDetailSelect = {
   trailerUrl: true,
   durationMinutes: true,
   sections: {
+    where: { isPublished: true },
     orderBy: { orderIndex: "asc" as const },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      orderIndex: true,
+      isPublished: true,
       lessons: {
+        where: { isPublished: true },
         orderBy: { orderIndex: "asc" as const },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          orderIndex: true,
+          contentType: true,
+          isPreview: true,
+          isPublished: true,
+          youtubeUrl: true,
+          r2AssetUrl: true,
+          thumbnailUrl: true,
+          transcriptUrl: true,
+          durationSeconds: true,
           resources: {
-            orderBy: { orderIndex: "asc" as const }
+            orderBy: { orderIndex: "asc" as const },
+            select: {
+              id: true,
+              title: true,
+              resourceType: true,
+              provider: true,
+              url: true,
+              mimeType: true,
+              fileSizeBytes: true,
+              orderIndex: true,
+              isDownloadable: true
+            }
           }
         }
       }

@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AssetProvider, CourseStatus, UserRole } from "@prisma/client";
+import { AssetProvider, CourseStatus, EnrollmentStatus, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { reserveUniqueSlug, slugify } from "./slug";
 import { z } from "zod";
+import { isActiveEnrollmentStatus } from "./access";
 import {
   categoryAttachSchema,
   categoryDeleteSchema,
@@ -195,6 +196,292 @@ async function assertLessonAccess(lessonId: string, teacherId: string) {
 
 async function invalidateCourse(courseSlug: string, courseId?: string) {
   revalidateCoursePaths(courseSlug, courseId);
+}
+
+function getFirstPublishedLesson(course: {
+  sections: Array<{
+    lessons: Array<{
+      slug: string;
+    }>;
+  }>;
+}) {
+  for (const section of course.sections) {
+    if (section.lessons.length) {
+      return section.lessons[0] ?? null;
+    }
+  }
+
+  return null;
+}
+
+async function syncCourseProgress(enrollmentId: string, courseId: string, lessonId?: string | null) {
+  const totalLessonsCount = await prisma.lesson.count({
+    where: {
+      section: {
+        courseId
+      },
+      isPublished: true
+    }
+  });
+
+  const completedLessonsCount = await prisma.lessonProgress.count({
+    where: {
+      enrollmentId,
+      isCompleted: true,
+      lesson: {
+        section: {
+          courseId
+        }
+      }
+    }
+  });
+
+  const progressPercent = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
+  const now = new Date();
+
+  await prisma.courseProgress.upsert({
+    where: { enrollmentId },
+    create: {
+      enrollmentId,
+      lastLessonId: lessonId ?? null,
+      completedLessonsCount,
+      totalLessonsCount,
+      progressPercent,
+      lastAccessedAt: now,
+      completedAt: progressPercent === 100 && totalLessonsCount > 0 ? now : null
+    },
+    update: {
+      lastLessonId: lessonId ?? null,
+      completedLessonsCount,
+      totalLessonsCount,
+      progressPercent,
+      lastAccessedAt: now,
+      completedAt: progressPercent === 100 && totalLessonsCount > 0 ? now : null
+    }
+  });
+
+  await prisma.enrollment.update({
+    where: { id: enrollmentId },
+    data: {
+      lastAccessedAt: now,
+      status: progressPercent === 100 && totalLessonsCount > 0 ? EnrollmentStatus.COMPLETED : EnrollmentStatus.ACTIVE,
+      completedAt: progressPercent === 100 && totalLessonsCount > 0 ? now : null
+    }
+  });
+}
+
+async function getEnrollmentCourse(courseId: string) {
+  return prisma.course.findUnique({
+    where: { id: courseId },
+    select: {
+      id: true,
+      slug: true,
+      status: true,
+      sections: {
+        where: { isPublished: true },
+        orderBy: { orderIndex: "asc" },
+        select: {
+          id: true,
+          lessons: {
+            where: { isPublished: true },
+            orderBy: { orderIndex: "asc" },
+            select: {
+              id: true,
+              slug: true
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+export async function enrollInCourseAction(formData: FormData) {
+  const student = await requireRole([UserRole.STUDENT]);
+  const parsed = z.object({ courseId: z.string().uuid() }).safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/student/courses", "invalid_enrollment");
+  }
+
+  const data = parsed.data!;
+  const course = await getEnrollmentCourse(data.courseId);
+
+  if (!course || course.status !== CourseStatus.PUBLISHED) {
+    redirectWithError("/courses", "course_unavailable");
+  }
+
+  const selectedCourse = course!;
+
+  const existingEnrollment = await prisma.enrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId: student.id,
+        courseId: selectedCourse.id
+      }
+    },
+    select: {
+      id: true,
+      status: true
+    }
+  });
+
+  let enrollmentId = existingEnrollment?.id;
+
+  if (!existingEnrollment) {
+    const enrollment = await prisma.enrollment.create({
+      data: {
+        userId: student.id,
+        courseId: selectedCourse.id,
+        status: EnrollmentStatus.ACTIVE,
+        lastAccessedAt: new Date()
+      },
+      select: {
+        id: true
+      }
+    });
+
+    enrollmentId = enrollment.id;
+
+    await prisma.courseProgress.create({
+      data: {
+        enrollmentId: enrollment.id,
+        totalLessonsCount: selectedCourse.sections.reduce((count, section) => count + section.lessons.length, 0)
+      }
+    });
+  } else if (!isActiveEnrollmentStatus(existingEnrollment.status)) {
+    await prisma.enrollment.update({
+      where: { id: existingEnrollment.id },
+      data: {
+        status: EnrollmentStatus.ACTIVE,
+        completedAt: null,
+        lastAccessedAt: new Date()
+      }
+    });
+  }
+
+  const firstLesson = getFirstPublishedLesson(selectedCourse);
+
+  revalidatePath(`/courses/${selectedCourse.slug}`);
+  revalidatePath("/student/dashboard");
+  revalidatePath("/student/courses");
+
+  if (enrollmentId && firstLesson) {
+    redirect(`/courses/${selectedCourse.slug}/lessons/${firstLesson.slug}`);
+  }
+
+  redirect("/student/courses?enrolled=1");
+}
+
+export async function toggleLessonCompletionAction(formData: FormData) {
+  const student = await requireRole([UserRole.STUDENT]);
+  const parsed = z
+    .object({
+      courseId: z.string().uuid(),
+      lessonId: z.string().uuid(),
+      completed: z.coerce.boolean()
+    })
+    .safeParse(Object.fromEntries(formData.entries()));
+
+  if (!parsed.success) {
+    redirectWithError("/student/courses", "invalid_progress");
+  }
+
+  const data = parsed.data!;
+  const course = await prisma.course.findUnique({
+    where: { id: data.courseId },
+    select: {
+      id: true,
+      slug: true
+    }
+  });
+
+  if (!course) {
+    redirectWithError("/student/courses", "course_not_found");
+  }
+
+  const selectedCourse = course!;
+
+  const enrollment = await prisma.enrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId: student.id,
+        courseId: selectedCourse.id
+      }
+    },
+    select: {
+      id: true,
+      status: true
+    }
+  });
+
+  if (!enrollment || !isActiveEnrollmentStatus(enrollment.status)) {
+    redirectWithError(`/courses/${selectedCourse.slug}`, "enrollment_required");
+  }
+
+  const selectedEnrollment = enrollment!;
+
+  const lesson = await prisma.lesson.findFirst({
+    where: {
+      id: data.lessonId,
+      section: {
+        courseId: selectedCourse.id
+      }
+    },
+    select: {
+      id: true,
+      slug: true,
+      isPublished: true
+    }
+  });
+
+  if (!lesson || !lesson.isPublished) {
+    redirectWithError(`/courses/${selectedCourse.slug}`, "lesson_not_found");
+  }
+
+  const selectedLesson = lesson!;
+
+  const now = new Date();
+
+  await prisma.lessonProgress.upsert({
+    where: {
+      enrollmentId_lessonId: {
+        enrollmentId: selectedEnrollment.id,
+        lessonId: selectedLesson.id
+      }
+    },
+    create: {
+      enrollmentId: selectedEnrollment.id,
+      lessonId: selectedLesson.id,
+      isCompleted: data.completed,
+      completedAt: data.completed ? now : null,
+      lastViewedAt: now
+    },
+    update: {
+      isCompleted: data.completed,
+      completedAt: data.completed ? now : null,
+      lastViewedAt: now
+    }
+  });
+
+  await syncCourseProgress(selectedEnrollment.id, selectedCourse.id, selectedLesson.id);
+
+  if (!data.completed) {
+    await prisma.enrollment.update({
+      where: { id: selectedEnrollment.id },
+      data: {
+        status: EnrollmentStatus.ACTIVE,
+        completedAt: null,
+        lastAccessedAt: now
+      }
+    });
+  }
+
+  revalidatePath(`/courses/${selectedCourse.slug}`);
+  revalidatePath(`/courses/${selectedCourse.slug}/lessons/${selectedLesson.slug}`);
+  revalidatePath("/student/dashboard");
+  revalidatePath("/student/courses");
+  redirect(`/courses/${selectedCourse.slug}/lessons/${selectedLesson.slug}?progress=${data.completed ? "completed" : "updated"}`);
 }
 
 export async function createCourseAction(formData: FormData) {

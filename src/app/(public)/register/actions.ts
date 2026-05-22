@@ -49,6 +49,15 @@ export async function registerAction(formData: FormData) {
     }
   });
 
+  // Non-blocking welcome email dispatch
+  const { sendWelcomeEmail, dispatchEmailBackground } = await import("@/lib/email");
+  dispatchEmailBackground(() =>
+    sendWelcomeEmail(email, parsed.data.name, {
+      name: parsed.data.name,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    })
+  );
+
   await signIn("credentials", {
     email,
     password: parsed.data.password,

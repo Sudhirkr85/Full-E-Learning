@@ -1,6 +1,8 @@
 import type { UserRole } from "@prisma/client";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 import { loginSchema } from "@/lib/auth-schemas";
@@ -15,6 +17,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt"
   },
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true
+    }),
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true
+    }),
     Credentials({
       name: "Credentials",
       credentials: {
@@ -74,8 +86,48 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     })
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "credentials") {
+        return true;
+      }
+      if (user.email) {
+        const emailLower = user.email.toLowerCase();
+        const dbUser = await prisma.user.findUnique({
+          where: { email: emailLower }
+        });
+
+        if (!dbUser) {
+          const newUser = await prisma.user.create({
+            data: {
+              email: emailLower,
+              name: user.name || emailLower.split("@")[0],
+              image: user.image,
+              passwordHash: "", // OAuth accounts have no password hash
+              role: "STUDENT",
+              isActive: true,
+              lastLoginAt: new Date()
+            }
+          });
+          user.id = newUser.id;
+          user.role = newUser.role;
+        } else {
+          if (!dbUser.isActive) {
+            return false; // Deactivated account
+          }
+          user.id = dbUser.id;
+          user.role = dbUser.role;
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { lastLoginAt: new Date() }
+          });
+        }
+        return true;
+      }
+      return false;
+    },
     async jwt({ token, user }) {
       if (user) {
+        token.sub = user.id;
         token.role = user.role;
       }
 

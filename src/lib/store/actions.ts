@@ -384,6 +384,11 @@ export async function simulatePaymentSuccessAction(orderId: string) {
 
     const simPaymentId = `sim_pay_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 
+    let isNewUserCreated = false;
+    let studentName = order.billingEmail.split("@")[0];
+    let studentEmail = order.billingEmail;
+    const coursesEnrolled: { title: string; slug: string }[] = [];
+
     await prisma.$transaction(async (tx) => {
       // 1. Update Order status
       await tx.order.update({
@@ -415,6 +420,8 @@ export async function simulatePaymentSuccessAction(orderId: string) {
 
         if (existingUser) {
           studentUserId = existingUser.id;
+          studentName = existingUser.name || existingUser.email.split("@")[0];
+          studentEmail = existingUser.email;
           await tx.order.update({
             where: { id: order.id },
             data: { userId: studentUserId },
@@ -430,10 +437,21 @@ export async function simulatePaymentSuccessAction(orderId: string) {
             },
           });
           studentUserId = newUser.id;
+          studentName = newUser.name || newUser.email.split("@")[0];
+          studentEmail = newUser.email;
+          isNewUserCreated = true;
           await tx.order.update({
             where: { id: order.id },
             data: { userId: studentUserId },
           });
+        }
+      } else {
+        const existingUser = await tx.user.findUnique({
+          where: { id: studentUserId },
+        });
+        if (existingUser) {
+          studentName = existingUser.name || existingUser.email.split("@")[0];
+          studentEmail = existingUser.email;
         }
       }
 
@@ -455,6 +473,7 @@ export async function simulatePaymentSuccessAction(orderId: string) {
           });
 
           if (course) {
+            coursesEnrolled.push({ title: course.title, slug: course.slug });
             const totalLessons = course.sections.reduce((sum, sec) => sum + sec.lessons.length, 0);
 
             await tx.enrollment.upsert({
@@ -522,6 +541,61 @@ export async function simulatePaymentSuccessAction(orderId: string) {
         },
       });
     });
+
+    // Post-commit background email dispatching
+    const { 
+      dispatchEmailBackground, 
+      sendCombinedWelcomePaymentEmail, 
+      sendPaymentSuccessEmail, 
+      sendEnrollmentEmail 
+    } = await import("@/lib/email");
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+
+    const itemsSummary = order.items.map(item => ({
+      productName: item.productName,
+      quantity: item.quantity,
+      totalPriceCents: item.totalPriceCents
+    }));
+
+    if (isNewUserCreated) {
+      // First-time user checkout: single unified welcome + payment receipt email
+      dispatchEmailBackground(() =>
+        sendCombinedWelcomePaymentEmail(studentEmail, studentName, {
+          name: studentName,
+          appUrl,
+          orderNumber: order.orderNumber,
+          totalAmountCents: order.totalCents,
+          currency: order.currency,
+          items: itemsSummary,
+          supportEmail
+        })
+      );
+    } else {
+      // Existing user checkout: payment receipt + individual course activation emails
+      dispatchEmailBackground(() =>
+        sendPaymentSuccessEmail(studentEmail, studentName, {
+          name: studentName,
+          orderNumber: order.orderNumber,
+          totalAmountCents: order.totalCents,
+          currency: order.currency,
+          items: itemsSummary,
+          supportEmail
+        })
+      );
+
+      for (const course of coursesEnrolled) {
+        dispatchEmailBackground(() =>
+          sendEnrollmentEmail(studentEmail, studentName, {
+            name: studentName,
+            courseTitle: course.title,
+            courseSlug: course.slug,
+            appUrl
+          })
+        );
+      }
+    }
 
     return {
       success: true,

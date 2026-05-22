@@ -29,3 +29,29 @@ export async function loginAction(formData: FormData) {
     throw error;
   }
 }
+
+export async function loginWithGoogleAction() {
+  try {
+    await signIn("google", {
+      redirectTo: "/dashboard"
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      redirect("/login?error=oauth_error");
+    }
+    throw error;
+  }
+}
+
+export async function loginWithGithubAction() {
+  try {
+    await signIn("github", {
+      redirectTo: "/dashboard"
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      redirect("/login?error=oauth_error");
+    }
+    throw error;
+  }
+}

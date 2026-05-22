@@ -159,6 +159,22 @@ export async function replyToTicketAction(ticketId: string, replyMessage: string
         message: `A staff member replied to your ticket: "${ticket.subject}"`,
         linkUrl: `/student/support/${ticket.id}`,
       });
+
+      // Non-blocking background email dispatch to notifying the student reporter
+      const { sendSupportTicketReplyEmail, dispatchEmailBackground } = await import("@/lib/email");
+      const studentName = ticket.reporter.name || ticket.reporter.email.split("@")[0];
+      const studentEmail = ticket.reporter.email;
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+      dispatchEmailBackground(() =>
+        sendSupportTicketReplyEmail(studentEmail, studentName, {
+          name: studentName,
+          ticketNumber: ticket.id.substring(0, 8).toUpperCase(),
+          ticketSubject: ticket.subject,
+          message: replyMessage.trim(),
+          ticketUrl: `${appUrl}/student/support/${ticket.id}`
+        })
+      );
     } else if (ticket.assignedToId) {
       // Notify assigned staff
       await createSystemNotification({

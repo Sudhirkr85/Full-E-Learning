@@ -59,6 +59,7 @@ export async function issueCertificateAction(enrollmentId: string) {
     const enrollment = await prisma.enrollment.findUnique({
       where: { id: enrollmentId },
       include: {
+        user: true,
         course: true,
         progress: true,
         certificate: true,
@@ -119,6 +120,21 @@ export async function issueCertificateAction(enrollmentId: string) {
         },
       },
     });
+
+    // Non-blocking background email dispatch
+    const { sendCertificateEmail, dispatchEmailBackground } = await import("@/lib/email");
+    const studentName = enrollment.user.name || enrollment.user.email.split("@")[0];
+    const studentEmail = enrollment.user.email;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+    dispatchEmailBackground(() =>
+      sendCertificateEmail(studentEmail, studentName, {
+        name: studentName,
+        courseTitle: enrollment.course.title,
+        verificationCode: certificate.verificationCode,
+        certificateUrl: `${appUrl}/certificates/verify/${certificate.verificationCode}`
+      })
+    );
 
     return {
       success: true,

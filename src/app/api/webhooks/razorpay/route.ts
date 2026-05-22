@@ -73,6 +73,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, message: "Order already completed." });
       }
 
+      let isNewUserCreated = false;
+      let studentName = order.billingEmail.split("@")[0];
+      let studentEmail = order.billingEmail;
+      const coursesEnrolled: { title: string; slug: string }[] = [];
+
       // 5. Execute secure state updates and learning upgrades inside a Prisma transaction
       await prisma.$transaction(async (tx) => {
         // Update Order
@@ -102,6 +107,8 @@ export async function POST(req: NextRequest) {
 
           if (existingUser) {
             studentUserId = existingUser.id;
+            studentName = existingUser.name || existingUser.email.split("@")[0];
+            studentEmail = existingUser.email;
             await tx.order.update({
               where: { id: order.id },
               data: { userId: studentUserId },
@@ -118,10 +125,21 @@ export async function POST(req: NextRequest) {
               },
             });
             studentUserId = newUser.id;
+            studentName = newUser.name || newUser.email.split("@")[0];
+            studentEmail = newUser.email;
+            isNewUserCreated = true;
             await tx.order.update({
               where: { id: order.id },
               data: { userId: studentUserId },
             });
+          }
+        } else {
+          const existingUser = await tx.user.findUnique({
+            where: { id: studentUserId },
+          });
+          if (existingUser) {
+            studentName = existingUser.name || existingUser.email.split("@")[0];
+            studentEmail = existingUser.email;
           }
         }
 
@@ -144,6 +162,7 @@ export async function POST(req: NextRequest) {
             });
 
             if (course) {
+              coursesEnrolled.push({ title: course.title, slug: course.slug });
               const totalLessons = course.sections.reduce((sum, sec) => sum + sec.lessons.length, 0);
 
               // Enroll Student in Course
@@ -232,6 +251,61 @@ export async function POST(req: NextRequest) {
           },
         });
       });
+
+      // Post-commit background email dispatching
+      const { 
+        dispatchEmailBackground, 
+        sendCombinedWelcomePaymentEmail, 
+        sendPaymentSuccessEmail, 
+        sendEnrollmentEmail 
+      } = await import("@/lib/email");
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+
+      const itemsSummary = order.items.map(item => ({
+        productName: item.productName,
+        quantity: item.quantity,
+        totalPriceCents: item.totalPriceCents
+      }));
+
+      if (isNewUserCreated) {
+        // First-time user checkout: single unified welcome + payment receipt email
+        dispatchEmailBackground(() =>
+          sendCombinedWelcomePaymentEmail(studentEmail, studentName, {
+            name: studentName,
+            appUrl,
+            orderNumber: order.orderNumber,
+            totalAmountCents: order.totalCents,
+            currency: order.currency,
+            items: itemsSummary,
+            supportEmail
+          })
+        );
+      } else {
+        // Existing user checkout: payment receipt + individual course activation emails
+        dispatchEmailBackground(() =>
+          sendPaymentSuccessEmail(studentEmail, studentName, {
+            name: studentName,
+            orderNumber: order.orderNumber,
+            totalAmountCents: order.totalCents,
+            currency: order.currency,
+            items: itemsSummary,
+            supportEmail
+          })
+        );
+
+        for (const course of coursesEnrolled) {
+          dispatchEmailBackground(() =>
+            sendEnrollmentEmail(studentEmail, studentName, {
+              name: studentName,
+              courseTitle: course.title,
+              courseSlug: course.slug,
+              appUrl
+            })
+          );
+        }
+      }
 
       console.log(`[RAZORPAY_WEBHOOK] Successfully completed transaction upgrades for Order: ${order.orderNumber}`);
       return NextResponse.json({ success: true, message: "Order processed successfully." });

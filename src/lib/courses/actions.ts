@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AssetProvider, CourseStatus, EnrollmentStatus, UserRole } from "@prisma/client";
+import { AssetProvider, AuditAction, CourseStatus, EnrollmentStatus, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { reserveUniqueSlug, slugify } from "./slug";
@@ -268,6 +268,16 @@ async function syncCourseProgress(enrollmentId: string, courseId: string, lesson
       completedAt: progressPercent === 100 && totalLessonsCount > 0 ? now : null
     }
   });
+
+  // Auto-issue Certificate on completion
+  if (progressPercent === 100 && totalLessonsCount > 0) {
+    try {
+      const { issueCertificateAction } = await import("@/lib/certificates/actions");
+      await issueCertificateAction(enrollmentId);
+    } catch (certErr) {
+      console.error("[AUTO_CERTIFICATE_ISSUANCE_FAILED]", certErr);
+    }
+  }
 }
 
 async function getEnrollmentCourse(courseId: string) {
@@ -583,12 +593,36 @@ export async function toggleCourseStatusAction(formData: FormData) {
   const data = parsed.data!;
   const currentCourse = await assertCourseAccess(data.courseId, teacher.id);
 
+  const beforeState = { status: currentCourse.status };
   await prisma.course.update({
     where: { id: currentCourse.id },
     data: {
       status: data.status,
       publishedAt: data.status === CourseStatus.PUBLISHED ? new Date() : null,
       archivedAt: data.status === CourseStatus.ARCHIVED ? new Date() : null
+    }
+  });
+
+  // Log auditing
+  let auditAction: AuditAction = AuditAction.UPDATE;
+  if (data.status === CourseStatus.PUBLISHED) {
+    auditAction = AuditAction.PUBLISH;
+  } else if (data.status === CourseStatus.ARCHIVED) {
+    auditAction = AuditAction.ARCHIVE;
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      userId: teacher.id,
+      action: auditAction,
+      entityType: "Course",
+      entityId: currentCourse.id,
+      beforeState,
+      afterState: { status: data.status },
+      metadata: {
+        reason: "Manual course status update by teacher",
+        title: currentCourse.title
+      }
     }
   });
 
@@ -606,6 +640,20 @@ export async function deleteCourseAction(formData: FormData) {
 
   const data = parsed.data!;
   const currentCourse = await assertCourseAccess(data.courseId, teacher.id);
+  // Log auditing
+  await prisma.auditLog.create({
+    data: {
+      userId: teacher.id,
+      action: AuditAction.DELETE,
+      entityType: "Course",
+      entityId: currentCourse.id,
+      beforeState: { title: currentCourse.title, slug: currentCourse.slug, status: currentCourse.status },
+      metadata: {
+        reason: "Course deleted by teacher"
+      }
+    }
+  });
+
   await prisma.course.delete({ where: { id: currentCourse.id } });
   revalidateCoursePaths(currentCourse.slug, currentCourse.id);
   redirect("/teacher/courses?deleted=1");

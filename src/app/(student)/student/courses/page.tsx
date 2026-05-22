@@ -76,6 +76,13 @@ export default async function StudentCoursesPage() {
                     <Button asChild variant="outline">
                       <Link href={`/courses/${enrollment.course.slug}`}>Course details</Link>
                     </Button>
+                    {isCompleted && (
+                      <Button asChild variant="outline" className="border-amber-500/30 text-amber-600 hover:text-amber-700 hover:bg-amber-500/10">
+                        <Link href={`/student/courses/${enrollment.course.slug}/certificate`}>
+                          {enrollment.certificate ? "View Certificate" : "Claim Certificate"}
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

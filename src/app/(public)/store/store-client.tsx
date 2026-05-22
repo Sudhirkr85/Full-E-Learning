@@ -1,0 +1,697 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { 
+  ShoppingCart, Search, X, Plus, Minus, Trash2, 
+  Ticket, ArrowRight, Lock, HelpCircle, Package, GraduationCap, Archive
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Container } from "@/components/ui/container";
+import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
+import { Product, ProductType } from "@prisma/client";
+
+interface StoreClientProps {
+  products: Product[];
+}
+
+interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export function StoreClient({ products }: StoreClientProps) {
+  const router = useRouter();
+  
+  // State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("ALL");
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [billingEmail, setBillingEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [shippingState, setShippingState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("India");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
+
+  // Load cart from localStorage
+  useEffect(() => {
+    try {
+      const storedCart = localStorage.getItem("el_store_cart");
+      if (storedCart) {
+        setCart(JSON.parse(storedCart));
+      }
+    } catch (e) {
+      console.error("Failed to load cart from localStorage", e);
+    }
+  }, []);
+
+  // Sync cart to localStorage
+  const saveCart = (newCart: CartItem[]) => {
+    setCart(newCart);
+    try {
+      localStorage.setItem("el_store_cart", JSON.stringify(newCart));
+    } catch (e) {
+      console.error("Failed to save cart", e);
+    }
+  };
+
+  // Add to cart
+  const addToCart = (product: Product) => {
+    const existingIndex = cart.findIndex(item => item.product.id === product.id);
+    if (existingIndex > -1) {
+      const newCart = [...cart];
+      newCart[existingIndex].quantity += 1;
+      saveCart(newCart);
+    } else {
+      saveCart([...cart, { product, quantity: 1 }]);
+    }
+    setIsCartOpen(true);
+  };
+
+  // Remove from cart
+  const removeFromCart = (productId: string) => {
+    const newCart = cart.filter(item => item.product.id !== productId);
+    saveCart(newCart);
+    if (newCart.length === 0) {
+      handleRemoveCoupon();
+    }
+  };
+
+  // Update quantity
+  const updateQuantity = (productId: string, delta: number) => {
+    const existingIndex = cart.findIndex(item => item.product.id === productId);
+    if (existingIndex > -1) {
+      const newCart = [...cart];
+      const newQty = newCart[existingIndex].quantity + delta;
+      
+      // Stock check if applicable
+      const product = newCart[existingIndex].product;
+      if (product.inventoryCount !== null && delta > 0 && product.inventoryCount < newQty) {
+        alert(`Only ${product.inventoryCount} items left in stock.`);
+        return;
+      }
+
+      if (newQty <= 0) {
+        newCart.splice(existingIndex, 1);
+      } else {
+        newCart[existingIndex].quantity = newQty;
+      }
+      saveCart(newCart);
+      
+      if (newCart.length === 0) {
+        handleRemoveCoupon();
+      }
+    }
+  };
+
+  // Subtotal in cents
+  const subtotalCents = cart.reduce((acc, item) => acc + (item.product.priceCents * item.quantity), 0);
+
+  // Apply Coupon
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCouponError("");
+    if (!couponCode) return;
+
+    const res = await validateCouponAction(couponCode, subtotalCents);
+    if (res.success && res.coupon && res.discountCents !== undefined) {
+      setAppliedCoupon(res.coupon);
+      setCouponDiscount(res.discountCents);
+    } else {
+      setCouponError(res.error ?? "Invalid coupon code.");
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponCode("");
+    setCouponError("");
+  };
+
+  // Recalculate coupon discount when subtotal changes
+  useEffect(() => {
+    if (appliedCoupon) {
+      let discount = 0;
+      if (appliedCoupon.couponType === "PERCENTAGE") {
+        discount = Math.round((subtotalCents * appliedCoupon.discountValue) / 100);
+      } else {
+        discount = appliedCoupon.discountValue;
+      }
+      setCouponDiscount(Math.min(discount, subtotalCents));
+    }
+  }, [subtotalCents, appliedCoupon]);
+
+  const totalCents = Math.max(0, subtotalCents - couponDiscount);
+
+  // Check if cart contains physical product / ZIP resource
+  const hasPhysicalOrShippingNeed = cart.some(
+    item => item.product.productType === ProductType.DIGITAL_RESOURCE && item.product.inventoryCount !== null
+  );
+
+  // Checkout submission
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCheckoutError("");
+    
+    if (cart.length === 0) {
+      setCheckoutError("Your cart is empty.");
+      return;
+    }
+
+    if (!billingEmail) {
+      setCheckoutError("Please enter your billing email address.");
+      return;
+    }
+
+    if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState)) {
+      setCheckoutError("Please fill out all required shipping fields for products in your cart.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Build shipping metadata if applicable
+    const shippingDetails = hasPhysicalOrShippingNeed ? {
+      fullName,
+      addressLine1,
+      addressLine2,
+      city,
+      state: shippingState,
+      postalCode,
+      country,
+    } : null;
+
+    const res = await createOrderAction({
+      billingEmail,
+      cartItems: cart.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      })),
+      couponCode: appliedCoupon?.code,
+      notes,
+      metadata: {
+        shippingAddress: shippingDetails,
+        shippingStatus: hasPhysicalOrShippingNeed ? "PROCESSING" : "NOT_APPLICABLE",
+      }
+    });
+
+    setIsSubmitting(false);
+
+    if (res.success && res.order) {
+      // Clear cart
+      saveCart([]);
+      handleRemoveCoupon();
+      setIsCartOpen(false);
+      // Redirect to secure payment gateway route
+      router.push(`/checkout/${res.order.id}`);
+    } else {
+      setCheckoutError(res.error ?? "Failed to process checkout. Please try again.");
+    }
+  };
+
+  // Filter products
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = 
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    if (selectedType === "ALL") return matchesSearch;
+    return product.productType === selectedType && matchesSearch;
+  });
+
+  const getProductIcon = (type: ProductType) => {
+    switch (type) {
+      case ProductType.COURSE_ACCESS:
+        return <GraduationCap className="h-4 w-4" />;
+      case ProductType.DIGITAL_RESOURCE:
+        return <Package className="h-4 w-4" />;
+      case ProductType.BUNDLE:
+        return <Archive className="h-4 w-4" />;
+      default:
+        return <Package className="h-4 w-4" />;
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen pb-20">
+      {/* Floating Shopping Cart Trigger */}
+      <div className="fixed bottom-6 right-6 z-30">
+        <Button 
+          onClick={() => setIsCartOpen(true)}
+          className="h-14 w-14 rounded-full shadow-lg bg-amber-500 hover:bg-amber-600 text-background p-0 relative transition-transform hover:scale-105"
+        >
+          <ShoppingCart className="h-6 w-6" />
+          {cart.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground font-bold text-xs h-6 w-6 rounded-full flex items-center justify-center border-2 border-background animate-pulse">
+              {cart.reduce((sum, item) => sum + item.quantity, 0)}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      {/* Modern Jumbotron/Banner */}
+      <div className="relative py-12 md:py-16 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800 text-white">
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: "radial-gradient(circle, #f59e0b 1px, transparent 1px)",
+          backgroundSize: "24px 24px"
+        }} />
+        <Container>
+          <div className="max-w-3xl">
+            <Badge variant="outline" className="border-amber-500/30 text-amber-500 bg-amber-500/[0.05] tracking-wide uppercase px-3 py-1 text-xs">
+              Digital Resources & Materials
+            </Badge>
+            <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-slate-100">
+              The Learning <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500">Store</span>
+            </h1>
+            <p className="mt-4 text-base md:text-lg text-slate-300 leading-relaxed max-w-2xl">
+              Equip your study setup with premium architected design playbooks, complete responsive UI component bundles, full course access passes, and training bundles.
+            </p>
+          </div>
+
+          {/* Interactive Filters Bar */}
+          <div className="mt-10 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "All Items", val: "ALL" },
+                { label: "Course Access", val: ProductType.COURSE_ACCESS },
+                { label: "Digital Guides", val: ProductType.DIGITAL_RESOURCE },
+                { label: "Bundles", val: ProductType.BUNDLE },
+              ].map((item) => (
+                <Button
+                  key={item.val}
+                  variant={selectedType === item.val ? "default" : "outline"}
+                  onClick={() => setSelectedType(item.val)}
+                  size="sm"
+                  className={selectedType === item.val ? "bg-amber-500 hover:bg-amber-600 text-background" : ""}
+                >
+                  {item.label}
+                </Button>
+              ))}
+            </div>
+
+            {/* Search Box */}
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search resources..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+            </div>
+          </div>
+        </Container>
+      </div>
+
+      {/* Catalog Grid */}
+      <Container className="mt-12">
+        {filteredProducts.length === 0 ? (
+          <div className="py-20 text-center border border-dashed border-border rounded-3xl max-w-lg mx-auto px-6">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto opacity-40 mb-4" />
+            <h3 className="text-lg font-semibold">No products found</h3>
+            <p className="text-sm text-muted-foreground mt-2">
+              We couldn't find any active store products matching your filters. Try checking other categories or adjusting search keywords.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map((product) => {
+              const formattedPrice = (product.priceCents / 100).toLocaleString("en-US", {
+                style: "currency",
+                currency: product.currency,
+              });
+
+              return (
+                <Card 
+                  key={product.id}
+                  className="flex flex-col overflow-hidden border border-border/60 shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1 bg-card/60 backdrop-blur-[2px]"
+                >
+                  {/* Card Image */}
+                  <div className="relative aspect-[16/10] bg-muted overflow-hidden">
+                    <img
+                      src={product.coverImageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
+                      alt={product.title}
+                      className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <Badge className="bg-slate-900/90 text-white hover:bg-slate-900 backdrop-blur-sm flex items-center gap-1">
+                        {getProductIcon(product.productType)}
+                        {product.productType.replace("_", " ")}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="flex flex-col flex-1 p-6">
+                    <div className="flex-1 space-y-3">
+                      <h3 className="font-display text-xl font-bold text-foreground leading-tight hover:text-amber-500 transition">
+                        <Link href={`/store/${product.slug}`}>{product.title}</Link>
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {product.description || "Unlock premium architecture designs and tools."}
+                      </p>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Price</span>
+                        <span className="text-2xl font-extrabold text-foreground">{formattedPrice}</span>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          asChild
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-xs text-muted-foreground"
+                        >
+                          <Link href={`/store/${product.slug}`}>Details</Link>
+                        </Button>
+                        <Button 
+                          onClick={() => addToCart(product)}
+                          size="sm"
+                          className="bg-amber-500 hover:bg-amber-600 text-background flex items-center gap-1.5"
+                        >
+                          Add to Cart
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </Container>
+
+      {/* Animated Slide-out Cart & Checkout Drawer */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setIsCartOpen(false)}
+            className="absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity" 
+          />
+
+          {/* Drawer Body */}
+          <div className="relative w-full max-w-md bg-card border-l border-border h-full shadow-2xl flex flex-col z-10 transition-transform duration-300">
+            {/* Drawer Header */}
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5 text-amber-500" />
+                <h2 className="text-lg font-semibold">Your Shopping Cart</h2>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsCartOpen(false)}
+                className="h-8 w-8 rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Drawer Items & Forms (Scrollable container) */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {cart.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-20">
+                  <ShoppingCart className="h-12 w-12 text-muted-foreground opacity-30" />
+                  <h3 className="font-semibold text-lg">Your cart is empty</h3>
+                  <p className="text-sm text-muted-foreground max-w-[250px]">
+                    Browse our items catalog and add playbooks or access vouchers to get started.
+                  </p>
+                  <Button onClick={() => setIsCartOpen(false)} variant="outline" size="sm">
+                    Back to shopping
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Cart Items list */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Cart Items ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h3>
+                    <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden bg-muted/20">
+                      {cart.map((item) => (
+                        <div key={item.product.id} className="p-4 flex gap-4 items-center">
+                          <img
+                            src={item.product.coverImageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
+                            alt={item.product.title}
+                            className="w-12 h-12 object-cover rounded-lg bg-muted flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm text-foreground truncate">{item.product.title}</h4>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {((item.product.priceCents * item.quantity) / 100).toLocaleString("en-US", {
+                                style: "currency",
+                                currency: item.product.currency
+                              })}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => updateQuantity(item.product.id, -1)}
+                              className="h-6 w-6 rounded-full"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="text-sm font-semibold w-4 text-center">{item.quantity}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => updateQuantity(item.product.id, 1)}
+                              className="h-6 w-6 rounded-full"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => removeFromCart(item.product.id)}
+                              className="h-6 w-6 text-destructive/80 hover:text-destructive hover:bg-destructive/5 rounded-full ml-1"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Coupon Code section */}
+                  <div className="space-y-3 pt-4 border-t border-border">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Discount Coupon</h3>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-xl p-3 text-sm">
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <Ticket className="h-4 w-4 text-emerald-500" />
+                          <span>Code: {appliedCoupon.code} Applied</span>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          onClick={handleRemoveCoupon} 
+                          className="h-6 w-6 p-0 text-emerald-600 hover:bg-emerald-500/10 rounded-full"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="PROMOCODE10"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          className="flex-1 bg-background border border-border rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                        <Button type="submit" size="sm" variant="secondary" className="px-3 text-xs">
+                          Apply
+                        </Button>
+                      </form>
+                    )}
+                    {couponError && <p className="text-xs text-destructive">{couponError}</p>}
+                  </div>
+
+                  {/* Checkout Secure Fields */}
+                  <form onSubmit={handleCheckout} className="space-y-4 pt-4 border-t border-border">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Billing & Checkout</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Billing Email (Where keys/receipts go) *</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="name@example.com"
+                          value={billingEmail}
+                          onChange={(e) => setBillingEmail(e.target.value)}
+                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      {/* Render physical shipping address if needed */}
+                      {hasPhysicalOrShippingNeed && (
+                        <div className="space-y-3 p-4 border border-amber-500/20 bg-amber-500/[0.02] rounded-2xl">
+                          <div className="flex items-center gap-1.5 text-amber-600 font-semibold text-xs mb-1 uppercase tracking-wide">
+                            <Package className="h-3.5 w-3.5" />
+                            <span>Shipping Address Required</span>
+                          </div>
+                          
+                          <div>
+                            <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Recipient Full Name *</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="John Doe"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Address Line 1 *</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="Street Name, Apt, Building No."
+                              value={addressLine1}
+                              onChange={(e) => setAddressLine1(e.target.value)}
+                              className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Address Line 2 (Optional)</label>
+                            <input
+                              type="text"
+                              placeholder="Floor, Land Mark, Suite"
+                              value={addressLine2}
+                              onChange={(e) => setAddressLine2(e.target.value)}
+                              className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">City *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Bengaluru"
+                                value={city}
+                                onChange={(e) => setCity(e.target.value)}
+                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">State / Province *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Karnataka"
+                                value={shippingState}
+                                onChange={(e) => setShippingState(e.target.value)}
+                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">PIN / Postal Code *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="560001"
+                                value={postalCode}
+                                onChange={(e) => setPostalCode(e.target.value)}
+                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Country *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="India"
+                                value={country}
+                                onChange={(e) => setCountry(e.target.value)}
+                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Order Notes (Optional)</label>
+                        <textarea
+                          placeholder="Any special instructions for this order..."
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          rows={2}
+                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    {checkoutError && <p className="text-xs text-destructive font-medium">{checkoutError}</p>}
+
+                    {/* Price summary block */}
+                    <div className="space-y-1.5 pt-4 border-t border-border text-sm">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Cart Subtotal</span>
+                        <span>{(subtotalCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
+                      </div>
+                      {couponDiscount > 0 && (
+                        <div className="flex justify-between text-emerald-600 font-medium">
+                          <span>Discount Applied</span>
+                          <span>-{(couponDiscount / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-lg font-extrabold text-foreground pt-2 border-t border-dashed">
+                        <span>Total Price</span>
+                        <span>{(totalCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
+                      </div>
+                    </div>
+
+                    {/* Checkout Button */}
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-background font-bold text-sm flex items-center justify-center gap-1.5 rounded-xl mt-4"
+                    >
+                      <Lock className="h-4 w-4" />
+                      {isSubmitting ? "Generating secure order..." : "Secure Checkout Payment"}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

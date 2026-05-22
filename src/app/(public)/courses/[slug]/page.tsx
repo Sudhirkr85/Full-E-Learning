@@ -9,6 +9,7 @@ import { makeMetadata } from "@/lib/site";
 import { getCurrentUser } from "@/lib/auth";
 import { enrollInCourseAction } from "@/lib/courses/actions";
 import { getLearningCourseOverview } from "@/lib/courses/access";
+import { prisma } from "@/lib/prisma";
 
 type CourseDetailsPageProps = {
   params: Promise<{
@@ -58,6 +59,23 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
   const canOpenLesson = Boolean(overview.continueHref);
   const enrollmentStatus = overview.enrollment?.status;
   const firstLesson = overview.firstLesson;
+
+  const tests = await prisma.test.findMany({
+    where: {
+      courseId: course.id,
+      isPublished: true,
+    },
+    include: {
+      _count: {
+        select: {
+          questions: true,
+        }
+      }
+    },
+    orderBy: { createdAt: "asc" }
+  });
+
+  const standaloneTests = tests.filter((t) => !t.sectionId);
 
   return (
     <section className="py-16 md:py-24">
@@ -156,6 +174,41 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
                     </div>
                   </div>
                 ))}
+
+                {tests.filter((t) => t.sectionId === section.id).map((test) => (
+                  <div key={test.id} className="rounded-xl border border-primary/20 bg-primary/5 p-4 mt-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="space-y-0.5">
+                        <Badge variant="outline" className="text-[10px] capitalize bg-background">{test.type.toLowerCase()}</Badge>
+                        <h3 className="font-semibold text-foreground mt-1 text-sm sm:text-base">
+                          {test.title}
+                        </h3>
+                      </div>
+                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/25 text-xs">
+                        Passing: {test.passingScore}%
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{test.description ?? "Assessment to validate your learnings in this section."}</p>
+                    
+                    <div className="mt-3 flex items-center justify-between gap-4 text-xs text-muted-foreground">
+                      <span>{test._count.questions} questions</span>
+                      
+                      {isEnrolled || isStaff ? (
+                        <Button asChild size="sm" variant="default" className="h-8">
+                          <Link href={`/courses/${course.slug}/tests/${test.slug}`}>
+                            Open Assessment
+                          </Link>
+                        </Button>
+                      ) : currentUser?.role === "STUDENT" ? (
+                        <span className="text-xs text-muted-foreground font-medium">Enroll to unlock assessment.</span>
+                      ) : (
+                        <Button asChild size="sm" variant="outline" className="h-8">
+                          <Link href="/login">Sign in to unlock</Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           ))}
@@ -169,6 +222,52 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
             </CardHeader>
           </Card>
         ) : null}
+
+        {standaloneTests.length > 0 && (
+          <div className="mt-16 space-y-6">
+            <div className="max-w-2xl">
+              <Badge variant="secondary">Exams</Badge>
+              <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight">Course Assessments & Final Exams</h2>
+              <p className="mt-2 text-muted-foreground">Challenge yourself with standalone quizzes, practical mock tests, or final certification exams.</p>
+            </div>
+            
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {standaloneTests.map((test) => (
+                <Card key={test.id} className="hover:border-primary/50 transition-all duration-200 flex flex-col justify-between">
+                  <CardHeader className="p-5 pb-3">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <Badge variant="outline" className="capitalize">{test.type.toLowerCase()}</Badge>
+                      <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/25 text-[10px] h-5 py-0">
+                        Passing: {test.passingScore}%
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-base pt-2 font-semibold">
+                      {test.title}
+                    </CardTitle>
+                    <p className="mt-2 text-xs text-muted-foreground line-clamp-3 leading-relaxed">{test.description ?? "Standalone assessment to validate your global understanding."}</p>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-0 mt-auto border-t border-border/40 bg-muted/10 flex items-center justify-between gap-4 text-xs text-muted-foreground">
+                    <span>{test._count.questions} questions</span>
+                    
+                    {isEnrolled || isStaff ? (
+                      <Button asChild size="sm" className="h-8">
+                        <Link href={`/courses/${course.slug}/tests/${test.slug}`}>
+                          Take Test
+                        </Link>
+                      </Button>
+                    ) : currentUser?.role === "STUDENT" ? (
+                      <span className="text-xs text-muted-foreground">Enroll to unlock</span>
+                    ) : (
+                      <Button asChild size="sm" variant="outline" className="h-8">
+                        <Link href="/login">Sign in</Link>
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
     </section>
   );

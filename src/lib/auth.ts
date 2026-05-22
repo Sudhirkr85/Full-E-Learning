@@ -5,6 +5,10 @@ import { prisma } from "@/lib/prisma";
 
 export type AuthUser = Awaited<ReturnType<typeof getCurrentUser>>;
 
+export async function getSession() {
+  return auth();
+}
+
 export function getDashboardPath(role?: UserRole | null) {
   switch (role) {
     case "ADMIN":

@@ -118,6 +118,16 @@ prisma/
 - Public course pages, student dashboard pages, and lesson player pages all resolve access on the server from the same Prisma data.
 - Progress updates revalidate the public course page, student pages, and lesson pages so the UI reflects state changes immediately after completion actions.
 
+## Premium platform extensions
+
+- **Certificates system**: Automated 100% course progress check with average quiz/exam score calculation. Generates secure, shareable `CERT-[YEAR]-[HEX]` verification codes, and provides a print-ready printable rendering layout alongside a public canonical verification gateway.
+- **Store & Product Catalog**: Fully seeded catalog directory supporting diverse products (`COURSE_ACCESS`, `DIGITAL_RESOURCE`, `BUNDLE`, `MEMBERSHIP`). Leverages dynamic transaction-safe coupon processors, inventory tracking, shopping cart drawers, and billing metadata collections.
+- **Razorpay Payment Gateway**: Real sandbox integration executing server-side signature checks via HMAC-SHA256 webhooks to unblock downloads and grant student course access. Includes an offline fallback sandbox simulator for testing.
+- **Shipping & Manual Tracking**: Collects physical shipping addresses during checkout and gives teachers administrative utilities to dispatch courier details, sending in-app notifications and providing student shipments tracker portals.
+- **In-App Notification Hub**: Mounted tray component featuring a real-time bell drop-down, unread badge, and background polling. Integrates with all platform modules to deliver alerts for enrollments, payments, and tickets.
+- **CRM Support Ticketing desk**: Zendesk/Intercom-inspired CRM split-pane moderating desk for admins and structured ticket thread portals for students. Organizes messages as high-speed serialized JSON arrays in database schemas.
+- **Centralized Audit Logs**: Comprehensive auditing of security-critical actions (publishing tests, updating course states, manual order changes, and certificate generation) storing before/after states for platform compliance.
+
 ## Next step
 
 Copy `.env.example` to `.env`, set `DATABASE_URL` and `AUTH_SECRET`, then run `npm install` and `npm run db:migrate`.

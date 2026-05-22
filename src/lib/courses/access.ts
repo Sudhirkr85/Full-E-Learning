@@ -342,7 +342,8 @@ export async function getStudentCourseEnrollments(userId: string) {
             }
           }
         }
-      }
+      },
+      certificate: true
     }
   });
 }

@@ -5,6 +5,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { mainNav, siteConfig } from "@/lib/site";
 
+import { NotificationHub } from "@/components/notification-hub";
+
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
@@ -23,6 +25,7 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <NotificationHub />
           <div className="md:hidden">
             <details className="relative">
               <summary className="list-none">

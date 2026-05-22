@@ -1,14 +1,27 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { getDashboardPath } from "@/lib/auth";
+import { getToken } from "next-auth/jwt";
+import type { NextRequest } from "next/server";
 
 const protectedPrefixes = ["/dashboard", "/profile", "/student", "/teacher", "/admin"];
 const authPages = ["/login", "/register"];
 
-export default auth((request) => {
+function getDashboardPath(role?: string | null) {
+  switch (role) {
+    case "ADMIN":
+      return "/admin/dashboard";
+    case "TEACHER":
+      return "/teacher/dashboard";
+    default:
+      return "/student/dashboard";
+  }
+}
+
+export default async function middleware(request: NextRequest) {
   const { nextUrl } = request;
-  const isLoggedIn = Boolean(request.auth);
   const pathname = nextUrl.pathname;
+  const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+  const isLoggedIn = Boolean(token);
+  const role = typeof token?.role === "string" ? token.role : null;
 
   if (authPages.some((page) => pathname.startsWith(page)) && isLoggedIn) {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
@@ -24,8 +37,6 @@ export default auth((request) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  const role = request.auth?.user?.role;
-
   if (pathname.startsWith("/student") && role !== "STUDENT") {
     return NextResponse.redirect(new URL(getDashboardPath(role), nextUrl));
   }
@@ -39,7 +50,7 @@ export default auth((request) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/dashboard/:path*", "/profile/:path*", "/student/:path*", "/teacher/:path*", "/admin/:path*", "/login", "/register"]

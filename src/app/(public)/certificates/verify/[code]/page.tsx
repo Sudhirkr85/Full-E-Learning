@@ -8,6 +8,8 @@ import { makeMetadata } from "@/lib/site";
 import { verifyCertificateAction } from "@/lib/certificates/actions";
 import { Award, Calendar, CheckCircle2, ShieldCheck, User, BookOpen, Clock, AlertTriangle, ArrowLeft } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 type VerifyPageProps = {
   params: Promise<{
     code: string;

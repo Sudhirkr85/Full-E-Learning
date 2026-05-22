@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { makeMetadata } from "@/lib/site";
 import { CheckoutClient } from "./checkout-client";
 
+export const dynamic = "force-dynamic";
+
 type CheckoutPageProps = {
   params: Promise<{
     orderId: string;

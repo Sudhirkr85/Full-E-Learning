@@ -21,6 +21,7 @@ export const footerNav = [
 
 export const studentNav = [
   { label: "Overview", href: "/student/dashboard" },
+  { label: "My Profile", href: "/student/profile" },
   { label: "My Courses", href: "/student/courses" },
   { label: "My Orders", href: "/student/orders" },
   { label: "Support Tickets", href: "/student/support" }

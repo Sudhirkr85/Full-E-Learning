@@ -30,9 +30,10 @@ interface MobileDrawerProps {
     role?: "STUDENT" | "TEACHER" | "ADMIN";
   } | null;
   unreadCount: number;
+  onLogoutClick?: () => void;
 }
 
-export function MobileDrawer({ isOpen, onClose, user, unreadCount }: MobileDrawerProps) {
+export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick }: MobileDrawerProps) {
   const pathname = usePathname();
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +58,11 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount }: MobileDrawe
 
   const handleLogout = async () => {
     onClose();
-    await signOut({ callbackUrl: "/" });
+    if (onLogoutClick) {
+      onLogoutClick();
+    } else {
+      await signOut({ callbackUrl: "/" });
+    }
   };
 
   const getInitials = () => {

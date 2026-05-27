@@ -9,6 +9,7 @@ import { Container } from "@/components/ui/container";
 import { NotificationBell } from "./notification-bell";
 import { AvatarDropdown } from "./avatar-dropdown";
 import { MobileDrawer } from "./mobile-drawer";
+import { LogoutModal } from "./logout-modal";
 import { cn } from "@/lib/utils";
 
 interface SiteHeaderClientProps {
@@ -24,6 +25,7 @@ interface SiteHeaderClientProps {
 export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -105,7 +107,7 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
             /* Logged In View (Desktop) */
             <div className="hidden md:flex items-center gap-4">
               <NotificationBell role={user.role} unreadCount={unreadCount} />
-              <AvatarDropdown user={user} />
+              <AvatarDropdown user={user} onLogoutClick={() => setIsLogoutModalOpen(true)} />
             </div>
           ) : (
             /* Public View (Desktop) */
@@ -142,7 +144,11 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
         onClose={() => setIsDrawerOpen(false)}
         user={user}
         unreadCount={unreadCount}
+        onLogoutClick={() => setIsLogoutModalOpen(true)}
       />
+
+      {/* Reusable Logout Confirmation Popup */}
+      <LogoutModal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)} />
     </header>
   );
 }

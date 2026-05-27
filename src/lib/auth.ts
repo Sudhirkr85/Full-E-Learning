@@ -37,6 +37,7 @@ export async function getCurrentUser() {
       firstName: true,
       lastName: true,
       bio: true,
+      phone: true,
       locale: true,
       timezone: true,
       role: true,

@@ -18,6 +18,7 @@ model User {
   firstName           String?
   lastName            String?
   bio                 String?
+  phone               String?
   locale              String?
   timezone            String?
   role                UserRole        @default(STUDENT)

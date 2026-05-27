@@ -25,9 +25,10 @@ interface AvatarDropdownProps {
     image?: string | null;
     role?: "STUDENT" | "TEACHER" | "ADMIN";
   };
+  onLogoutClick?: () => void;
 }
 
-export function AvatarDropdown({ user }: AvatarDropdownProps) {
+export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +47,12 @@ export function AvatarDropdown({ user }: AvatarDropdownProps) {
   }, []);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" });
+    if (onLogoutClick) {
+      setIsOpen(false);
+      onLogoutClick();
+    } else {
+      await signOut({ callbackUrl: "/" });
+    }
   };
 
   // Get user initials for placeholder

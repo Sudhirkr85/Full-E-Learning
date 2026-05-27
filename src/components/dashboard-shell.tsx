@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
-import { ChevronRight, LayoutDashboard, Compass, ReceiptText, ShieldQuestion, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight, LayoutDashboard, Compass, ReceiptText, ShieldQuestion, ArrowLeft, LogOut, UserCircle } from "lucide-react";
+import { LogoutModal } from "@/components/navbar/logout-modal";
 
 type NavItem = {
   label: string;
@@ -21,11 +23,13 @@ type DashboardShellProps = {
 
 export function DashboardShell({ title, description, nav, children }: DashboardShellProps) {
   const pathname = usePathname();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Helper to map icons based on label
   const getNavIcon = (label: string) => {
     const l = label.toLowerCase();
     if (l.includes("overview")) return <LayoutDashboard className="h-4 w-4 shrink-0" />;
+    if (l.includes("profile")) return <UserCircle className="h-4 w-4 shrink-0" />;
     if (l.includes("course")) return <Compass className="h-4 w-4 shrink-0" />;
     if (l.includes("order")) return <ReceiptText className="h-4 w-4 shrink-0" />;
     if (l.includes("ticket") || l.includes("support")) return <ShieldQuestion className="h-4 w-4 shrink-0" />;
@@ -77,6 +81,19 @@ export function DashboardShell({ title, description, nav, children }: DashboardS
                   </Link>
                 );
               })}
+
+              <div className="h-[1px] bg-white/5 my-2" />
+
+              <button
+                onClick={() => setIsLogoutModalOpen(true)}
+                className="w-full rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300 flex items-center justify-between border bg-transparent text-rose-400 border-transparent hover:border-rose-500/10 hover:bg-rose-500/5 hover:text-rose-300"
+              >
+                <span className="flex items-center gap-2.5">
+                  <LogOut className="h-4 w-4 shrink-0 text-rose-500/60" />
+                  Logout
+                </span>
+                <ChevronRight className="h-3 w-3 opacity-60" />
+              </button>
             </nav>
           </aside>
 
@@ -86,6 +103,9 @@ export function DashboardShell({ title, description, nav, children }: DashboardS
           </main>
         </div>
       </Container>
+      
+      {/* Reusable Logout Confirmation Popup */}
+      <LogoutModal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)} />
     </div>
   );
 }

@@ -40,7 +40,7 @@ The application contains the following fully implemented production modules:
     *   **Mobile Responsive Drawer**: Hamburger menu with full side drawer on screens below 768px.
     *   **Notification Bell**: Real-time unread badge for logged-in users.
     *   **Avatar Dropdown**: Role-specific menu with profile, dashboard, and logout actions.
-*   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware.
+*   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
 *   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
 *   **Tests & Quizzes (Assessments)**: Graded exams, practice tests, and quizzes. Supports single-choice, multiple-choice, true/false, and short-answer questions with auto-grading scripts.
@@ -127,6 +127,8 @@ src/
   │   ├── login/             # Secure login server actions
   │   ├── logout/            # Secure session signout actions
   │   ├── register/          # Student registration server actions
+  │   ├── forgot-password/   # Secure forgot-password token request and email actions
+  │   ├── reset-password/    # Secure password update actions with token expiration validation
   │   └── page.tsx           # Immersive high-conversion landing page with cursor HeroGlow
   ├── dashboard/             # Role-based landing router
   ├── globals.css            # Cinematic HSL variables, cyber grids, & 3D tilt styles
@@ -134,7 +136,7 @@ src/
   ├── robots.ts              # Dynamic robots file
   └── sitemap.ts             # Dynamic sitemap indexer
   components/
-  ├── auth/                  # Premium interactive auth client forms (login-form.tsx, register-form.tsx, logout-form.tsx)
+  ├── auth/                  # Premium interactive auth client forms (login-form.tsx, register-form.tsx, logout-form.tsx, forgot-password-form.tsx, reset-password-form.tsx)
   ├── hero/                  # Premium custom landing animations (StarFireflyCanvas.tsx)
   ├── navbar/
   │   ├── mobile-drawer.tsx      # Mobile side drawer with all nav links

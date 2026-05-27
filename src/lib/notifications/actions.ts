@@ -11,7 +11,11 @@ export async function getNotificationsAction() {
   try {
     const session = await getSession();
     if (!session?.user) {
-      throw new Error("Unauthorized.");
+      return {
+        success: true,
+        notifications: [],
+        unreadCount: 0,
+      };
     }
 
     const notifications = await prisma.notification.findMany({

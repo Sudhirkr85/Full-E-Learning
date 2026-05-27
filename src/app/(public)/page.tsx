@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { makeMetadata, siteConfig } from "@/lib/site";
 import { getPublishedCourses } from "@/lib/courses/queries";
+import { StarFireflyCanvas } from "@/components/hero/StarFireflyCanvas";
 
 export const metadata: Metadata = makeMetadata({
   title: "Home",
@@ -90,11 +91,15 @@ export default async function HomePage() {
       <div className="absolute inset-0 bg-grid-cyber -z-20"></div>
 
       {/* 1. HERO SECTION */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden">
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden cursor-none">
         {/* Animated particles subtle overlay */}
         <div className="particles-bg"></div>
+        {/* Night sky twinkling stars & floating fireflies canvas */}
+        <StarFireflyCanvas className="absolute inset-0 w-full h-full z-0 pointer-events-none" />
 
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Content wrapper sitting cleanly above canvas background */}
+        <div className="relative z-10 w-full">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
             {/* LEFT: Outcome-focused Copy */}
             <div className="lg:col-span-7 space-y-6 md:space-y-8 relative z-10 text-left">
@@ -233,7 +238,8 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
       {/* 2. STUDENT TRUST BANNER */}
       <section className="border-y border-white/5 bg-slate-950/40 py-8 relative z-10 backdrop-blur-sm">

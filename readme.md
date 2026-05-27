@@ -61,6 +61,7 @@ The visual identity is based on the **"Premium Futuristic AI EdTech"** aesthetic
 *   **Cyber Blueprint Grids**: Tech-themed background mesh grids (`.bg-grid-cyber`) emulating compiler sandboxes and programming terminals.
 *   **Indian Student UX Focus**: Bright outcome-driven statistics, outcome packages, and clean dark scrollbars that foster deep programmer focus.
 *   **Split-Screen Responsive Auth**: High-conversion double-column layouts on desktop. The left side is a branding panel showing outcome-driven benefits with floating micro-animations, while the right side centers a premium glassmorphic credentials card. Stacks form-first on mobile (360px+) for instant tap access.
+*   **Twinkling Night Sky & Interactive Fireflies Canvas**: An interactive, high-performance Canvas 2D system (`StarFireflyCanvas.tsx`) mounted inside the landing page hero section. Draws 70% twinkling dots and 30% sparkling 4-point cross stars utilizing sine phases, alongside floating violet fireflies with fading position trails. Employs spring physics (base coordinate restoration), cursor attraction/repulsion bounds, custom glowing mouse pointers, and click blast shockwaves. Built with a parent-event bridge that preserves canvas `pointer-events: none` to keep all underlying buttons fully clickable.
 
 ---
 
@@ -119,17 +120,19 @@ src/
   │   ├── courses/           # Public catalog and syllabus detail viewports
   │   ├── store/             # Digital products catalog shop
   │   ├── login/             # Secure login server actions
+  │   ├── logout/            # Secure session signout actions
   │   ├── register/          # Student registration server actions
-  │   └── page.tsx           # Immersive high-conversion cyber landing page
+  │   └── page.tsx           # Immersive high-conversion landing page with cursor HeroGlow
   ├── dashboard/             # Role-based landing router
   ├── globals.css            # Cinematic HSL variables, cyber grids, & 3D tilt styles
   ├── layout.tsx             # Theme and Font loaders
   ├── robots.ts              # Dynamic robots file
   └── sitemap.ts             # Dynamic sitemap indexer
   components/
-  ├── auth/                  # Premium interactive auth client forms (login-form.tsx, register-form.tsx)
-  ├── ui/                    # Reusable visual components (button, card, input, badges)
-  ├── site-header.tsx        # Translucent floating header bar
+  ├── auth/                  # Premium interactive auth client forms (login-form.tsx, register-form.tsx, logout-form.tsx)
+  ├── hero/                  # Premium custom landing animations (StarFireflyCanvas.tsx)
+  ├── ui/                    # Reusable components & glow effect controls (hero-glow.tsx, button, card)
+  ├── site-header.tsx        # Minimal premium header bar (Logo, Links, CTA only)
   ├── site-footer.tsx        # Unified brand outcomes footer
   └── dashboard-shell.tsx    # Sidebar layout shell for dashboards
   lib/

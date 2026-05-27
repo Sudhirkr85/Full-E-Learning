@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-background text-foreground`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { withRetry } from "@/lib/db";
 
 const placeholderDatabaseUrls = new Set([
   "postgresql://postgres:postgres@localhost:5432/e_learning?schema=public",
@@ -115,14 +116,16 @@ export async function getPublishedCourseSlugs() {
   }
 
   try {
-    return await prisma.course.findMany({
-      where: { status: "PUBLISHED" },
-      select: {
-        slug: true,
-        updatedAt: true
-      },
-      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
-    });
+    return await withRetry(() =>
+      prisma.course.findMany({
+        where: { status: "PUBLISHED" },
+        select: {
+          slug: true,
+          updatedAt: true
+        },
+        orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
+      })
+    );
   } catch {
     return [];
   }
@@ -134,24 +137,26 @@ export async function getPublishedCourses(categorySlug?: string) {
   }
 
   try {
-    return await prisma.course.findMany({
-      where: {
-        status: "PUBLISHED",
-        ...(categorySlug
-          ? {
-              categories: {
-                some: {
-                  category: {
-                    slug: categorySlug
+    return await withRetry(() =>
+      prisma.course.findMany({
+        where: {
+          status: "PUBLISHED",
+          ...(categorySlug
+            ? {
+                categories: {
+                  some: {
+                    category: {
+                      slug: categorySlug
+                    }
                   }
                 }
               }
-            }
-          : {})
-      },
-      select: coursePreviewSelect,
-      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
-    });
+            : {})
+        },
+        select: coursePreviewSelect,
+        orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }]
+      })
+    );
   } catch {
     return [];
   }
@@ -163,10 +168,12 @@ export async function getPublishedCourseBySlug(slug: string) {
   }
 
   try {
-    return await prisma.course.findFirst({
-      where: { slug, status: "PUBLISHED" },
-      select: courseDetailSelect
-    });
+    return await withRetry(() =>
+      prisma.course.findFirst({
+        where: { slug, status: "PUBLISHED" },
+        select: courseDetailSelect
+      })
+    );
   } catch {
     return null;
   }

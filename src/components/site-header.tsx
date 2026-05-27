@@ -1,13 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { Menu, Zap } from "lucide-react";
+import { Menu, X, Zap } from "lucide-react";
+import { useState } from "react";
 import { Container } from "@/components/ui/container";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { mainNav, siteConfig } from "@/lib/site";
 
-import { NotificationHub } from "@/components/notification-hub";
-
 export function SiteHeader() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#030712]/80 backdrop-blur-md supports-[backdrop-filter]:bg-[#030712]/60">
       <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
@@ -37,26 +39,32 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <NotificationHub />
-          
           <Button asChild className="hidden sm:inline-flex bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-medium hover:from-indigo-500 hover:to-cyan-500 rounded-xl shadow-[0_4px_20px_-4px_rgba(99,102,241,0.4)] border border-white/10 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] py-2 px-4 h-9">
             <Link href="/register">Get Started</Link>
           </Button>
 
           <div className="md:hidden">
-            <details className="relative">
-              <summary className="list-none">
-                <Button type="button" variant="outline" size="icon" aria-label="Open navigation" className="rounded-xl border-white/10 bg-slate-900/50 hover:bg-slate-900 text-slate-300">
-                  <Menu className="h-4 w-4" />
-                </Button>
-              </summary>
-              <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-white/10 bg-[#0d1224] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            <div className="relative">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}
+                aria-expanded={isMenuOpen}
+                onClick={() => setIsMenuOpen((current) => !current)}
+                className="rounded-xl border-white/10 bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+              >
+                {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              </Button>
+
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-3 w-[min(14rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-[#0d1224] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                 <nav className="flex flex-col gap-1">
                   {mainNav.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={() => setIsMenuOpen(false)}
                       className="rounded-xl px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200"
                     >
                       {item.label}
@@ -65,13 +73,15 @@ export function SiteHeader() {
                   <div className="h-[1px] bg-white/5 my-1"></div>
                   <Link
                     href="/register"
+                    onClick={() => setIsMenuOpen(false)}
                     className="rounded-xl px-3 py-2 text-sm font-semibold text-center text-white bg-indigo-600 hover:bg-indigo-500 transition-all duration-200"
                   >
                     Get Started
                   </Link>
                 </nav>
               </div>
-            </details>
+              )}
+            </div>
           </div>
         </div>
       </Container>

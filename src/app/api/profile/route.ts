@@ -8,8 +8,7 @@ const profileSchema = z.object({
   firstName: z.string().max(50).optional().nullable(),
   lastName: z.string().max(50).optional().nullable(),
   email: z.string().email("Invalid email address"),
-  phone: z.string().max(20).optional().nullable(),
-  bio: z.string().max(500).optional().nullable()
+  phone: z.string().max(20).optional().nullable()
 });
 
 export async function PUT(request: Request) {
@@ -30,7 +29,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { name, firstName, lastName, email, phone, bio } = parsed.data;
+    const { name, firstName, lastName, email, phone } = parsed.data;
 
     // Check if email is already taken by another user
     if (email !== session.user.email) {
@@ -54,8 +53,7 @@ export async function PUT(request: Request) {
         firstName: firstName || null,
         lastName: lastName || null,
         email,
-        phone: phone || null,
-        bio: bio || null
+        phone: phone || null
       },
       select: {
         id: true,
@@ -64,7 +62,6 @@ export async function PUT(request: Request) {
         lastName: true,
         email: true,
         phone: true,
-        bio: true,
         image: true,
         role: true,
         createdAt: true

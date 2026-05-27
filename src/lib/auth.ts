@@ -36,7 +36,6 @@ export async function getCurrentUser() {
       image: true,
       firstName: true,
       lastName: true,
-      bio: true,
       phone: true,
       locale: true,
       timezone: true,

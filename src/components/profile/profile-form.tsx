@@ -7,7 +7,6 @@ import {
   User, 
   Mail, 
   Phone, 
-  FileText, 
   Save, 
   Loader2, 
   CheckCircle2, 
@@ -24,7 +23,6 @@ type ProfileData = {
   lastName: string | null;
   email: string;
   phone: string | null;
-  bio: string | null;
   image: string | null;
   role: string;
   createdAt: string;
@@ -51,11 +49,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
     firstName: user.firstName ?? "",
     lastName: user.lastName ?? "",
     email: user.email,
-    phone: user.phone ?? "",
-    bio: user.bio ?? ""
+    phone: user.phone ?? ""
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (status !== "idle") setStatus("idle");
   };
@@ -67,8 +64,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
       firstName: user.firstName ?? "",
       lastName: user.lastName ?? "",
       email: user.email,
-      phone: user.phone ?? "",
-      bio: user.bio ?? ""
+      phone: user.phone ?? ""
     });
     setStatus("idle");
     setErrorMessage("");
@@ -427,31 +423,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
               )}
             </div>
 
-            {/* Bio (full width) */}
-            <div className="space-y-2 sm:col-span-2">
-              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <FileText className="h-3 w-3" />
-                Bio
-              </label>
-              {isEditing ? (
-                <textarea
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  rows={3}
-                  maxLength={500}
-                  placeholder="Tell us about yourself..."
-                  className="flex w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white ring-offset-background placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500/50 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                />
-              ) : (
-                <p className="text-sm text-white font-medium py-2.5 px-4 rounded-xl bg-white/[0.02] border border-white/5 min-h-[60px]">
-                  {formData.bio || <span className="text-slate-500 italic">No bio added yet</span>}
-                </p>
-              )}
-              {isEditing && (
-                <p className="text-[10px] text-slate-500 text-right">{formData.bio.length}/500</p>
-              )}
-            </div>
+
           </div>
 
           {/* Save Button */}

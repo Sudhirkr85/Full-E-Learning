@@ -54,7 +54,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             isActive: true,
             firstName: true,
             lastName: true,
-            bio: true,
             locale: true,
             timezone: true
           }
@@ -141,7 +140,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             image: true,
             firstName: true,
             lastName: true,
-            bio: true,
             locale: true,
             timezone: true
           }
@@ -154,7 +152,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.picture = dbUser.image;
           token.firstName = dbUser.firstName;
           token.lastName = dbUser.lastName;
-          token.bio = dbUser.bio;
           token.locale = dbUser.locale;
           token.timezone = dbUser.timezone;
         }
@@ -168,7 +165,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = (token.role as UserRole | undefined) ?? session.user.role;
         session.user.firstName = (token.firstName as string | null | undefined) ?? undefined;
         session.user.lastName = (token.lastName as string | null | undefined) ?? undefined;
-        session.user.bio = (token.bio as string | null | undefined) ?? undefined;
         session.user.locale = (token.locale as string | null | undefined) ?? undefined;
         session.user.timezone = (token.timezone as string | null | undefined) ?? undefined;
       }

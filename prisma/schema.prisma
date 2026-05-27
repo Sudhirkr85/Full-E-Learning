@@ -17,7 +17,6 @@ model User {
   passwordHash        String
   firstName           String?
   lastName            String?
-  bio                 String?
   phone               String?
   locale              String?
   timezone            String?

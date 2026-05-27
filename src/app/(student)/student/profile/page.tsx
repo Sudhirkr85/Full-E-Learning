@@ -19,7 +19,6 @@ export default async function StudentProfilePage() {
     lastName: user.lastName,
     email: user.email,
     phone: user.phone,
-    bio: user.bio,
     image: user.image,
     role: user.role,
     createdAt: user.createdAt.toISOString()

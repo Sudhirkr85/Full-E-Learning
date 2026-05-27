@@ -50,7 +50,7 @@ The application contains the following fully implemented production modules:
 *   **Shipping & Manual Dispatch Desk**: Admin tools to collect physical shipping addresses, update courier tracking numbers, and send tracking links to students.
 *   **In-App Notification Hub**: Real-time sidebar tray displaying alerts for new enrollments, coupon usages, support ticket replies, and completed checkouts.
 *   **CRM Support Desk**: Ticket submission desks for students and an advanced split-pane ticket workspace for administrators, using JSON array fields for fast serialized message storage.
-*   **Student Profile Management**: Premium profile page where students can view and edit their personal information (display name, first/last name, email, mobile number, bio) with view/edit toggle, animated status feedback, and secure server-side validation via the `/api/profile` route.
+*   **Student Profile Management**: Premium profile page where students can view and edit their personal information (display name, first/last name, email, mobile number) with view/edit toggle, animated status feedback, and secure server-side validation via the `/api/profile` route.
 *   **Centralized Audit Logs**: Comprehensive auditing of security-critical actions (manual course updates, certificate generation, test releases) storing before/after states.
 *   **Email System**: REST email client utilizing Brevo's API. Dispatches fully responsive welcome letters, order invoices, and password reset codes.
 *   **SEO Optimization Engine**: Dynamically compiled robots.ts, sitemap.ts, semantic HTML5, and unique browser tags.

@@ -72,7 +72,6 @@ CREATE TABLE "users" (
     "firstName" TEXT,
     "lastName" TEXT,
     "avatarUrl" TEXT,
-    "bio" TEXT,
     "locale" TEXT,
     "timezone" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'STUDENT',

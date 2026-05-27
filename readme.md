@@ -60,6 +60,7 @@ The visual identity is based on the **"Premium Futuristic AI EdTech"** aesthetic
 *   **Soft 3D Cards**: An optimized, hardware-accelerated CSS hover transformer (`.soft-3d-card`) that provides dynamic 3D tilt adjustments, vertical translation, and custom shadow offsets. Highly responsive on mid-range Android viewports.
 *   **Cyber Blueprint Grids**: Tech-themed background mesh grids (`.bg-grid-cyber`) emulating compiler sandboxes and programming terminals.
 *   **Indian Student UX Focus**: Bright outcome-driven statistics, outcome packages, and clean dark scrollbars that foster deep programmer focus.
+*   **Split-Screen Responsive Auth**: High-conversion double-column layouts on desktop. The left side is a branding panel showing outcome-driven benefits with floating micro-animations, while the right side centers a premium glassmorphic credentials card. Stacks form-first on mobile (360px+) for instant tap access.
 
 ---
 
@@ -126,6 +127,7 @@ src/
   ├── robots.ts              # Dynamic robots file
   └── sitemap.ts             # Dynamic sitemap indexer
   components/
+  ├── auth/                  # Premium interactive auth client forms (login-form.tsx, register-form.tsx)
   ├── ui/                    # Reusable visual components (button, card, input, badges)
   ├── site-header.tsx        # Translucent floating header bar
   ├── site-footer.tsx        # Unified brand outcomes footer
@@ -196,9 +198,15 @@ erDiagram
 
 ## 8. Authentication & Roles
 
-Authentication is powered by **Auth.js (v5)**, **bcryptjs**, and **OAuth 2.0 Integration**:
+Authentication is powered by **Auth.js (v5)**, **bcryptjs**, and **OAuth 2.0 Integration**, keeping all access controls strictly **email-only** to ensure stable production flows:
 
-*   **Credentials Login**: Custom username/password verification. Matches against salted hashes in the PostgreSQL database.
+*   **Credentials Login (Email-Only)**: Secure, verified username/password authentication matching salted bcrypt hashes in the PostgreSQL database.
+    *   *Hybrid Server/Client Layout*: Main parent `page.tsx` endpoints remain lightweight React Server Components for SEO and fast loading, while form rendering is handled by interactive Client Components (`LoginForm` and `RegisterForm`).
+    *   *Interactive Form Controls*: 
+        *   **Real-time Password Strength Meter**: Evaluates length, digit inclusion, casing variations, and special symbols to display a 4-stage visual color bar (Weak, Fair, Good, Strong) in real-time.
+        *   **Passwords Match Visualizer**: Compares fields dynamically to prevent submissions when confirm password fails.
+        *   **Plaintext Toggle Toggles**: Integrated show/hide eye icons on password inputs.
+        *   **Isolated Transitions Hooks**: Utilizes React `useTransition` hooks to run login actions asynchronously, showing custom button loading spinners and disabling interactive elements to prevent multi-submit conflicts.
 *   **Google & GitHub OAuth**: Fast, secure, one-click login utilizing Google and GitHub OAuth 2.0 credentials.
 *   **Account Linking & Security**:
     *   Supports safe automatic account linking on matching verified email addresses (`allowDangerousEmailAccountLinking: true`), linking third-party logins with existing email/password records cleanly.

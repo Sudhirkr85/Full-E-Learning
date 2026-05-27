@@ -91,7 +91,7 @@ export default async function HomePage() {
       <div className="absolute inset-0 bg-grid-cyber -z-20"></div>
 
       {/* 1. HERO SECTION */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden cursor-none">
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden">
         {/* Animated particles subtle overlay */}
         <div className="particles-bg"></div>
         {/* Night sky twinkling stars & floating fireflies canvas */}

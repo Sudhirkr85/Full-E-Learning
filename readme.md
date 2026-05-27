@@ -35,6 +35,11 @@ The architecture leverages modern, industry-standard technologies selected for p
 
 The application contains the following fully implemented production modules:
 
+*   **Navbar & Navigation**:
+    *   **Role-Based Navigation**: Public, Student, Teacher, and Admin navbar states with dynamic link rendering based on Auth.js session role.
+    *   **Mobile Responsive Drawer**: Hamburger menu with full side drawer on screens below 768px.
+    *   **Notification Bell**: Real-time unread badge for logged-in users.
+    *   **Avatar Dropdown**: Role-specific menu with profile, dashboard, and logout actions.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware.
 *   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
@@ -131,8 +136,12 @@ src/
   components/
   ├── auth/                  # Premium interactive auth client forms (login-form.tsx, register-form.tsx, logout-form.tsx)
   ├── hero/                  # Premium custom landing animations (StarFireflyCanvas.tsx)
+  ├── navbar/
+  │   ├── mobile-drawer.tsx      # Mobile side drawer with all nav links
+  │   ├── avatar-dropdown.tsx    # User avatar with role-based dropdown
+  │   └── notification-bell.tsx  # Bell icon with unread count badge
   ├── ui/                    # Reusable components & glow effect controls (hero-glow.tsx, button, card)
-  ├── site-header.tsx        # Minimal premium header bar (Logo, Links, CTA only)
+  ├── site-header.tsx        # Role-based responsive header bar
   ├── site-footer.tsx        # Unified brand outcomes footer
   └── dashboard-shell.tsx    # Sidebar layout shell for dashboards
   lib/

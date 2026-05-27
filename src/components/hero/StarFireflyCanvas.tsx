@@ -199,9 +199,6 @@ export function StarFireflyCanvas({ className }: StarFireflyCanvasProps) {
     parent.addEventListener("mouseleave", handleMouseLeave);
     parent.addEventListener("mousedown", handleMouseDown);
 
-    // Hide default cursor inside hero div only (dynamically injected for ease)
-    parent.style.cursor = "none";
-
     // Main animation 60fps render loop
     const render = () => {
       const W = canvas.width;
@@ -364,25 +361,6 @@ export function StarFireflyCanvas({ className }: StarFireflyCanvasProps) {
         ctx.fill();
       });
 
-      // --- 3. DRAW CUSTOM CURSOR (Desktop only) ---
-      if (!isMobile && mouse.isInside) {
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "rgba(127, 119, 221, 0.8)";
-        ctx.strokeStyle = "#AFA9EC";
-        ctx.fillStyle = "rgba(127, 119, 221, 0.25)";
-        ctx.lineWidth = 1.5;
-        
-        ctx.beginPath();
-        ctx.moveTo(mouse.x, mouse.y);
-        ctx.lineTo(mouse.x + 10, mouse.y + 17);
-        ctx.lineTo(mouse.x + 3, mouse.y + 13);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        
-        ctx.shadowBlur = 0;
-      }
-
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -396,7 +374,6 @@ export function StarFireflyCanvas({ className }: StarFireflyCanvasProps) {
       parent.removeEventListener("mouseenter", handleMouseEnter);
       parent.removeEventListener("mouseleave", handleMouseLeave);
       parent.removeEventListener("mousedown", handleMouseDown);
-      parent.style.cursor = "default";
       cancelAnimationFrame(animationFrameId);
     };
   }, []);

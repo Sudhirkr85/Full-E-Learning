@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -13,7 +13,9 @@ import {
   CheckCircle2, 
   AlertCircle,
   Pencil,
-  X
+  X,
+  Camera,
+  Upload
 } from "lucide-react";
 
 type ProfileData = {
@@ -37,6 +39,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Avatar upload state
+  const [avatarUrl, setAvatarUrl] = useState(user.image);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: user.name ?? "",
@@ -64,6 +72,68 @@ export function ProfileForm({ user }: ProfileFormProps) {
     });
     setStatus("idle");
     setErrorMessage("");
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate on client side
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setStatus("error");
+      setErrorMessage("Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setStatus("error");
+      setErrorMessage("File too large. Maximum size is 5 MB.");
+      return;
+    }
+
+    // Show instant preview
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+    setIsUploadingAvatar(true);
+    setStatus("idle");
+    setErrorMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await fetch("/api/profile/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setStatus("error");
+        setErrorMessage(data.error || "Failed to upload avatar.");
+        setAvatarPreview(null);
+        return;
+      }
+
+      const data = await res.json();
+      setAvatarUrl(data.image);
+      setAvatarPreview(null);
+      setStatus("success");
+      setTimeout(() => setStatus("idle"), 4000);
+    } catch {
+      setStatus("error");
+      setErrorMessage("Network error. Could not upload avatar.");
+      setAvatarPreview(null);
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset input so same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -105,9 +175,20 @@ export function ProfileForm({ user }: ProfileFormProps) {
   });
 
   const initials = (user.name ?? user.email).slice(0, 2).toUpperCase();
+  const displayImage = avatarPreview ?? avatarUrl;
 
   return (
     <div className="space-y-8">
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        onChange={handleAvatarChange}
+        className="hidden"
+        aria-label="Upload profile picture"
+      />
+
       {/* Profile Header Card */}
       <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br from-[#0a0f24] to-[#040715] p-6">
         {/* Ambient Glow */}
@@ -115,20 +196,62 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <div className="absolute left-0 bottom-0 -z-10 h-32 w-32 rounded-full bg-cyan-500/5 blur-2xl"></div>
 
         <div className="flex flex-col sm:flex-row items-center gap-5">
-          {/* Avatar */}
-          {user.image ? (
-            <img
-              src={user.image}
-              alt={user.name ?? "Profile"}
-              className="h-20 w-20 rounded-2xl border-2 border-indigo-500/20 object-cover shadow-[0_0_20px_rgba(99,102,241,0.15)]"
-            />
-          ) : (
-            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-cyan-600 flex items-center justify-center text-white text-2xl font-extrabold shadow-[0_0_20px_rgba(99,102,241,0.2)] border border-white/10">
-              {initials}
-            </div>
-          )}
+          {/* Avatar with Upload Overlay */}
+          <div className="relative group shrink-0">
+            <button
+              type="button"
+              onClick={handleAvatarClick}
+              disabled={isUploadingAvatar}
+              className="relative block h-24 w-24 rounded-2xl overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0f24] transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+              aria-label="Change profile picture"
+            >
+              {/* Image or Initials */}
+              {displayImage ? (
+                <img
+                  src={displayImage}
+                  alt={user.name ?? "Profile"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-indigo-600 to-cyan-600 flex items-center justify-center text-white text-2xl font-extrabold">
+                  {initials}
+                </div>
+              )}
 
-          <div className="text-center sm:text-left space-y-1.5">
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                ) : (
+                  <>
+                    <Camera className="h-5 w-5 text-white mb-1" />
+                    <span className="text-[9px] font-bold text-white/90 uppercase tracking-wider">Change</span>
+                  </>
+                )}
+              </div>
+
+              {/* Upload spinner overlay (always visible during upload) */}
+              {isUploadingAvatar && (
+                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                  <span className="text-[9px] font-bold text-white/80 uppercase tracking-wider mt-1">Uploading</span>
+                </div>
+              )}
+            </button>
+
+            {/* Decorative border ring */}
+            <div className="absolute -inset-[3px] rounded-2xl border-2 border-indigo-500/20 pointer-events-none"></div>
+
+            {/* Glow effect */}
+            <div className="absolute -inset-2 rounded-3xl bg-indigo-500/5 blur-xl -z-10"></div>
+
+            {/* Upload badge icon */}
+            <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-600 to-cyan-600 flex items-center justify-center border-2 border-[#0a0f24] shadow-lg group-hover:scale-110 transition-transform duration-200">
+              <Upload className="h-3 w-3 text-white" />
+            </div>
+          </div>
+
+          <div className="text-center sm:text-left space-y-1.5 flex-1 min-w-0">
             <h2 className="text-xl font-extrabold text-white font-display tracking-tight">
               {user.name ?? user.email}
             </h2>
@@ -141,6 +264,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 Member since {memberSince}
               </span>
             </div>
+            <p className="text-[10px] text-slate-500 mt-1">
+              Click avatar to upload a new photo · Max 5 MB · JPEG, PNG, WebP, GIF
+            </p>
           </div>
 
           {/* Edit / Cancel Button */}

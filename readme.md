@@ -146,8 +146,9 @@ src/
   ├── tests/                 # Quiz compiler and grading actions
   ├── auth.ts                # Auth.js credentials login verification
   ├── auth-schemas.ts        # Authentication input validation schemas
+  ├── db.ts                  # Neon PostgreSQL connection drop retry helper (withRetry)
   ├── password.ts            # Salted bcryptjs hasher
-  ├── prisma.ts              # Prisma Database client connection helper
+  ├── prisma.ts              # Prisma Database client singleton helper (hot-reload safe)
   ├── razorpay.ts            # Razorpay sandbox client wrapper
   ├── site.ts                # Shared SEO keywords and metadata configurations
   └── utils.ts               # Class merger utility
@@ -196,6 +197,14 @@ erDiagram
 *   **`SupportTicket`**: Tracks CRM messages. Utilizes JSON serialization for real-time thread updates.
 *   **`Certificate`**: Represents cryptographic certificates (`CERT-[YEAR]-[HEX]`) mapping direct scores, issued dates, and verification routes.
 *   **`AuditLog`**: Logs CREATE, UPDATE, DELETE, PUBLISH, and ARCHIVE events across entities.
+
+### Neon PostgreSQL Auto-Pause & Connection Reliability Architecture
+To prevent database connection drops and Neon free tier connection threshold limits (max 10 connections) in serverless/hot-reloaded Next.js environments, we implemented a robust, multi-layer database safety architecture:
+1.  **Dual Connection Paths (pgbouncer vs. Direct)**:
+    *   **Pooled connection (`DATABASE_URL`)**: Connects via Neon's `-pooler` subdomain using pgBouncer. Configured with query-string parameters `pgbouncer=true`, `connect_timeout=15`, and `pool_timeout=15` to manage high-concurrency runtime queries cleanly.
+    *   **Direct connection (`DIRECT_URL`)**: Connects directly to the PostgreSQL node without a pooler, used strictly by Prisma to run schema migrations (`npx prisma migrate dev`) and schema introspections (`npx prisma db pull`).
+2.  **Next.js Hot-Reload Safe Singleton (`prisma.ts`)**: Encapsulates the `PrismaClient` in a global object wrapper. This prevents Next.js from creating a new database connection instance on every dev-server hot-reload compilation, completely eliminating database connection exhaustion.
+3.  **Linear Backoff Connection Retry Wrapper (`withRetry`)**: Creates a resilient query execution utility (`src/lib/db.ts`) that intercepts transient connection termination codes (like `57P01` or pgBouncer pool timeouts caused by Neon's cold-start wake-up latency) and automatically retries database queries with a linear backoff delay (`delay * (iteration + 1)`), restoring page loading continuity.
 
 ---
 

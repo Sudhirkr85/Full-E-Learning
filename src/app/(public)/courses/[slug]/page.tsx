@@ -1,11 +1,11 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
+import { EnrollButton } from "./enroll-button";
 import { makeMetadata } from "@/lib/site";
-import { enrollInCourseAction } from "@/lib/courses/actions";
 import { prisma } from "@/lib/prisma";
 import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, UserCircle2 } from "lucide-react";
 import { CourseDetailClient } from "./course-detail-client";
@@ -121,6 +121,13 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
       })
     : null;
 
+  const dbUser = session?.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { phone: true, email: true, name: true }
+      })
+    : null;
+
   const isEnrolled = Boolean(enrollment);
   const price = course.priceCents ? Math.round(course.priceCents / 100) : 0;
 
@@ -211,20 +218,21 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
             </div>
 
             {!session?.user ? (
-              <Button size="lg" className="w-full" asChild>
+              <Button size="lg" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl" asChild>
                 <Link href="/login">Login to Enroll</Link>
               </Button>
-            ) : isEnrolled ? (
-              <Button size="lg" className="w-full" asChild>
-                <Link href={`/student/courses/${course.slug}`}>Continue Learning</Link>
-              </Button>
             ) : (
-              <form action={enrollInCourseAction} className="w-full">
-                <input type="hidden" name="courseId" value={course.id} />
-                <Button size="lg" className="w-full" type="submit">
-                  {price === 0 ? "Start Learning for Free" : `Enroll Now — ₹${price.toLocaleString("en-IN")}`}
-                </Button>
-              </form>
+              <EnrollButton
+                courseId={course.id}
+                coursePrice={price}
+                courseName={course.title}
+                courseSlug={course.slug}
+                isEnrolled={isEnrolled}
+                isFree={price === 0}
+                userPhone={dbUser?.phone || ""}
+                userEmail={dbUser?.email || session.user.email || ""}
+                userName={dbUser?.name || session.user.name || ""}
+              />
             )}
 
             <div className="flex flex-col gap-2 text-sm text-muted-foreground border-t pt-4 mt-2">

@@ -13,6 +13,9 @@ export async function getProductsAction(filters?: {
   try {
     const whereClause: any = {
       status: ProductStatus.ACTIVE,
+      productType: {
+        in: ["DIGITAL_RESOURCE", "PHYSICAL"]
+      }
     };
 
     if (filters?.productType) {

@@ -19,6 +19,11 @@ export default async function AdminStorePage() {
 
   // Fetch products
   const products = await prisma.product.findMany({
+    where: {
+      productType: {
+        in: ["DIGITAL_RESOURCE", "PHYSICAL"]
+      }
+    },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

@@ -27,13 +27,21 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
     setProducts(initialProducts);
   }
 
-  const handleDelete = async (productId: string) => {
-    if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
-    setLoadingProductId(productId);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (productId: string) => {
+    setProductToDelete(productId);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+    const targetId = productToDelete;
+    setProductToDelete(null);
+    setLoadingProductId(targetId);
     try {
-      const res = await deleteProductAction(productId);
+      const res = await deleteProductAction(targetId);
       if (res.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== productId));
+        setProducts((prev) => prev.filter((p) => p.id !== targetId));
         router.refresh();
       }
     } catch (err) {
@@ -216,7 +224,7 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
 
                           {/* Delete button */}
                           <Button
-                            onClick={() => handleDelete(product.id)}
+                            onClick={() => handleDeleteClick(product.id)}
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-400 text-slate-400"
@@ -231,6 +239,43 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Centered Glassmorphic Confirmation Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#090d20] border border-red-500/20 rounded-2xl p-6 w-full max-w-md shadow-[0_0_50px_rgba(239,68,68,0.15)] relative animate-in fade-in zoom-in duration-200 text-left overflow-hidden">
+            {/* Top red laser glow bar */}
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent" />
+            
+            <h3 className="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-red-500 animate-ping inline-block" />
+              Delete Product Offering?
+            </h3>
+            
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+              Are you sure you want to delete this product? This action is permanent, completely clears the product details, and cannot be undone.
+            </p>
+            
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setProductToDelete(null)}
+                className="flex-1 rounded-xl h-11 border-slate-800 hover:bg-slate-900 bg-transparent text-sm font-semibold text-slate-300 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={confirmDelete}
+                className="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl h-11 text-sm shadow-[0_0_15px_rgba(239,68,68,0.25)] border-0"
+              >
+                Delete Offering
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -18,6 +18,7 @@ import {
   toggleCourseStatusAction,
   updateCourseAction
 } from "@/lib/courses/actions";
+import { BannerUploadField } from "@/components/courses/banner-upload-field";
 
 type CourseEditorPageProps = {
   params: Promise<{
@@ -215,15 +216,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Cover image URL</label>
-                <Input 
-                  name="coverImageUrl" 
-                  defaultValue={course.coverImageUrl ?? ""} 
-                  placeholder="Cover image URL" 
-                  className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs" 
-                />
-              </div>
+              <BannerUploadField initialImageUrl={course.coverImageUrl} courseTitle={course.title} />
 
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl">

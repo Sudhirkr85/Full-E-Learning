@@ -5,6 +5,8 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { Container } from "@/components/ui/container";
 import { makeMetadata } from "@/lib/site";
 import { getCourseCategories, getPublishedCourses } from "@/lib/courses/queries";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = makeMetadata({
   title: "Courses",
@@ -35,7 +37,19 @@ function categoryGradient(categoryName?: string) {
 
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   const params = searchParams ? await searchParams : undefined;
-  const [courses, categories] = await Promise.all([getPublishedCourses(params?.category), getCourseCategories()]);
+  const session = await auth();
+  const [courses, categories, enrolledCourseIds] = await Promise.all([
+    getPublishedCourses(params?.category),
+    getCourseCategories(),
+    session?.user
+      ? prisma.enrollment
+          .findMany({
+            where: { userId: session.user.id, status: "ACTIVE" },
+            select: { courseId: true }
+          })
+          .then((e) => e.map((x) => x.courseId))
+      : Promise.resolve([] as string[])
+  ]);
 
   return (
     <section className="py-16 md:py-24">
@@ -61,6 +75,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
             courses.map((course) => {
               const categoryName = course.categories[0]?.category.name;
               const teacherName = course.teachers[0]?.teacher.name ?? "Unknown Teacher";
+              const isEnrolled = enrolledCourseIds.includes(course.id);
               const sectionsCount = (course as { sections?: Array<{ id: string }>; _count: { sections: number } }).sections?.length ?? course._count.sections;
               const shortDescription = course.subtitle ?? course.excerpt ?? course.description;
               const price = course.priceCents !== null ? Math.round(course.priceCents / 100) : 0;
@@ -96,7 +111,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                     </span>
                   </div>
 
-                  <div className="flex h-full flex-col gap-3 p-4">
+                  <div className="flex flex-col gap-3 p-4">
                     <h3 className="line-clamp-2 text-base font-semibold">{course.title}</h3>
                     <p className="line-clamp-2 text-sm text-muted-foreground">{shortDescription ?? "Published course ready for enrollment and lesson browsing."}</p>
 
@@ -116,9 +131,15 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                       )}
                     </div>
 
-                    <Button asChild className="mt-auto w-full">
-                      <Link href={`/courses/${course.slug}`}>View details</Link>
-                    </Button>
+                    {isEnrolled ? (
+                      <Button asChild className="w-full">
+                        <Link href={`/courses/${course.slug}`}>Continue Learning</Link>
+                      </Button>
+                    ) : (
+                      <Button asChild variant="outline" className="w-full">
+                        <Link href={`/courses/${course.slug}`}>View Details</Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               );

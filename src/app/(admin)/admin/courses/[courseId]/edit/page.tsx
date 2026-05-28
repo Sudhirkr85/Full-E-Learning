@@ -17,7 +17,7 @@ import {
   adminToggleCourseStatusAction,
   adminUpdateCourseAction
 } from "./actions";
-import { BannerUploadField } from "./banner-upload-field";
+import { BannerUploadField } from "@/components/courses/banner-upload-field";
 
 type CourseEditorPageProps = {
   params: Promise<{

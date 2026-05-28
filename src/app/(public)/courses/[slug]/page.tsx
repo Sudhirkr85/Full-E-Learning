@@ -93,33 +93,25 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
           {isStaff ? <Badge variant="secondary">staff access</Badge> : null}
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          {canOpenLesson && overview.continueHref ? (
-            <Button asChild>
-              <Link href={overview.continueHref}>{isEnrolled ? "Continue learning" : firstLesson?.isPreview ? "Start preview lesson" : "Open lesson"}</Link>
+        <div className="mt-8 max-w-sm">
+          {isEnrolled ? (
+            <Button size="lg" className="w-full" asChild>
+              <Link href={`/student/courses/${course.slug}`}>Go to Course</Link>
             </Button>
-          ) : null}
-
-          {!currentUser ? (
-            <Button asChild variant="outline">
-              <Link href="/login">Sign in to enroll</Link>
+          ) : !currentUser ? (
+            <Button size="lg" className="w-full" asChild>
+              <Link href="/login">Login to Enroll</Link>
             </Button>
-          ) : null}
-
-          {currentUser?.role === "STUDENT" && !isEnrolled ? (
-            <form action={enrollInCourseAction}>
+          ) : (
+            <form action={enrollInCourseAction} className="w-full">
               <input type="hidden" name="courseId" value={course.id} />
-              <Button type="submit" variant="outline">
-                {hasEnrollment ? "Resume enrollment" : "Enroll now"}
+              <Button size="lg" className="w-full" type="submit">
+                {course.priceCents === 0 || course.priceCents === null
+                  ? "Start Learning"
+                  : `Enroll Now — ₹${Math.round(course.priceCents / 100).toLocaleString("en-IN")}`}
               </Button>
             </form>
-          ) : null}
-
-          {isEnrolled ? (
-            <Button asChild variant="outline">
-              <Link href="/student/courses">Go to my courses</Link>
-            </Button>
-          ) : null}
+          )}
         </div>
 
 

@@ -42,12 +42,12 @@ The application contains the following fully implemented production modules:
     *   **Avatar Dropdown**: Role-specific menu with profile, dashboard, and logout actions.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
 *   **Admin**: Full admin dashboard with real-time platform stats (students, teachers, courses, revenue), user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration.
-*   **Store Management**: Admin can create and manage digital products, physical products, course access products, and bundles. INR pricing only. Supports stock management for physical products, asset URLs for digital products, course linking for access products, and multi-item bundles. Fully separate from LMS course flow.
+*   **Store Management**: Admin can create and manage PDF Books and Physical Products. INR pricing only. Supports PDF document uploads for in-app online reading only (no direct downloads), and stock/shipping configurations for physical merchandise. Fully separate from LMS course flow.
 *   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources. Course listing page shows responsive grid (1/2/3/4 columns), thumbnail banners with category gradients, Free badge or ₹ INR pricing, original-price strike-through with calculated discount % OFF, hover animations, and teacher/section metadata. Course cards show single CTA: 'Continue Learning' if enrolled, 'View Details' otherwise. Course detail page shows 2-column layout (desktop) with sticky price card. Left side: thumbnail, meta, teacher info, description with read-more, curriculum accordion with preview/locked lessons. Right side: sticky card with INR pricing, discount badge, enrollment CTA based on login and enrollment state, and course includes section.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
 *   **Tests & Quizzes (Assessments)**: Graded exams, practice tests, and quizzes. Supports single-choice, multiple-choice, true/false, and short-answer questions with auto-grading scripts.
 *   **Blockchain-Verified Certificates**: Automatic 100% progress verification, average score calculation, cryptographically signed `CERT-[YEAR]-[HEX]` verification codes, public canonical verification pages, and print layouts.
-*   **Store & Coupon System**: Transaction-safe catalog supporting `COURSE_ACCESS`, `DIGITAL_RESOURCE`, `BUNDLE`, and `MEMBERSHIP` product types. Includes percentage and flat-rate coupon processors (e.g. `SUPER90`, `WELCOME10`).
+*   **Store & Coupon System**: Transaction-safe catalog supporting PDF Book and Physical Product types. Includes percentage and flat-rate coupon processors (e.g. `SUPER90`, `WELCOME10`). Includes a secure, in-app protected PDF online reader preventing direct document downloads.
 *   **Razorpay Integration**: Server-side checkout order APIs, sandbox payment interfaces, signature-validated webhook endpoints, and a local offline simulator for risk-free developer testing.
 *   **Shipping & Manual Dispatch Desk**: Admin tools to collect physical shipping addresses, update courier tracking numbers, and send tracking links to students.
 *   **In-App Notification Hub**: Real-time sidebar tray displaying alerts for new enrollments, coupon usages, support ticket replies, and completed checkouts.
@@ -272,7 +272,7 @@ Every admin page is protected — session and role === "ADMIN" verified on both 
 | Courses | /admin/courses | All courses, publish/archive/delete |
 | Course Detail | /admin/courses/[id] | Sections, lessons, enrollments |
 | Categories | /admin/categories | Add, edit, delete categories |
-| Store | /admin/store | Product management — digital, physical, course access, bundles |
+| Store | /admin/store | Product management — PDF Books and Physical Products |
 | Support | /admin/support | Ticket list, reply, status update |
 | Change Password | /admin/settings/change-password | Verify current, set new password |
 | Platform Config | /admin/settings/platform | Site name, support email, maintenance mode |

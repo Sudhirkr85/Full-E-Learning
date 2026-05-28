@@ -64,6 +64,7 @@ export function StoreClient({ products }: StoreClientProps) {
     setCart(newCart);
     try {
       localStorage.setItem("el_store_cart", JSON.stringify(newCart));
+      window.dispatchEvent(new Event("cart-updated"));
     } catch (e) {
       console.error("Failed to save cart", e);
     }

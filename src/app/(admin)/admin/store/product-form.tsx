@@ -23,7 +23,9 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
 
   // Form states
   const [title, setTitle] = useState(initialProduct?.title || "");
-  const [productType, setProductType] = useState<ProductType>(initialProduct?.productType || "DIGITAL_RESOURCE");
+  const [productType, setProductType] = useState<ProductType>(
+    initialProduct?.productType === "PHYSICAL" ? "PHYSICAL" : "DIGITAL_RESOURCE"
+  );
   const [shortDescription, setShortDescription] = useState(initialProduct?.shortDescription || "");
   const [fullDescription, setFullDescription] = useState(initialProduct?.fullDescription || "");
   const [coverImageUrl, setCoverImageUrl] = useState(initialProduct?.coverImageUrl || "");
@@ -37,23 +39,16 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
   const [stockQuantity, setStockQuantity] = useState<number>(initialProduct?.stockQuantity ?? 10);
   const [shippingRequired, setShippingRequired] = useState<boolean>(initialProduct?.shippingRequired ?? false);
   const [dispatchNotes, setDispatchNotes] = useState(initialProduct?.dispatchNotes || "");
-  const [courseId, setCourseId] = useState(initialProduct?.courseId || "");
-  const [selectedBundleItems, setSelectedBundleItems] = useState<string[]>(
-    Array.isArray(initialProduct?.bundleItems) ? initialProduct.bundleItems : []
-  );
 
   // Upload/Submit states
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleBundleItemToggle = (itemId: string) => {
-    setSelectedBundleItems((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
-    );
-  };
+  const pdfFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,7 +70,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
 
     try {
       const formData = new FormData();
-      formData.append("banner", file); // Expects "banner" name for R2 endpoint
+      formData.append("banner", file);
 
       const res = await fetch("/api/courses/upload-banner", {
         method: "POST",
@@ -97,6 +92,47 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
     }
   };
 
+  const handlePdfChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setPdfUploadError("Only PDF documents are allowed.");
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      setPdfUploadError("Maximum file size is 50 MB.");
+      return;
+    }
+
+    setIsUploadingPdf(true);
+    setPdfUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("pdf", file);
+
+      const res = await fetch("/api/courses/upload-pdf", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to upload PDF.");
+      }
+
+      const data = await res.json();
+      setAssetUrl(data.pdfUrl);
+    } catch (err: any) {
+      setPdfUploadError(err.message || "Something went wrong uploading PDF.");
+    } finally {
+      setIsUploadingPdf(false);
+      if (pdfFileInputRef.current) pdfFileInputRef.current.value = "";
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -105,6 +141,10 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
     }
     if (priceInRupees === "" || priceInRupees === undefined || priceInRupees < 0) {
       setError("Price is required and must be a valid positive number.");
+      return;
+    }
+    if (productType === "DIGITAL_RESOURCE" && !assetUrl) {
+      setError("Please upload the PDF book file.");
       return;
     }
 
@@ -123,8 +163,6 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
       stockQuantity: productType === "PHYSICAL" ? stockQuantity : undefined,
       shippingRequired: productType === "PHYSICAL" ? shippingRequired : undefined,
       dispatchNotes: productType === "PHYSICAL" ? dispatchNotes : undefined,
-      courseId: productType === "COURSE_ACCESS" ? courseId : undefined,
-      bundleItems: productType === "BUNDLE" ? selectedBundleItems : undefined,
     };
 
     try {
@@ -164,7 +202,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
               {isEdit ? `Edit Product: ${initialProduct.title}` : "Add New Store Product"}
             </h1>
             <p className="text-sm text-slate-400">
-              Provision courses, digital tools, merchandise bundles, or downloads.
+              Provision in-app readable PDF books or physical products.
             </p>
           </div>
           <Badge variant="secondary" className="bg-indigo-500/10 text-indigo-300 border-indigo-500/20">
@@ -202,7 +240,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Next.js Boilerplate Bundle"
+                  placeholder="e.g. System Design Playbook"
                   className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
                   required
                 />
@@ -219,10 +257,8 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                     onChange={(e) => setProductType(e.target.value as ProductType)}
                     className="h-11 w-full rounded-xl border border-white/10 bg-[#0a0f24] px-4 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
-                    <option value="DIGITAL_RESOURCE">Digital Resource / Download</option>
-                    <option value="PHYSICAL">Physical Good / Merchandise</option>
-                    <option value="COURSE_ACCESS">LMS Course Access</option>
-                    <option value="BUNDLE">Custom Combo Bundle</option>
+                    <option value="DIGITAL_RESOURCE">PDF Book</option>
+                    <option value="PHYSICAL">Physical Product</option>
                   </select>
                 </div>
 
@@ -273,18 +309,59 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
 
               {/* CONDITIONAL FIELDS */}
 
-              {/* DIGITAL RESOURCE */}
+              {/* PDF BOOK (DIGITAL_RESOURCE) */}
               {productType === "DIGITAL_RESOURCE" && (
-                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-                    Asset Download URL / Link
-                  </label>
-                  <Input
-                    value={assetUrl}
-                    onChange={(e) => setAssetUrl(e.target.value)}
-                    placeholder="e.g. Cloudflare R2 file endpoint or direct Google Drive download link"
-                    className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
+                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-300">
+                    PDF Document File <span className="text-rose-400">*</span>
+                  </h3>
+
+                  <input type="hidden" name="assetUrl" value={assetUrl} />
+
+                  {assetUrl ? (
+                    <div className="p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center justify-between gap-4">
+                      <div className="truncate">
+                        <p className="text-xs font-semibold text-white truncate">PDF Book Uploaded</p>
+                        <p className="text-[10px] text-indigo-300 truncate max-w-md">{assetUrl}</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="rounded-xl shrink-0"
+                        onClick={() => setAssetUrl("")}
+                      >
+                        <Trash2 className="mr-1 h-3.5 w-3.5" />
+                        Remove
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.01] text-slate-500">
+                      <ImageIcon className="h-6 w-6 mb-1 text-slate-600" />
+                      <span className="text-[10px]">No PDF book uploaded yet</span>
+                    </div>
+                  )}
+
+                  <input
+                    ref={pdfFileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handlePdfChange}
+                    className="hidden"
                   />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => pdfFileInputRef.current?.click()}
+                    disabled={isUploadingPdf}
+                    className="w-full rounded-xl text-indigo-400 hover:text-white border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 h-10 text-xs"
+                  >
+                    {isUploadingPdf ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Upload className="mr-2 h-3.5 w-3.5" />}
+                    {isUploadingPdf ? "Uploading..." : "Upload PDF Book"}
+                  </Button>
+                  <p className="text-[9px] text-slate-500 text-center">PDF up to 50 MB.</p>
+                  {pdfUploadError ? <p className="text-[10px] font-semibold text-rose-400 text-center">{pdfUploadError}</p> : null}
                 </div>
               )}
 
@@ -335,82 +412,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                 </div>
               )}
 
-              {/* COURSE ACCESS */}
-              {productType === "COURSE_ACCESS" && (
-                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-                    Associated Course
-                  </label>
-                  <select
-                    value={courseId}
-                    onChange={(e) => setCourseId(e.target.value)}
-                    className="h-11 w-full rounded-xl border border-white/10 bg-[#0a0f24] px-4 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  >
-                    <option value="">-- Choose Published Course --</option>
-                    {courses.map((course) => (
-                      <option key={course.id} value={course.id}>
-                        {course.title}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-slate-500 mt-1">
-                    Purchasing this product automatically registers the user into this LMS course shell.
-                  </p>
-                </div>
-              )}
-
-              {/* BUNDLE */}
-              {productType === "BUNDLE" && (
-                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-                    Combo Package Contents
-                  </h3>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-slate-300 block">Include Courses</label>
-                    {courses.length === 0 ? (
-                      <p className="text-xs text-slate-500 italic">No published courses available.</p>
-                    ) : (
-                      <div className="max-h-40 overflow-y-auto border border-white/5 bg-white/[0.01] rounded-xl p-2.5 space-y-2">
-                        {courses.map((course) => (
-                          <label key={course.id} className="flex items-center gap-2 cursor-pointer hover:bg-white/[0.02] p-1 rounded">
-                            <input
-                              type="checkbox"
-                              checked={selectedBundleItems.includes(course.id)}
-                              onChange={() => handleBundleItemToggle(course.id)}
-                              className="h-3.5 w-3.5 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-xs text-slate-300 truncate">{course.title}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-slate-300 block">Include Digital Resources</label>
-                    {digitalProducts.length === 0 ? (
-                      <p className="text-xs text-slate-500 italic">No digital products available.</p>
-                    ) : (
-                      <div className="max-h-40 overflow-y-auto border border-white/5 bg-white/[0.01] rounded-xl p-2.5 space-y-2">
-                        {digitalProducts.map((p) => (
-                          <label key={p.id} className="flex items-center gap-2 cursor-pointer hover:bg-white/[0.02] p-1 rounded">
-                            <input
-                              type="checkbox"
-                              checked={selectedBundleItems.includes(p.id)}
-                              onChange={() => handleBundleItemToggle(p.id)}
-                              className="h-3.5 w-3.5 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-xs text-slate-300 truncate">{p.title}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Status and Action Buttons IN THE BOTTOM OF THE MAIN CARD */}
+              {/* Status and Action Buttons */}
               <div className="border-t border-white/5 pt-6 mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-300">

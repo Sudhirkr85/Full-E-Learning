@@ -73,13 +73,9 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
   const getTypeBadge = (type: ProductType) => {
     switch (type) {
       case "DIGITAL_RESOURCE":
-        return <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">Digital</Badge>;
+        return <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">PDF Book</Badge>;
       case "PHYSICAL":
-        return <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30">Physical</Badge>;
-      case "COURSE_ACCESS":
-        return <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">Course Access</Badge>;
-      case "BUNDLE":
-        return <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">Bundle</Badge>;
+        return <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30">Physical Product</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -101,7 +97,7 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-white">Store Catalog</h1>
-          <p className="text-sm text-slate-400">Manage e-learning physical merchandise, code files, bundles, and direct access products.</p>
+          <p className="text-sm text-slate-400">Manage premium in-app PDF books and physical merchandise catalog.</p>
         </div>
         <Button asChild className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)] shrink-0 h-11 self-start sm:self-center">
           <Link href="/admin/store/new" className="flex items-center gap-1.5">
@@ -114,7 +110,7 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#090d20]/40 border border-white/5 p-4 rounded-2xl backdrop-blur-md">
         {/* Type Tabs */}
         <div className="flex flex-wrap gap-1.5">
-          {["ALL", "DIGITAL_RESOURCE", "PHYSICAL", "COURSE_ACCESS", "BUNDLE"].map((tab) => (
+          {["ALL", "DIGITAL_RESOURCE", "PHYSICAL"].map((tab) => (
             <button
               key={tab}
               onClick={() => setSelectedTypeFilter(tab)}
@@ -125,10 +121,8 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
               }`}
             >
               {tab === "ALL" && "All Items"}
-              {tab === "DIGITAL_RESOURCE" && "Digital"}
-              {tab === "PHYSICAL" && "Physical"}
-              {tab === "COURSE_ACCESS" && "Course Access"}
-              {tab === "BUNDLE" && "Bundles"}
+              {tab === "DIGITAL_RESOURCE" && "PDF Books"}
+              {tab === "PHYSICAL" && "Physical Products"}
             </button>
           ))}
         </div>

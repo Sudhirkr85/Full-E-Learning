@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Zap } from "lucide-react";
 import { siteConfig } from "@/lib/site";
 import { Container } from "@/components/ui/container";
-import { NotificationBell } from "./notification-bell";
+import { HeaderCartButton } from "./header-cart-button";
 import { AvatarDropdown } from "./avatar-dropdown";
 import { MobileDrawer } from "./mobile-drawer";
 import { LogoutModal } from "./logout-modal";
@@ -104,10 +104,13 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
 
           {/* Right Section: Actions */}
           <div className="flex items-center gap-4">
+            <div className="hidden md:block">
+              <HeaderCartButton />
+            </div>
+
             {user ? (
               /* Logged In View (Desktop) */
               <div className="hidden md:flex items-center gap-4">
-                <NotificationBell role={user.role} unreadCount={unreadCount} />
                 <AvatarDropdown user={user} onLogoutClick={() => setIsLogoutModalOpen(true)} />
               </div>
             ) : (

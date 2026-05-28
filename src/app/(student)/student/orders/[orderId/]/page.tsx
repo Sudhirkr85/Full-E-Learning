@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { makeMetadata } from "@/lib/site";
 import { 
   Package, Calendar, Download, ExternalLink, ArrowLeft, Printer, ShieldCheck, 
-  Truck, CheckCircle, Clock, ChevronRight, RefreshCw
+  Truck, CheckCircle, Clock, ChevronRight, RefreshCw, BookOpen
 } from "lucide-react";
 
 type OrderDetailPageProps = {
@@ -198,11 +198,11 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
                 </div>
               </div>
 
-              {/* Digital File Delivery Downloads */}
+              {/* Digital File Delivery Secure Reader */}
               {order.status === "PAID" && order.items.some(i => i.productType === "DIGITAL_RESOURCE" && i.product?.assetUrl) && (
                 <div className="py-6 space-y-3 print:hidden">
-                  <span className="text-[10px] text-emerald-600 uppercase tracking-widest block font-extrabold mb-1">Downloads Unlocked! 🔑</span>
-                  <p className="text-xs text-muted-foreground mb-3">Your license credentials are approved. Click below to securely download guides or templates:</p>
+                  <span className="text-[10px] text-emerald-600 uppercase tracking-widest block font-extrabold mb-1">PDF Books Unlocked! 📖</span>
+                  <p className="text-xs text-muted-foreground mb-3">Your digital PDF books are authorized and ready. Click below to open and read them directly within the secure in-app reader:</p>
                   
                   <div className="grid gap-2">
                     {order.items.map((item) => {
@@ -210,11 +210,11 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
                         return (
                           <div key={item.id} className="flex items-center justify-between p-3 border border-emerald-500/20 bg-emerald-500/[0.02] rounded-xl">
                             <span className="text-xs font-semibold text-foreground truncate max-w-sm">{item.productName}</span>
-                            <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1">
-                              <a href={item.product.assetUrl} download target="_blank">
-                                <Download className="h-3.5 w-3.5" />
-                                Download File
-                              </a>
+                            <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 rounded-xl">
+                              <Link href={`/student/orders/${order.id}/pdf-viewer?productId=${item.productId}`}>
+                                <BookOpen className="h-3.5 w-3.5" />
+                                Read PDF Book
+                              </Link>
                             </Button>
                           </div>
                         );

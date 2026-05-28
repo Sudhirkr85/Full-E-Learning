@@ -154,6 +154,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.lastName = dbUser.lastName;
           token.locale = dbUser.locale;
           token.timezone = dbUser.timezone;
+        } else {
+          return null;
         }
       }
 

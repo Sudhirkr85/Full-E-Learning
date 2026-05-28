@@ -20,7 +20,7 @@ export default async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathname = nextUrl.pathname;
   const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
-  const isLoggedIn = Boolean(token);
+  const isLoggedIn = Boolean(token && token.sub);
   const role = typeof token?.role === "string" ? token.role : null;
 
   if (authPages.some((page) => pathname.startsWith(page)) && isLoggedIn) {

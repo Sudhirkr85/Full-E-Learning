@@ -26,7 +26,7 @@ export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 py-6">
+    <div className="fixed top-0 left-0 w-screen h-screen z-[200] flex items-center justify-center p-4">
       {/* Backdrop overlay — covers entire screen including navbar */}
       <div 
         className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"

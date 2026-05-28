@@ -79,12 +79,17 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
 
   return (
     <div className="space-y-6">
-      <div>
-        <Badge variant="secondary">Admin oversight</Badge>
-        <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-white">Course Management</h1>
-        <p className="mt-2 text-sm text-slate-400 leading-relaxed max-w-3xl">
-          Supervise all teaching catalog materials. Monitor section outlines, review publishing states (draft/published/archived), and track student enrollment counts.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Badge variant="secondary">Admin oversight</Badge>
+          <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-white">Course Management</h1>
+          <p className="mt-2 text-sm text-slate-400 leading-relaxed max-w-3xl">
+            Supervise all teaching catalog materials. Monitor section outlines, review publishing states (draft/published/archived), and track student enrollment counts.
+          </p>
+        </div>
+        <Button asChild className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)] shrink-0 self-start">
+          <Link href="/admin/courses/new">Create Course</Link>
+        </Button>
       </div>
 
       <CoursesSearchFilter />

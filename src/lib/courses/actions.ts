@@ -542,7 +542,11 @@ export async function createCourseAction(formData: FormData) {
   });
 
   await invalidateCourse(course.slug, course.id);
-  redirect(`/teacher/courses/${course.id}?created=1`);
+  if (teacher.role === "TEACHER") {
+    redirect(`/teacher/courses/${course.id}?created=1`);
+  } else {
+    redirect(`/admin/courses/${course.id}?created=1`);
+  }
 }
 
 export async function updateCourseAction(formData: FormData) {

@@ -19,7 +19,7 @@ export async function createSectionAction(courseId: string, title: string) {
       where: { courseId }
     });
 
-    let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     if (!slug) slug = "section";
 
     const existingSection = await prisma.courseSection.findFirst({
@@ -47,7 +47,23 @@ export async function createSectionAction(courseId: string, title: string) {
   }
 }
 
-export async function createLessonAction(courseId: string, sectionId: string, title: string, contentType: "VIDEO" | "ARTICLE" | "RESOURCE") {
+type LessonExtras = {
+  description?: string;
+  youtubeUrl?: string;
+  sessionType?: "LIVE" | "RECORDED";
+  accessType?: "FREE" | "PAID";
+  liveDateTime?: string;
+  publishDate?: string;
+  isPreview?: boolean;
+};
+
+export async function createLessonAction(
+  courseId: string,
+  sectionId: string,
+  title: string,
+  contentType: "VIDEO" | "ARTICLE" | "RESOURCE",
+  extras?: LessonExtras
+) {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") {
     return { error: "Unauthorized" };
@@ -62,7 +78,7 @@ export async function createLessonAction(courseId: string, sectionId: string, ti
       where: { sectionId }
     });
 
-    let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     if (!slug) slug = "lesson";
 
     const existingLesson = await prisma.lesson.findFirst({
@@ -73,20 +89,32 @@ export async function createLessonAction(courseId: string, sectionId: string, ti
       slug = `${slug}-${Date.now()}`;
     }
 
+    // Build metadata for session-specific fields
+    const metadata: Record<string, unknown> = {};
+    if (extras?.sessionType) metadata.sessionType = extras.sessionType;
+    if (extras?.accessType) metadata.accessType = extras.accessType;
+    if (extras?.liveDateTime) metadata.liveDateTime = extras.liveDateTime;
+    if (extras?.publishDate) metadata.publishDate = extras.publishDate;
+
     await prisma.lesson.create({
       data: {
         sectionId,
         title,
         slug,
         contentType,
-        orderIndex: lessonsCount
+        orderIndex: lessonsCount,
+        description: extras?.description ?? null,
+        youtubeUrl: extras?.youtubeUrl ?? null,
+        isPreview: extras?.isPreview ?? false,
+        isPublished: true,
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       }
     });
 
     revalidatePath(`/admin/courses/${courseId}`);
-    return { success: "Lesson created successfully!" };
+    return { success: "Session created successfully!" };
   } catch (error) {
     console.error("Create lesson error:", error);
-    return { error: "Failed to create lesson." };
+    return { error: "Failed to create session." };
   }
 }

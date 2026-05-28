@@ -5,16 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { createCourseAction } from "@/lib/courses/actions";
-import { 
-  Upload, 
-  Trash2, 
-  Video, 
-  BookOpen, 
-  IndianRupee, 
-  Search, 
-  ChevronDown, 
-  Check, 
-  Loader2, 
+import {
+  Upload,
+  Trash2,
+  BookOpen,
+  IndianRupee,
+  Search,
+  ChevronDown,
+  Check,
+  Loader2,
   ArrowLeft,
   Sparkles
 } from "lucide-react";
@@ -43,9 +42,6 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
-
-  // YouTube Video ID state
-  const [youtubeVideoId, setYoutubeVideoId] = useState("");
 
   const filteredCategories = categories.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -138,16 +134,13 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
               e.preventDefault();
               const form = e.currentTarget;
               const formData = new FormData(form);
-              
+
               // Append values from state
               if (selectedCategory) {
                 formData.set("categoryId", selectedCategory.id);
               }
               if (bannerUrl) {
                 formData.set("coverImageUrl", bannerUrl);
-              }
-              if (youtubeVideoId) {
-                formData.set("youtubeVideoId", youtubeVideoId);
               }
 
               startTransition(async () => {
@@ -189,7 +182,7 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
               />
             </div>
 
-            {/* Category, Level, Price, YouTube Video ID */}
+            {/* Category, Language, Level, Price */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Category search dropdown */}
               <div className="space-y-2 relative">
@@ -216,7 +209,7 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
                           className="h-8 w-full rounded-lg bg-white/5 pl-8 pr-3 text-xs text-white placeholder-slate-500 border border-white/5 outline-none focus:border-indigo-500/50"
                         />
                       </div>
-                      
+
                       {filteredCategories.length === 0 ? (
                         <p className="py-2 text-center text-slate-500 text-[11px]">No categories found.</p>
                       ) : (
@@ -245,12 +238,23 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
                 <input type="hidden" name="categoryId" value={selectedCategory?.id || ""} />
               </div>
 
+              {/* Language / Tech Stack */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Language / Tech Stack</label>
+                <Input
+                  name="language"
+                  placeholder="e.g. Hindi, React, Python"
+                  defaultValue="Hindi"
+                  className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
+                />
+              </div>
+
               {/* Level select */}
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Level</label>
-                <select 
-                  name="level" 
-                  defaultValue="BEGINNER" 
+                <select
+                  name="level"
+                  defaultValue="BEGINNER"
                   className="h-11 w-full rounded-xl border border-white/10 bg-[#0b0f1e] px-4 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
                   <option value="BEGINNER">Beginner</option>
@@ -267,31 +271,14 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-3.5 text-xs text-slate-400 font-bold">₹</span>
-                  <Input 
-                    name="priceInRupees" 
-                    type="number" 
-                    min="0" 
-                    step="1" 
-                    placeholder="e.g. 499" 
-                    className="pl-7 bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs" 
+                  <Input
+                    name="priceInRupees"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="e.g. 499"
+                    className="pl-7 bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
                     required
-                  />
-                </div>
-              </div>
-
-              {/* YouTube Integration */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
-                  YouTube Video ID
-                </label>
-                <div className="relative">
-                  <Video className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-500" />
-                  <Input 
-                    type="text"
-                    placeholder="e.g. dQw4w9WgXcQ" 
-                    value={youtubeVideoId}
-                    onChange={(e) => setYoutubeVideoId(e.target.value)}
-                    className="pl-10 bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs" 
                   />
                 </div>
               </div>

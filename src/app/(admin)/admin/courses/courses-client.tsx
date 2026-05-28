@@ -83,38 +83,98 @@ export function CoursesSearchFilter() {
 
 export function CourseActionButtons({ courseId, status }: { courseId: string; status: string }) {
   const [isPending, startTransition] = useTransition();
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    message: string;
+    confirmText: string;
+    confirmVariant: "emerald" | "amber" | "red";
+    action: () => void;
+  } | null>(null);
 
   const handlePublish = () => {
-    if (confirm("Are you sure you want to publish this course? it will become visible in the public catalog.")) {
-      startTransition(async () => {
-        const res = await publishCourseAction(courseId);
-        if (res.error) alert(res.error);
-      });
-    }
+    setConfirmConfig({
+      title: "Publish Course",
+      message: "Are you sure you want to publish this course? It will become visible in the public catalog.",
+      confirmText: "Publish Now",
+      confirmVariant: "emerald",
+      action: () => {
+        startTransition(async () => {
+          const res = await publishCourseAction(courseId);
+          if (res.error) alert(res.error);
+        });
+      }
+    });
   };
 
   const handleArchive = () => {
-    if (confirm("Are you sure you want to archive this course?")) {
-      startTransition(async () => {
-        const res = await archiveCourseAction(courseId);
-        if (res.error) alert(res.error);
-      });
-    }
+    setConfirmConfig({
+      title: "Archive Course",
+      message: "Are you sure you want to archive this course?",
+      confirmText: "Archive",
+      confirmVariant: "amber",
+      action: () => {
+        startTransition(async () => {
+          const res = await archiveCourseAction(courseId);
+          if (res.error) alert(res.error);
+        });
+      }
+    });
   };
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to permanently delete this DRAFT course? This cannot be undone.")) {
-      startTransition(async () => {
-        const res = await deleteCourseAction(courseId);
-        if (res.error) alert(res.error);
-      });
-    }
+    setConfirmConfig({
+      title: "Delete Course",
+      message: "Are you sure you want to permanently delete this DRAFT course? This cannot be undone.",
+      confirmText: "Delete Permanently",
+      confirmVariant: "red",
+      action: () => {
+        startTransition(async () => {
+          const res = await deleteCourseAction(courseId);
+          if (res.error) alert(res.error);
+        });
+      }
+    });
   };
 
   return (
-    <div className="flex items-center gap-1.5 justify-end">
-      {status === "DRAFT" && (
-        <>
+    <>
+      <div className="flex items-center gap-1.5 justify-end">
+        {status === "DRAFT" && (
+          <>
+            <Button
+              onClick={handlePublish}
+              disabled={isPending}
+              variant="outline"
+              size="sm"
+              className="text-emerald-400 hover:text-emerald-300 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl"
+            >
+              Publish
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={isPending}
+              variant="outline"
+              size="sm"
+              className="text-red-400 hover:text-red-300 border-red-500/20 bg-red-500/5 hover:bg-red-500/10 rounded-xl"
+            >
+              Delete
+            </Button>
+          </>
+        )}
+
+        {status === "PUBLISHED" && (
+          <Button
+            onClick={handleArchive}
+            disabled={isPending}
+            variant="outline"
+            size="sm"
+            className="text-amber-400 hover:text-amber-300 border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 rounded-xl"
+          >
+            Archive
+          </Button>
+        )}
+
+        {status === "ARCHIVED" && (
           <Button
             onClick={handlePublish}
             disabled={isPending}
@@ -122,43 +182,51 @@ export function CourseActionButtons({ courseId, status }: { courseId: string; st
             size="sm"
             className="text-emerald-400 hover:text-emerald-300 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl"
           >
-            Publish
+            Republish
           </Button>
-          <Button
-            onClick={handleDelete}
-            disabled={isPending}
-            variant="outline"
-            size="sm"
-            className="text-red-400 hover:text-red-300 border-red-500/20 bg-red-500/5 hover:bg-red-500/10 rounded-xl"
-          >
-            Delete
-          </Button>
-        </>
-      )}
+        )}
+      </div>
 
-      {status === "PUBLISHED" && (
-        <Button
-          onClick={handleArchive}
-          disabled={isPending}
-          variant="outline"
-          size="sm"
-          className="text-amber-400 hover:text-amber-300 border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 rounded-xl"
-        >
-          Archive
-        </Button>
+      {confirmConfig && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md overflow-hidden bg-[#0b0f19] border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-white">
+                {confirmConfig.title}
+              </h3>
+              <p className="mt-2 text-sm text-slate-400">
+                {confirmConfig.message}
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 px-6 py-4 bg-white/5 border-t border-white/5">
+              <button
+                onClick={() => setConfirmConfig(null)}
+                disabled={isPending}
+                className="px-4 py-2 text-xs font-semibold text-slate-400 transition-all rounded-xl hover:text-white hover:bg-white/5"
+              >
+                Cancel
+              </button>
+              <Button
+                onClick={() => {
+                  confirmConfig.action();
+                  setConfirmConfig(null);
+                }}
+                disabled={isPending}
+                size="sm"
+                className={`rounded-xl border-none font-semibold text-white transition-all ${
+                  confirmConfig.confirmVariant === "emerald"
+                    ? "bg-emerald-500 hover:bg-emerald-600"
+                    : confirmConfig.confirmVariant === "amber"
+                    ? "bg-amber-500 hover:bg-amber-600"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
+              >
+                {confirmConfig.confirmText}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
-
-      {status === "ARCHIVED" && (
-        <Button
-          onClick={handlePublish}
-          disabled={isPending}
-          variant="outline"
-          size="sm"
-          className="text-emerald-400 hover:text-emerald-300 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl"
-        >
-          Republish
-        </Button>
-      )}
-    </div>
+    </>
   );
 }

@@ -12,7 +12,9 @@ export async function getProductsAction(filters?: {
 }) {
   try {
     const whereClause: any = {
-      status: ProductStatus.ACTIVE,
+      status: {
+        in: [ProductStatus.ACTIVE, ProductStatus.PUBLISHED]
+      },
       productType: {
         in: ["DIGITAL_RESOURCE", "PHYSICAL"]
       }
@@ -68,7 +70,7 @@ export async function getProductBySlugAction(slug: string) {
       },
     });
 
-    if (!product || product.status !== ProductStatus.ACTIVE) {
+    if (!product || (product.status !== ProductStatus.ACTIVE && product.status !== ProductStatus.PUBLISHED)) {
       return {
         success: false,
         error: "Product not found or currently unavailable.",

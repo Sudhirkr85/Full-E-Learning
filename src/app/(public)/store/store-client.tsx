@@ -161,9 +161,9 @@ export function StoreClient({ products }: StoreClientProps) {
 
   const totalCents = Math.max(0, subtotalCents - couponDiscount);
 
-  // Check if cart contains physical product / ZIP resource
+  // Check if cart contains physical product / shipping need
   const hasPhysicalOrShippingNeed = cart.some(
-    item => item.product.productType === ProductType.DIGITAL_RESOURCE && item.product.inventoryCount !== null
+    item => item.product.shippingRequired === true || item.product.productType === ProductType.PHYSICAL
   );
 
   // Checkout submission
@@ -291,19 +291,20 @@ export function StoreClient({ products }: StoreClientProps) {
             <div className="flex flex-wrap gap-2">
               {[
                 { label: "All Items", val: "ALL" },
-                { label: "Course Access", val: ProductType.COURSE_ACCESS },
-                { label: "Digital Guides", val: ProductType.DIGITAL_RESOURCE },
-                { label: "Bundles", val: ProductType.BUNDLE },
+                { label: "PDF Books", val: ProductType.DIGITAL_RESOURCE },
+                { label: "Physical Products", val: ProductType.PHYSICAL },
               ].map((item) => (
-                <Button
+                <button
                   key={item.val}
-                  variant={selectedType === item.val ? "default" : "outline"}
                   onClick={() => setSelectedType(item.val)}
-                  size="sm"
-                  className={selectedType === item.val ? "bg-amber-500 hover:bg-amber-600 text-background" : ""}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide border transition-all duration-200 ${
+                    selectedType === item.val
+                      ? "bg-amber-500 text-slate-950 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
+                      : "bg-transparent text-slate-300 border-slate-700 hover:text-white hover:bg-white/5"
+                  }`}
                 >
                   {item.label}
-                </Button>
+                </button>
               ))}
             </div>
 
@@ -335,10 +336,7 @@ export function StoreClient({ products }: StoreClientProps) {
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product) => {
-              const formattedPrice = (product.priceCents / 100).toLocaleString("en-US", {
-                style: "currency",
-                currency: product.currency,
-              });
+              const formattedPrice = `₹${(product.priceCents / 100).toLocaleString("en-IN")}`;
 
               return (
                 <Card 
@@ -459,10 +457,7 @@ export function StoreClient({ products }: StoreClientProps) {
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-sm text-foreground truncate">{item.product.title}</h4>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {((item.product.priceCents * item.quantity) / 100).toLocaleString("en-US", {
-                                style: "currency",
-                                currency: item.product.currency
-                              })}
+                              ₹{((item.product.priceCents * item.quantity) / 100).toLocaleString("en-IN")}
                             </p>
                           </div>
                           <div className="flex items-center gap-1">
@@ -662,17 +657,17 @@ export function StoreClient({ products }: StoreClientProps) {
                     <div className="space-y-1.5 pt-4 border-t border-border text-sm">
                       <div className="flex justify-between text-muted-foreground">
                         <span>Cart Subtotal</span>
-                        <span>{(subtotalCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
+                        <span>₹{(subtotalCents / 100).toLocaleString("en-IN")}</span>
                       </div>
                       {couponDiscount > 0 && (
                         <div className="flex justify-between text-emerald-600 font-medium">
                           <span>Discount Applied</span>
-                          <span>-{(couponDiscount / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
+                          <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-lg font-extrabold text-foreground pt-2 border-t border-dashed">
                         <span>Total Price</span>
-                        <span>{(totalCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
+                        <span>₹{(totalCents / 100).toLocaleString("en-IN")}</span>
                       </div>
                     </div>
 

@@ -39,10 +39,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   }
 
   const product = res.product;
-  const formattedPrice = (product.priceCents / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: product.currency,
-  });
+  const formattedPrice = `₹${(product.priceCents / 100).toLocaleString("en-IN")}`;
 
   // Extract meta data
   const meta: any = product.metadata || {};

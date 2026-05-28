@@ -32,6 +32,8 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
     ? "An account with that email already exists." 
     : params?.error === "invalid_input" 
     ? "Check the form fields and try again." 
+    : params?.error === "email_reserved"
+    ? "This email address is not available for registration."
     : null;
 
   return (

@@ -19,12 +19,18 @@ type DashboardShellProps = {
   description: string;
   nav: NavItem[];
   children: ReactNode;
+  role?: string;
 };
 
-export function DashboardShell({ title, description, nav, children }: DashboardShellProps) {
+export function DashboardShell({ title, description, nav, children, role }: DashboardShellProps) {
   const pathname = usePathname();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const labelText =
+    role === "ADMIN" ? "ADMIN PANEL" :
+    role === "TEACHER" ? "TEACHER PANEL" :
+    "STUDENT LOG IN";
 
   // Helper to map icons based on label
   const getNavIcon = (label: string) => {
@@ -66,17 +72,17 @@ export function DashboardShell({ title, description, nav, children }: DashboardS
           {/* LEFT: Premium Glass Sidebar */}
           <aside className="hidden rounded-2xl border border-white/5 bg-[#090d20]/50 p-5 shadow-[0_15px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl lg:sticky lg:top-24 lg:block lg:h-fit">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-400">STUDENT LOG IN</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-400">{labelText}</p>
               <h1 className="mt-2 font-display text-xl font-extrabold text-white tracking-tight leading-tight">{title}</h1>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{description}</p>
             </div>
 
             <nav className="mt-6 flex flex-col gap-1.5">
               {nav.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href && (item.href !== "/admin/dashboard" || item.label === "Overview");
                 return (
                   <Link
-                    key={item.href}
+                    key={`${item.label}-${item.href}`}
                     href={item.href}
                     className={cn(
                       "rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300 flex items-center justify-between border",
@@ -133,16 +139,16 @@ export function DashboardShell({ title, description, nav, children }: DashboardS
                 </button>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-400">STUDENT LOG IN</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-400">{labelText}</p>
                 <h1 className="mt-2 font-display text-xl font-extrabold text-white tracking-tight leading-tight">{title}</h1>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{description}</p>
               </div>
               <nav className="mt-6 flex flex-col gap-1.5">
                 {nav.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive = pathname === item.href && (item.href !== "/admin/dashboard" || item.label === "Overview");
                   return (
                     <Link
-                      key={item.href}
+                      key={`${item.label}-${item.href}`}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={cn(

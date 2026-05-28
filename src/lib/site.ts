@@ -29,15 +29,18 @@ export const studentNav = [
 
 export const teacherNav = [
   { label: "Overview", href: "/teacher/dashboard" },
-  { label: "Courses", href: "/teacher/dashboard" },
-  { label: "Students", href: "/teacher/dashboard" }
+  { label: "Courses", href: "/teacher/courses" },
+  { label: "Categories", href: "/teacher/categories" }
 ];
 
 export const adminNav = [
   { label: "Overview", href: "/admin/dashboard" },
-  { label: "Users", href: "/admin/dashboard" },
+  { label: "Users", href: "/admin/users" },
+  { label: "Courses", href: "/admin/courses" },
+  { label: "Categories", href: "/admin/categories" },
   { label: "Support Tickets", href: "/admin/support" },
-  { label: "Settings", href: "/admin/dashboard" }
+  { label: "Change Password", href: "/admin/settings/change-password" },
+  { label: "Platform Config", href: "/admin/settings/platform" }
 ];
 
 type MetadataInput = {

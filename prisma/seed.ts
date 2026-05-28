@@ -1,4 +1,6 @@
 import { PrismaClient, ProductType, ProductStatus, CouponType } from "@prisma/client";
+import { SUPER_ADMIN_EMAIL } from "../src/lib/admin-config";
+import { hashPassword } from "../src/lib/password";
 
 const prisma = new PrismaClient();
 
@@ -140,6 +142,22 @@ async function main() {
       isActive: true,
     },
   });
+
+  // Seed super admin (upsert — safe to run multiple times)
+  const adminPassword = await hashPassword("Admin@123456"); // change before production
+
+  await prisma.user.upsert({
+    where: { email: SUPER_ADMIN_EMAIL },
+    update: {}, // never overwrite existing admin data on re-seed
+    create: {
+      email: SUPER_ADMIN_EMAIL,
+      name: "Super Admin",
+      role: "ADMIN",
+      passwordHash: adminPassword,
+    },
+  });
+
+  console.log(`✅ Super admin ensured: ${SUPER_ADMIN_EMAIL}`);
 
   console.log("Seeding complete! Store products and coupons are ready.");
 }

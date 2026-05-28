@@ -41,6 +41,7 @@ The application contains the following fully implemented production modules:
     *   **Notification Bell**: Real-time unread badge for logged-in users.
     *   **Avatar Dropdown**: Role-specific menu with profile, dashboard, and logout actions.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
+*   **Admin**: Full admin dashboard with real-time platform stats (students, teachers, courses, revenue), user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration.
 *   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
 *   **Tests & Quizzes (Assessments)**: Graded exams, practice tests, and quizzes. Supports single-choice, multiple-choice, true/false, and short-answer questions with auto-grading scripts.
@@ -105,6 +106,7 @@ The project layout maps directly to Next.js App Router and Prisma modular standa
 prisma/
   migrations/                # Relational database schema migrations
   schema.prisma              # Production relational data model
+                             # PlatformConfig model added for singleton platform settings storage.
   seed.ts                    # Upsert-driven store catalog seeder
 src/
   app/
@@ -115,8 +117,15 @@ src/
   │   └── webhooks/razorpay/ # HMAC-signature webhook callback listener
   ├── (admin)/
   │   └── admin/
-  │       ├── dashboard/     # Administrative analytics dashboard
-  │       └── support/       # Zendesk-inspired CRM ticketing moderating desk
+  │       ├── dashboard/                  # Real-time platform stats overview
+  │       ├── users/                      # User list, search, role promotion
+  │       ├── courses/                    # Course list, status management
+  │       ├── courses/[courseId]/         # Course detail, sections, lessons
+  │       ├── categories/                 # Category CRUD management
+  │       ├── support/                    # CRM ticket moderation desk
+  │       └── settings/
+  │           ├── change-password/        # Admin secure password update
+  │           └── platform/               # Site config singleton settings
   ├── (protected)/
   │   ├── courses/           # Locked classroom lesson player
   │   └── profile/           # User account preferences portal
@@ -156,6 +165,7 @@ src/
   ├── store/                 # Product purchasing, coupon applying, and checkout simulation
   ├── support/               # Support ticket creation and reply workflows
   ├── tests/                 # Quiz compiler and grading actions
+  ├── admin-config.ts            # Super admin email constant & platform-wide admin guard config
   ├── auth.ts                # Auth.js credentials login verification
   ├── auth-schemas.ts        # Authentication input validation schemas
   ├── db.ts                  # Neon PostgreSQL connection drop retry helper (withRetry)
@@ -242,7 +252,25 @@ Authentication is powered by **Auth.js (v5)**, **bcryptjs**, and **OAuth 2.0 Int
 *   **Next.js Middleware**: Intercepts requests to check authentication states. Automatically redirects unauthenticated users or restricts unauthorized routes:
     *   **STUDENT**: Can access `/student/*`, `/courses/*` (enrolled), and `/profile/*`. Blocked from `/teacher/*` and `/admin/*`.
     *   **TEACHER**: Can access `/teacher/*`, `/courses/*` (bypass enrollments), and `/profile/*`.
-    *   **ADMIN**: Global supervisor permissions. Can access `/admin/*` and the CRM Moderation desks.
+    *   **ADMIN**: Full platform access. Can manage all users, courses, categories, support tickets, and platform configurations. Admin stays on /admin/* routes always and does not redirect to /teacher/* routes. Can change password via /admin/settings/change-password. Can promote students to Teacher.
+*   **Super Admin Protection**: A single permanent super admin account is seeded via `prisma/seed.ts` using an upsert strategy. The admin email is defined in `src/lib/admin-config.ts` as `SUPER_ADMIN_EMAIL`. This email is blocked from public registration. The admin account is protected at the Prisma middleware layer — `delete` and `deleteMany` operations on `ADMIN`-role users throw a hard error, preventing accidental removal from any admin UI or script.
+
+---
+
+## Admin Dashboard
+
+Every admin page is protected — session and role === "ADMIN" verified on both page load and server actions.
+
+| Page | URL | Function |
+|------|-----|----------|
+| Overview | /admin/dashboard | Real stats: students, teachers, courses, revenue |
+| Users | /admin/users | View all users, search, filter, promote to Teacher |
+| Courses | /admin/courses | All courses, publish/archive/delete |
+| Course Detail | /admin/courses/[id] | Sections, lessons, enrollments |
+| Categories | /admin/categories | Add, edit, delete categories |
+| Support | /admin/support | Ticket list, reply, status update |
+| Change Password | /admin/settings/change-password | Verify current, set new password |
+| Platform Config | /admin/settings/platform | Site name, support email, maintenance mode |
 
 ---
 
@@ -422,6 +450,8 @@ Populate your local store with digital playbooks, physical kits, bundles, and co
 ```bash
 npx tsx prisma/seed.ts
 ```
+
+> **Note**: The seed also upserts a super admin account using the email defined in `src/lib/admin-config.ts`. Default seeded password is `Admin@123456` — **change this immediately after first login in production**.
 
 ### 5. Start Development Server
 Start the local Next.js development engine:

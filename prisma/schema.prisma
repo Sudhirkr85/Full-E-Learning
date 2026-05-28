@@ -764,3 +764,13 @@ enum AuditAction {
   PUBLISH
   ARCHIVE
 }
+
+model PlatformConfig {
+  id           String   @id @default("singleton")
+  siteName     String   @default("E-Learning Academy")
+  supportEmail String   @default("support@yourapp.com")
+  maintenance  Boolean  @default(false)
+  updatedAt    DateTime @updatedAt
+
+  @@map("platform_configs")
+}

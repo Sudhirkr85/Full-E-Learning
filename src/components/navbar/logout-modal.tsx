@@ -26,15 +26,15 @@ export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* Backdrop overlay */}
+    <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 py-6">
+      {/* Backdrop overlay — covers entire screen including navbar */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
         onClick={onClose}
       />
       
-      {/* Glassmorphic modal card */}
-      <div className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl border border-white/10 bg-[#070a14]/95 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] backdrop-blur-xl relative z-10 animate-in zoom-in-95 duration-200">
+      {/* Glassmorphic modal card — centered with safe margins */}
+      <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#070a14]/95 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] backdrop-blur-xl relative z-10 animate-in zoom-in-95 duration-200">
         
         {/* Animated neon laser top border */}
         <div className="absolute top-0 left-0 w-full h-[1px] overflow-hidden bg-gradient-to-r from-transparent via-rose-500/30 to-transparent">

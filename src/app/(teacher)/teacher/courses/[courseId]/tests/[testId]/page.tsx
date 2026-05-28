@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: TestEditorPageProps): Promise
 export const dynamic = "force-dynamic";
 
 export default async function TestEditorPage({ params }: TestEditorPageProps) {
-  const teacher = await requireRole(["TEACHER", "ADMIN"]);
+  const teacher = await requireRole(["TEACHER"]);
   const { courseId, testId } = await params;
 
   // Retrieve test editor bundle (including questions and options) with course access assertion

@@ -3,8 +3,6 @@ import { requireRole } from "@/lib/auth";
 import { getAdminTicketsAction } from "@/lib/support/actions";
 import { prisma } from "@/lib/prisma";
 import { makeMetadata } from "@/lib/site";
-import { DashboardShell } from "@/components/dashboard-shell";
-import { adminNav } from "@/lib/site";
 import { AdminSupportClient } from "./support-client";
 
 export const metadata: Metadata = makeMetadata({
@@ -15,8 +13,8 @@ export const metadata: Metadata = makeMetadata({
 });
 
 export default async function AdminSupportPage() {
-  // Enforce ADMIN or TEACHER access control
-  const currentUser = await requireRole(["ADMIN", "TEACHER"]);
+  // Enforce ADMIN access control
+  const currentUser = await requireRole(["ADMIN"]);
   
   // Fetch tickets
   const ticketsRes = await getAdminTicketsAction();
@@ -38,23 +36,21 @@ export default async function AdminSupportPage() {
   });
 
   return (
-    <DashboardShell title="Support Moderation Desk" description="Manage user queries, assign priority tasks, and review resolution histories." nav={adminNav}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
-            Support Ticketing Desk
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-3xl">
-            Resolve student queries in real-time. View all open threads, assign responsibilities, respond to student escalations, and track resolution timelines.
-          </p>
-        </div>
-
-        <AdminSupportClient 
-          initialTickets={tickets} 
-          staff={staff} 
-          currentUser={currentUser} 
-        />
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
+          Support Ticketing Desk
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-3xl">
+          Resolve student queries in real-time. View all open threads, assign responsibilities, respond to student escalations, and track resolution timelines.
+        </p>
       </div>
-    </DashboardShell>
+
+      <AdminSupportClient 
+        initialTickets={tickets} 
+        staff={staff} 
+        currentUser={currentUser} 
+      />
+    </div>
   );
 }

@@ -94,7 +94,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
       case "TEACHER":
         return [...base, { label: "Teacher Panel", href: "/teacher/dashboard" }];
       case "ADMIN":
-        return [...base, { label: "Admin Panel", href: "/admin/dashboard" }];
+        return [...base];
       default:
         return [...base];
     }

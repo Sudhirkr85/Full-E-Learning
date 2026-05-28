@@ -5,6 +5,7 @@ import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { registerSchema } from "@/lib/auth-schemas";
+import { SUPER_ADMIN_EMAIL } from "@/lib/admin-config";
 
 function splitName(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -33,6 +34,11 @@ export async function registerAction(formData: FormData) {
 
   if (existingUser) {
     redirect("/register?error=email_exists");
+  }
+
+  // Block reserved admin email from public registration
+  if (email === SUPER_ADMIN_EMAIL.toLowerCase()) {
+    redirect("/register?error=email_reserved");
   }
 
   const passwordHash = await hashPassword(parsed.data.password);

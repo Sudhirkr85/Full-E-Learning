@@ -48,7 +48,7 @@ function revalidateCoursePaths(courseSlug?: string, courseId?: string) {
 }
 
 async function requireTeacher() {
-  return requireRole([UserRole.TEACHER]);
+  return requireRole([UserRole.TEACHER, UserRole.ADMIN]);
 }
 
 async function assertCourseAccess(courseId: string, teacherId: string) {

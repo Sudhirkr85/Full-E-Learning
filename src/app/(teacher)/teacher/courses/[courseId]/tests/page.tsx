@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: TestsPageProps): Promise<Meta
 export const dynamic = "force-dynamic";
 
 export default async function CourseTestsPage({ params }: TestsPageProps) {
-  const teacher = await requireRole(["TEACHER", "ADMIN"]);
+  const teacher = await requireRole(["TEACHER"]);
   const { courseId } = await params;
 
   // Verify course ownership

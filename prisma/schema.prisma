@@ -420,6 +420,12 @@ model Product {
   title              String
   slug               String         @unique
   description        String?
+  shortDescription   String?
+  fullDescription    String?
+  stockQuantity      Int?
+  shippingRequired   Boolean?       @default(false)
+  dispatchNotes      String?
+  bundleItems        Json?
   productType        ProductType    @default(DIGITAL_RESOURCE)
   status             ProductStatus  @default(DRAFT)
   priceCents         Int            @default(0)
@@ -693,12 +699,14 @@ enum ProductType {
   DIGITAL_RESOURCE
   BUNDLE
   MEMBERSHIP
+  PHYSICAL
 }
 
 enum ProductStatus {
   DRAFT
   ACTIVE
   ARCHIVED
+  PUBLISHED
 }
 
 enum CouponType {

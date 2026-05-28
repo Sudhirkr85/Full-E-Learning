@@ -38,6 +38,7 @@ export const adminNav = [
   { label: "Users", href: "/admin/users" },
   { label: "Courses", href: "/admin/courses" },
   { label: "Categories", href: "/admin/categories" },
+  { label: "Store", href: "/admin/store" },
   { label: "Support Tickets", href: "/admin/support" },
   { label: "Change Password", href: "/admin/settings/change-password" },
   { label: "Platform Config", href: "/admin/settings/platform" }

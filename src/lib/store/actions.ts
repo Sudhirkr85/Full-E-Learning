@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/lib/prisma";
 import { ProductStatus, ProductType, OrderStatus, CouponType } from "@prisma/client";
 
@@ -609,4 +611,3 @@ export async function simulatePaymentSuccessAction(orderId: string) {
     };
   }
 }
-

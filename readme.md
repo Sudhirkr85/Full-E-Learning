@@ -42,6 +42,7 @@ The application contains the following fully implemented production modules:
     *   **Avatar Dropdown**: Role-specific menu with profile, dashboard, and logout actions.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
 *   **Admin**: Full admin dashboard with real-time platform stats (students, teachers, courses, revenue), user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration.
+*   **Store Management**: Admin can create and manage digital products, physical products, course access products, and bundles. INR pricing only. Supports stock management for physical products, asset URLs for digital products, course linking for access products, and multi-item bundles. Fully separate from LMS course flow.
 *   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources. Course listing page shows responsive grid (1/2/3/4 columns), thumbnail banners with category gradients, Free badge or ₹ INR pricing, original-price strike-through with calculated discount % OFF, hover animations, and teacher/section metadata. Course cards show single CTA: 'Continue Learning' if enrolled, 'View Details' otherwise. Course detail page shows 2-column layout (desktop) with sticky price card. Left side: thumbnail, meta, teacher info, description with read-more, curriculum accordion with preview/locked lessons. Right side: sticky card with INR pricing, discount badge, enrollment CTA based on login and enrollment state, and course includes section.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
 *   **Tests & Quizzes (Assessments)**: Graded exams, practice tests, and quizzes. Supports single-choice, multiple-choice, true/false, and short-answer questions with auto-grading scripts.
@@ -122,6 +123,9 @@ src/
   │       ├── courses/                    # Course list, status management
   │       ├── courses/[courseId]/         # Course detail, sections, lessons
   │       ├── categories/                 # Category CRUD management
+  │       ├── store/                      # Store product list
+  │       ├── store/new/                  # Create new product
+  │       ├── store/[productId]/          # Edit product
   │       ├── support/                    # CRM ticket moderation desk
   │       └── settings/
   │           ├── change-password/        # Admin secure password update
@@ -268,6 +272,7 @@ Every admin page is protected — session and role === "ADMIN" verified on both 
 | Courses | /admin/courses | All courses, publish/archive/delete |
 | Course Detail | /admin/courses/[id] | Sections, lessons, enrollments |
 | Categories | /admin/categories | Add, edit, delete categories |
+| Store | /admin/store | Product management — digital, physical, course access, bundles |
 | Support | /admin/support | Ticket list, reply, status update |
 | Change Password | /admin/settings/change-password | Verify current, set new password |
 | Platform Config | /admin/settings/platform | Site name, support email, maintenance mode |

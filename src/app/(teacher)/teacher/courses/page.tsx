@@ -1,16 +1,16 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Container } from "@/components/ui/container";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { makeMetadata } from "@/lib/site";
-import { getTeacherCourses } from "@/lib/courses/queries";
 import { requireRole } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { CoursesSearchFilter, CourseActionButtons } from "./courses-client";
 
 export const metadata: Metadata = makeMetadata({
-  title: "Manage Courses",
-  description: "Teacher course management dashboard for creating and editing courses.",
+  title: "Manage Courses - Teacher Workspace",
+  description: "Teacher course management dashboard for creating, editing, and supervising courses.",
   path: "/teacher/courses",
   noIndex: true
 });
@@ -19,6 +19,9 @@ export const dynamic = "force-dynamic";
 
 type TeacherCoursesPageProps = {
   searchParams?: Promise<{
+    q?: string;
+    filter?: string;
+    page?: string;
     created?: string;
     updated?: string;
     deleted?: string;
@@ -28,70 +31,188 @@ type TeacherCoursesPageProps = {
 
 export default async function TeacherCoursesPage({ searchParams }: TeacherCoursesPageProps) {
   const teacher = await requireRole(["TEACHER"]);
-  const courses = await getTeacherCourses(teacher.id);
-  const params = searchParams ? await searchParams : undefined;
+  const params = searchParams ? await searchParams : {};
+  const q = params.q?.trim() || "";
+  const filter = params.filter || "ALL";
+  const page = params.page ? parseInt(params.page, 10) : 0;
+  const currentPage = isNaN(page) || page < 0 ? 0 : page;
+
+  // Build query where filter (Teacher sees only their courses)
+  const where: any = {
+    teachers: {
+      some: {
+        teacherId: teacher.id
+      }
+    }
+  };
+  if (filter !== "ALL") {
+    where.status = filter;
+  }
+  if (q) {
+    where.title = { contains: q, mode: "insensitive" };
+  }
+
+  // Fetch courses with nested teacher name/email & count of enrollments
+  const [courses, totalCount] = await Promise.all([
+    prisma.course.findMany({
+      where,
+      include: {
+        teachers: {
+          include: {
+            teacher: {
+              select: { name: true, email: true }
+            }
+          }
+        },
+        _count: {
+          select: { enrollments: true }
+        }
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      skip: currentPage * 20
+    }),
+    prisma.course.count({ where })
+  ]);
+
+  const hasNextPage = (currentPage + 1) * 20 < totalCount;
+  const hasPrevPage = currentPage > 0;
+
+  const buildPageUrl = (targetPage: number) => {
+    const searchPart = q ? `&q=${encodeURIComponent(q)}` : "";
+    const filterPart = filter !== "ALL" ? `&filter=${filter}` : "";
+    return `/teacher/courses?page=${targetPage}${searchPart}${filterPart}`;
+  };
 
   return (
-    <section className="py-16 md:py-24">
-      <Container>
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
-            <Badge variant="secondary">Teacher workspace</Badge>
-            <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight md:text-5xl">Course management</h1>
-            <p className="mt-4 text-lg leading-8 text-muted-foreground">Create, edit, publish, and organize the courses assigned to you.</p>
-          </div>
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Badge variant="secondary">Teacher workspace</Badge>
+          <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-white">Course Management</h1>
+          <p className="mt-2 text-sm text-slate-400 leading-relaxed max-w-3xl">
+            Supervise all your teaching catalog materials. Monitor section outlines, review publishing states (draft/published/archived), and track student enrollment counts.
+          </p>
+        </div>
+        <Button asChild className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)] shrink-0 self-start">
+          <Link href="/teacher/courses/new">Create Course</Link>
+        </Button>
+      </div>
 
-          <Button asChild>
-            <Link href="/teacher/courses/new">Create course</Link>
+      {params?.created ? <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">Course created successfully.</p> : null}
+      {params?.updated ? <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">Course updated successfully.</p> : null}
+      {params?.deleted ? <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">Course deleted successfully.</p> : null}
+      {params?.error ? <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">Something went wrong. Please retry.</p> : null}
+
+      <CoursesSearchFilter />
+
+      <Card className="bg-[#090d20]/60 border-white/5 backdrop-blur-xl">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-white text-lg">Platform Courses</CardTitle>
+          <CardDescription className="text-slate-400">Total of {totalCount} course shells recorded in catalog database.</CardDescription>
+        </CardHeader>
+        <CardContent className="px-0 md:px-6">
+          {courses.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-200 border-collapse">
+                <thead>
+                  <tr className="border-b border-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                    <th className="px-4 py-3">Course Title</th>
+                    <th className="px-4 py-3">Instructor</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-center">Enrollments</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {courses.map((c) => {
+                    const primaryTeacher = c.teachers[0]?.teacher?.name ?? c.teachers[0]?.teacher?.email ?? "Unassigned";
+                    return (
+                      <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="px-4 py-3.5 font-semibold text-white">
+                          <Link href={`/teacher/courses/${c.id}/sections`} className="hover:underline hover:text-indigo-400 transition">
+                            {c.title}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs text-slate-300">{primaryTeacher}</td>
+                        <td className="px-4 py-3.5">
+                          <Badge
+                            variant={
+                              c.status === "PUBLISHED"
+                                ? "default"
+                                : c.status === "ARCHIVED"
+                                ? "secondary"
+                                : "outline"
+                            }
+                            className={
+                              c.status === "PUBLISHED"
+                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold"
+                                : c.status === "ARCHIVED"
+                                ? "bg-slate-500/20 text-slate-300 border-slate-500/30"
+                                : "bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold"
+                            }
+                          >
+                            {c.status}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3.5 text-center font-mono font-bold text-xs text-slate-300">
+                          {c._count.enrollments}
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button asChild variant="ghost" size="sm" className="text-indigo-400 hover:text-white hover:bg-white/5 rounded-xl">
+                              <Link href={`/teacher/courses/${c.id}/sections`}>Manage</Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl">
+                              <Link href={`/teacher/courses/${c.id}`}>Edit</Link>
+                            </Button>
+                            <CourseActionButtons courseId={c.id} status={c.status} />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="py-12 text-center text-slate-400 text-sm">
+              No courses matching selected filters found in catalog.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pagination Controls */}
+      {totalCount > 20 && (
+        <div className="flex items-center justify-between mt-4">
+          <Button
+            asChild
+            variant="outline"
+            disabled={!hasPrevPage}
+            className={`bg-white/5 border-white/10 text-white rounded-xl ${
+              !hasPrevPage ? "opacity-50 pointer-events-none" : "hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <Link href={buildPageUrl(currentPage - 1)}>Previous</Link>
+          </Button>
+
+          <span className="text-xs text-slate-400 font-semibold">
+            Page {currentPage + 1} of {Math.ceil(totalCount / 20)}
+          </span>
+
+          <Button
+            asChild
+            variant="outline"
+            disabled={!hasNextPage}
+            className={`bg-white/5 border-white/10 text-white rounded-xl ${
+              !hasNextPage ? "opacity-50 pointer-events-none" : "hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <Link href={buildPageUrl(currentPage + 1)}>Next</Link>
           </Button>
         </div>
-
-        {params?.created ? <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm">Course created successfully.</p> : null}
-        {params?.updated ? <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm">Course updated successfully.</p> : null}
-        {params?.deleted ? <p className="mt-8 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm">Course deleted successfully.</p> : null}
-        {params?.error ? <p className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">Something went wrong. Please retry.</p> : null}
-
-        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {courses.length ? (
-            courses.map((course) => (
-              <Card key={course.id}>
-                <CardHeader>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant={course.status === "PUBLISHED" ? "default" : "secondary"}>{course.status.toLowerCase()}</Badge>
-                    {course.categories.map(({ category }) => (
-                      <Badge key={category.id} variant="outline">
-                        {category.name}
-                      </Badge>
-                    ))}
-                  </div>
-                  <CardTitle className="mt-2">{course.title}</CardTitle>
-                  <CardDescription>{course.subtitle ?? course.excerpt ?? "Ready for course editing and publishing."}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    {course._count.sections} sections · {course.teachers.length} teacher{course.teachers.length === 1 ? "" : "s"}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/teacher/courses/${course.id}`}>Manage</Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/teacher/courses/${course.id}/sections`}>Sections</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <Card className="md:col-span-2 xl:col-span-3">
-              <CardHeader>
-                <CardTitle>No courses assigned yet</CardTitle>
-                <CardDescription>Create the first course to start building sections and lessons.</CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-        </div>
-      </Container>
-    </section>
+      )}
+    </div>
   );
 }

@@ -52,14 +52,23 @@ async function requireTeacher() {
 }
 
 async function assertCourseAccess(courseId: string, teacherId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: teacherId },
+    select: { role: true }
+  });
+
   const course = await prisma.course.findFirst({
     where: {
       id: courseId,
-      teachers: {
-        some: {
-          teacherId
-        }
-      }
+      ...(user?.role === "ADMIN"
+        ? {}
+        : {
+            teachers: {
+              some: {
+                teacherId
+              }
+            }
+          })
     },
     include: {
       teachers: true,
@@ -529,6 +538,15 @@ export async function createCourseAction(formData: FormData) {
   // Cover Image / Banner Upload URL
   const coverImageUrl = formData.get("coverImageUrl")?.toString().trim() || null;
 
+  const originalPriceInRupeesRaw = formData.get("originalPriceInRupees")?.toString().trim();
+  let originalPrice = null;
+  if (originalPriceInRupeesRaw) {
+    const parsedOriginal = parseFloat(originalPriceInRupeesRaw);
+    if (!isNaN(parsedOriginal)) {
+      originalPrice = parsedOriginal;
+    }
+  }
+
   // YouTube integration
   const youtubeVideoId = formData.get("youtubeVideoId")?.toString().trim();
   let trailerUrl = null;
@@ -578,6 +596,7 @@ export async function createCourseAction(formData: FormData) {
       coverImageUrl: coverImageUrl,
       trailerUrl: trailerUrl,
       status: "DRAFT",
+      metadata: originalPrice ? { originalPrice } : undefined,
       teachers: {
         create: [
           {
@@ -609,30 +628,74 @@ export async function createCourseAction(formData: FormData) {
 
 export async function updateCourseAction(formData: FormData) {
   const teacher = await requireTeacher();
-  const parsed = courseCoreSchema.extend({ courseId: courseDeleteSchema.shape.courseId }).safeParse(Object.fromEntries(formData.entries()));
+  const courseId = formData.get("courseId")?.toString() || "";
 
-  if (!parsed.success) {
+  if (!courseId) {
     redirectWithError(`/teacher/courses`, "invalid_input");
   }
 
-  const data = parsed.data!;
-  const currentCourse = await assertCourseAccess(data.courseId, teacher.id);
-  const nextSlug = await reserveCourseSlug(data.title, currentCourse.id);
+  const currentCourse = await assertCourseAccess(courseId, teacher.id);
+
+  const title = formData.get("title")?.toString().trim() || "";
+  const subtitle = formData.get("subtitle")?.toString().trim() || null;
+  const description = formData.get("description")?.toString().trim() || "";
+  const excerpt = formData.get("excerpt")?.toString().trim() || null;
+  const level = (formData.get("level")?.toString() || "BEGINNER") as any;
+  const language = formData.get("language")?.toString().trim() || "en";
+  const coverImageUrl = formData.get("coverImageUrl")?.toString().trim() || null;
+
+  // Convert Rupees to Cents
+  const priceInRupeesRaw = formData.get("priceInRupees")?.toString().trim();
+  let priceCents = 0;
+  if (priceInRupeesRaw) {
+    const parsedRupees = parseFloat(priceInRupeesRaw);
+    if (!isNaN(parsedRupees)) {
+      priceCents = Math.round(parsedRupees * 100);
+    }
+  }
+
+  // Parse originalPrice in Rupees
+  const originalPriceInRupeesRaw = formData.get("originalPriceInRupees")?.toString().trim();
+  let originalPrice = null;
+  if (originalPriceInRupeesRaw) {
+    const parsedOriginal = parseFloat(originalPriceInRupeesRaw);
+    if (!isNaN(parsedOriginal)) {
+      originalPrice = parsedOriginal;
+    }
+  }
+
+  if (title.length < 3) {
+    redirectWithError(`/teacher/courses/${currentCourse.id}`, "invalid_input");
+  }
+
+  const nextSlug = await reserveCourseSlug(title, currentCourse.id);
+
+  // Preserve existing metadata and merge new originalPrice
+  const existingMeta = typeof currentCourse.metadata === "object" && currentCourse.metadata !== null 
+    ? (currentCourse.metadata as Record<string, any>) 
+    : {};
+  const metadata = {
+    ...existingMeta,
+    originalPrice: originalPrice !== null ? originalPrice : undefined
+  };
+  if (originalPrice === null) {
+    delete metadata.originalPrice;
+  }
 
   await prisma.course.update({
     where: { id: currentCourse.id },
     data: {
-      title: data.title,
+      title,
       slug: nextSlug,
-      subtitle: data.subtitle || null,
-      description: data.description,
-      excerpt: data.excerpt || null,
-      level: data.level,
-      language: data.language,
-      priceCents: data.priceCents,
-      currency: data.currency,
-      coverImageUrl: data.coverImageUrl ?? null,
-      trailerUrl: data.trailerUrl ?? null
+      subtitle,
+      description,
+      excerpt,
+      level,
+      language,
+      priceCents,
+      currency: "INR",
+      coverImageUrl,
+      metadata: Object.keys(metadata).length > 0 ? metadata : undefined
     }
   });
 

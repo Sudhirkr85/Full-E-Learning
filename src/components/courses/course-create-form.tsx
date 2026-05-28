@@ -265,21 +265,42 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
               </div>
 
               {/* Pricing (INR Only) */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
-                  Course Price (<IndianRupee className="h-3 w-3" />)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-3.5 text-xs text-slate-400 font-bold">₹</span>
-                  <Input
-                    name="priceInRupees"
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="e.g. 499"
-                    className="pl-7 bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
-                    required
-                  />
+              <div className="space-y-2 col-span-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
+                      Course Price (<IndianRupee className="h-3 w-3" />)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-3.5 text-xs text-slate-400 font-bold">₹</span>
+                      <Input
+                        name="priceInRupees"
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="e.g. 499"
+                        className="pl-7 bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
+                      Original Price (<IndianRupee className="h-3 w-3" />)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-3.5 text-xs text-slate-400 font-bold">₹</span>
+                      <Input
+                        name="originalPriceInRupees"
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="e.g. 999"
+                        className="pl-7 bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

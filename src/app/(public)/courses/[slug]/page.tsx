@@ -122,18 +122,6 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
           ) : null}
         </div>
 
-        {course.trailerUrl ? (
-          <Card className="mt-8 max-w-4xl">
-            <CardHeader>
-              <CardTitle>Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <a href={course.trailerUrl} target="_blank" rel="noreferrer" className="text-sm font-medium text-primary underline underline-offset-4">
-                Open trailer video
-              </a>
-            </CardContent>
-          </Card>
-        ) : null}
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           {course.sections.map((section) => (

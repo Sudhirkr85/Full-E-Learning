@@ -147,9 +147,12 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
                           {c._count.enrollments}
                         </td>
                         <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1.5">
                             <Button asChild variant="ghost" size="sm" className="text-indigo-400 hover:text-white hover:bg-white/5 rounded-xl">
                               <Link href={`/admin/courses/${c.id}`}>Manage</Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl">
+                              <Link href={`/admin/courses/${c.id}/edit`}>Edit</Link>
                             </Button>
                             <CourseActionButtons courseId={c.id} status={c.status} />
                           </div>

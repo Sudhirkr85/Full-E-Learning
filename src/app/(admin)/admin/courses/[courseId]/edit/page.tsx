@@ -6,18 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { makeMetadata } from "@/lib/site";
 import { requireRole } from "@/lib/auth";
-import { getTeacherCourseEditor } from "@/lib/courses/queries";
 import { prisma } from "@/lib/prisma";
 import { ArrowLeft, BookOpen, Layers, ShieldAlert, Sparkles, Tag, Users } from "lucide-react";
 import {
-  assignTeacherAction,
-  attachCategoryToCourseAction,
-  deleteCourseAction,
-  detachCategoryFromCourseAction,
-  removeTeacherAction,
-  toggleCourseStatusAction,
-  updateCourseAction
-} from "@/lib/courses/actions";
+  adminAssignTeacherAction,
+  adminAttachCategoryToCourseAction,
+  adminDeleteCourseAction,
+  adminDetachCategoryFromCourseAction,
+  adminRemoveTeacherAction,
+  adminToggleCourseStatusAction,
+  adminUpdateCourseAction
+} from "./actions";
+import { BannerUploadField } from "./banner-upload-field";
 
 type CourseEditorPageProps = {
   params: Promise<{
@@ -28,9 +28,9 @@ type CourseEditorPageProps = {
 export async function generateMetadata({ params }: CourseEditorPageProps): Promise<Metadata> {
   const { courseId } = await params;
   return makeMetadata({
-    title: `Edit Course ${courseId}`,
+    title: `Edit Course ${courseId} - Admin Desk`,
     description: "Course editor for managing the course shell, teachers, and catalog data.",
-    path: `/teacher/courses/${courseId}`,
+    path: `/admin/courses/${courseId}/edit`,
     noIndex: true
   });
 }
@@ -38,11 +38,37 @@ export async function generateMetadata({ params }: CourseEditorPageProps): Promi
 export const dynamic = "force-dynamic";
 
 export default async function CourseEditorPage({ params }: CourseEditorPageProps) {
-  const teacher = await requireRole(["TEACHER"]);
+  const admin = await requireRole(["ADMIN"]);
   const { courseId } = await params;
-  
+
+  // Direct fetch for the admin to allow editing any course catalog shell, including categories and teachers
   const [course, allCategories, allTeachers] = await Promise.all([
-    getTeacherCourseEditor(courseId, teacher.id),
+    prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        categories: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            category: true
+          }
+        },
+        teachers: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            teacher: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true
+              }
+            }
+          }
+        }
+      }
+    }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.user.findMany({
       where: { role: { in: ["TEACHER", "ADMIN"] } },
@@ -57,7 +83,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
         <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight text-white">Course unavailable</h1>
         <p className="mt-4 text-slate-400 max-w-md mx-auto">You do not have access to this course or it does not exist.</p>
         <Button className="mt-6" asChild>
-          <Link href="/teacher/courses">Back to courses</Link>
+          <Link href="/admin/courses">Back to courses</Link>
         </Button>
       </div>
     );
@@ -67,13 +93,13 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-10">
       {/* Header & Back Link */}
       <div>
-        <Link href="/teacher/courses" className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition duration-200 mb-4">
+        <Link href="/admin/courses" className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition duration-200 mb-4">
           <ArrowLeft className="h-3 w-3" /> Back to Course Manager
         </Link>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">Teacher Workspace Desk</Badge>
+              <Badge variant="secondary">Admin Workspace Desk</Badge>
               <Badge
                 variant={
                   course.status === "PUBLISHED"
@@ -99,7 +125,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
 
           <div className="flex flex-wrap gap-2 shrink-0 self-start md:self-center">
             <Button asChild className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]">
-              <Link href={`/teacher/courses/${course.id}/sections`}>Manage Curriculum Sections</Link>
+              <Link href={`/admin/courses/${course.id}`}>Manage Curriculum Sections</Link>
             </Button>
           </div>
         </div>
@@ -118,7 +144,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
             <CardDescription className="text-slate-400">Slug generation updates automatically when the title changes.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={updateCourseAction} className="space-y-4">
+            <form action={adminUpdateCourseAction} className="space-y-4">
               <input type="hidden" name="courseId" value={course.id} />
               
               <div className="grid gap-4 md:grid-cols-2">
@@ -142,16 +168,18 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Course Description</label>
-                <textarea 
-                  name="description" 
-                  rows={6} 
-                  defaultValue={course.description ?? ""} 
-                  className="min-h-32 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none ring-offset-background placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
-                  required 
-                />
-              </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Course Description</label>
+                  <textarea 
+                    name="description" 
+                    rows={6} 
+                    maxLength={1000}
+                    defaultValue={course.description ?? ""} 
+                    className="min-h-32 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none ring-offset-background placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
+                    required 
+                  />
+                  <p className="text-[10px] text-slate-500">Maximum 1000 characters.</p>
+                </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-300">SEO excerpt</label>
@@ -215,15 +243,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Cover image URL</label>
-                <Input 
-                  name="coverImageUrl" 
-                  defaultValue={course.coverImageUrl ?? ""} 
-                  placeholder="Cover image URL" 
-                  className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs" 
-                />
-              </div>
+              <BannerUploadField initialImageUrl={course.coverImageUrl} courseTitle={course.title} />
 
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl">
@@ -246,7 +266,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
               <CardDescription className="text-slate-400">Publish or archive the course without touching content.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={toggleCourseStatusAction} className="grid gap-4">
+              <form action={adminToggleCourseStatusAction} className="grid gap-4">
                 <input type="hidden" name="courseId" value={course.id} />
                 <select 
                   name="status" 
@@ -274,7 +294,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
               <CardDescription className="text-slate-400">Attach or remove categories from this course.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form action={attachCategoryToCourseAction} className="grid gap-3">
+              <form action={adminAttachCategoryToCourseAction} className="grid gap-3">
                 <input type="hidden" name="courseId" value={course.id} />
                 <select 
                   name="categoryName" 
@@ -295,7 +315,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
 
               <div className="flex flex-wrap gap-2 pt-2">
                 {course.categories.map(({ category }: any) => (
-                  <form key={category.id} action={detachCategoryFromCourseAction}>
+                  <form key={category.id} action={adminDetachCategoryFromCourseAction}>
                     <input type="hidden" name="courseId" value={course.id} />
                     <input type="hidden" name="categoryId" value={category.id} />
                     <Button type="submit" variant="secondary" size="sm" className="rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white">
@@ -318,7 +338,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
               <CardDescription className="text-slate-400">Assign additional teachers to this course.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form action={assignTeacherAction} className="grid gap-3">
+              <form action={adminAssignTeacherAction} className="grid gap-3">
                 <input type="hidden" name="courseId" value={course.id} />
                 <select 
                   name="teacherEmail" 
@@ -344,7 +364,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
                       <p className="font-semibold text-xs text-white">{assignedTeacher.name ?? assignedTeacher.email}</p>
                       <p className="text-[10px] text-slate-400">{assignedTeacher.email}</p>
                     </div>
-                    <form action={removeTeacherAction}>
+                    <form action={adminRemoveTeacherAction}>
                       <input type="hidden" name="courseId" value={course.id} />
                       <input type="hidden" name="teacherId" value={assignedTeacher.id} />
                       <Button type="submit" variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-red-500/5 rounded-xl">
@@ -367,7 +387,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
               <CardDescription className="text-slate-400">Delete the course and all nested content.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={deleteCourseAction}>
+              <form action={adminDeleteCourseAction}>
                 <input type="hidden" name="courseId" value={course.id} />
                 <Button type="submit" variant="destructive" className="bg-red-500 hover:bg-red-600 text-white rounded-xl w-full">
                   Delete course

@@ -42,7 +42,7 @@ The application contains the following fully implemented production modules:
     *   **Avatar Dropdown**: Role-specific menu with profile, dashboard, and logout actions.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
 *   **Admin**: Full admin dashboard with real-time platform stats (students, teachers, courses, revenue), user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration.
-*   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources.
+*   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources. Course listing page shows responsive grid (1/2/3/4 columns), thumbnail banners with category gradients, Free badge or ₹ INR pricing, original-price strike-through with calculated discount % OFF, hover animations, and teacher/section metadata.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
 *   **Tests & Quizzes (Assessments)**: Graded exams, practice tests, and quizzes. Supports single-choice, multiple-choice, true/false, and short-answer questions with auto-grading scripts.
 *   **Blockchain-Verified Certificates**: Automatic 100% progress verification, average score calculation, cryptographically signed `CERT-[YEAR]-[HEX]` verification codes, public canonical verification pages, and print layouts.
@@ -556,3 +556,12 @@ The platform includes enhanced credential security controls for both administrat
     *   At least **one special character** (e.g., `@`, `$`, `!`, `%`, `*`, `?`, `&`)
 *   **Interactive Password Strength Meter**: The `/admin/settings/change-password` viewport and the public `/register` viewport both embed a live, color-coded strength bar and a real-time criteria checklist that updates dynamically as the user types, displaying green checkmarks and matching validation.
 *   **Secure Verification flow**: Administrative updates fully validate current passwords using `bcrypt` comparison matches before updates are committed, and public signups enforce these rules client-side.
+
+### 3. Public Course Card Redesign & Custom Centered Confirmation Dialogs
+*   **Public Course Listing Card**: Redesigned public course cards with modern visual architecture:
+    *   **Immersive Thumbnail Hero Section**: 48px height with a custom dark gradient overlay (`bg-gradient-to-t from-black/80 via-black/20 to-transparent`) and top-left translucent category badges.
+    *   **Aesthetic Typography Hierarchy**: Course titles overlaid directly on the banner with dual-line clamping, supported by flexible description bodies, dynamic section counts, and teacher names.
+    *   **Advanced Rupee Price Row**: Visual logic distinguishing Free courses, regular Paid courses, and discounted paths (including strikethroughs and dynamic "% OFF" badges).
+    *   **Hover-Lift Animation**: Standardized groups with dynamic `hover:-translate-y-1.5 hover:shadow-lg` for highly engaging micro-interactions.
+    *   **Responsive Grid System**: Grid structure spanning 1, 2, 3, or 4 columns seamlessly across standard viewports.
+*   **Custom Centered Confirmation Modals**: Replaced native browser `confirm()` alerts on the admin course management dashboard with beautiful custom glassmorphic modals, perfectly centered on the screen and optimized for both desktop and mobile viewports.

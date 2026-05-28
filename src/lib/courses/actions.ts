@@ -496,31 +496,88 @@ export async function toggleLessonCompletionAction(formData: FormData) {
 
 export async function createCourseAction(formData: FormData) {
   const teacher = await requireTeacher();
-  const parsed = courseCoreSchema.safeParse(Object.fromEntries(formData.entries()));
-
-  if (!parsed.success) {
-    redirectWithError("/teacher/courses/new", "invalid_input");
+  
+  // Extract inputs
+  const title = formData.get("title")?.toString().trim() || "";
+  const subtitle = formData.get("subtitle")?.toString().trim() || "";
+  const description = formData.get("description")?.toString().trim() || "";
+  const excerpt = formData.get("excerpt")?.toString().trim() || "";
+  const level = (formData.get("level")?.toString() || "BEGINNER") as any;
+  const language = formData.get("language")?.toString().trim() || "en";
+  
+  // Pricing: Price in Rupees
+  const priceInRupeesRaw = formData.get("priceInRupees")?.toString().trim();
+  let priceCents = 0;
+  let currency = "INR";
+  if (priceInRupeesRaw) {
+    const parsedRupees = parseFloat(priceInRupeesRaw);
+    if (!isNaN(parsedRupees)) {
+      priceCents = Math.round(parsedRupees * 100);
+    }
+  } else {
+    // Fallback if priceCents was passed directly
+    const priceCentsRaw = formData.get("priceCents")?.toString().trim();
+    if (priceCentsRaw) {
+      priceCents = parseInt(priceCentsRaw, 10) || 0;
+    }
+    const rawCurrency = formData.get("currency")?.toString().trim();
+    if (rawCurrency) {
+      currency = rawCurrency;
+    }
   }
 
-  const data = parsed.data!;
-  const categoryNames = parseDelimitedList(data.categoryNames);
-  const courseSlug = await reserveCourseSlug(data.title);
-  const categoryIds = await resolveCategoryIds(categoryNames);
+  // Cover Image / Banner Upload URL
+  const coverImageUrl = formData.get("coverImageUrl")?.toString().trim() || null;
+
+  // YouTube integration
+  const youtubeVideoId = formData.get("youtubeVideoId")?.toString().trim();
+  let trailerUrl = null;
+  if (youtubeVideoId) {
+    const videoId = youtubeVideoId.includes("v=") 
+      ? youtubeVideoId.split("v=")[1]?.split("&")[0] 
+      : youtubeVideoId;
+    trailerUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  } else {
+    const rawTrailerUrl = formData.get("trailerUrl")?.toString().trim();
+    if (rawTrailerUrl) {
+      trailerUrl = rawTrailerUrl;
+    }
+  }
+
+  // Category
+  let categoryIds: string[] = [];
+  const categoryId = formData.get("categoryId")?.toString().trim();
+  if (categoryId) {
+    categoryIds.push(categoryId);
+  } else {
+    const categoryNamesRaw = formData.get("categoryNames")?.toString().trim();
+    if (categoryNamesRaw) {
+      const categoryNames = parseDelimitedList(categoryNamesRaw);
+      categoryIds = await resolveCategoryIds(categoryNames);
+    }
+  }
+
+  // Basic Validation
+  if (title.length < 3) {
+    redirectWithError(teacher.role === "ADMIN" ? "/admin/courses/new" : "/teacher/courses/new", "invalid_input");
+  }
+
+  const courseSlug = await reserveCourseSlug(title);
 
   const course = await prisma.course.create({
     data: {
-      title: data.title,
+      title,
       slug: courseSlug,
-      subtitle: data.subtitle || null,
-      description: data.description,
-      excerpt: data.excerpt || null,
-      level: data.level,
-      language: data.language,
-      priceCents: data.priceCents,
-      currency: data.currency,
-      coverImageUrl: data.coverImageUrl ?? null,
-      trailerUrl: data.trailerUrl ?? null,
-      status: CourseStatus.DRAFT,
+      subtitle: subtitle || null,
+      description: description || null,
+      excerpt: excerpt || null,
+      level: level,
+      language: language,
+      priceCents: priceCents,
+      currency: currency,
+      coverImageUrl: coverImageUrl,
+      trailerUrl: trailerUrl,
+      status: "DRAFT",
       teachers: {
         create: [
           {
@@ -532,8 +589,8 @@ export async function createCourseAction(formData: FormData) {
       },
       categories: categoryIds.length
         ? {
-            create: categoryIds.map((categoryId, index) => ({
-              categoryId,
+            create: categoryIds.map((cId, index) => ({
+              categoryId: cId,
               sortOrder: index
             }))
           }
@@ -548,6 +605,7 @@ export async function createCourseAction(formData: FormData) {
     redirect(`/admin/courses/${course.id}?created=1`);
   }
 }
+
 
 export async function updateCourseAction(formData: FormData) {
   const teacher = await requireTeacher();

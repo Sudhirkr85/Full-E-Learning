@@ -23,6 +23,23 @@ export async function changePasswordAction(prevState: any, formData: FormData) {
     return { error: "New password and confirmation do not match." };
   }
 
+  // Strong password validations
+  if (newPassword.length < 8) {
+    return { error: "New password must be at least 8 characters long." };
+  }
+  if (!/[A-Z]/.test(newPassword)) {
+    return { error: "New password must contain at least one uppercase letter." };
+  }
+  if (!/[a-z]/.test(newPassword)) {
+    return { error: "New password must contain at least one lowercase letter." };
+  }
+  if (!/[0-9]/.test(newPassword)) {
+    return { error: "New password must contain at least one number." };
+  }
+  if (!/[^A-Za-z0-9]/.test(newPassword)) {
+    return { error: "New password must contain at least one special character." };
+  }
+
   const userEmail = session.user.email;
   if (!userEmail) {
     return { error: "User email not found in session." };

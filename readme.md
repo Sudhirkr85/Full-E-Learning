@@ -532,3 +532,27 @@ Planned architecture and platform improvements include:
 *   **Advanced Analytics Visualizer**: Canvas charts in the teacher workspace showing course completion percentages and quiz difficulty ratings.
 *   **Live Stream Classes**: Scheduling live lectures with calendar synchronization.
 *   **Outcome Recommendation Engine**: Dynamic student recommendation paths matching learning speeds to tech job openings.
+
+---
+
+## 19. Indian LMS UX & Admin Governance Updates
+
+The platform has been enhanced with simplified, production-ready Indian student-focused LMS user experiences and hardened security policies:
+
+### 1. Simplified Course Creation UX (Indian LMS First)
+To remove confusing technical inputs for teachers and administrators, the course creation workflow now features streamlined controls:
+*   **Searchable Category Dropdown**: Comma-separated category text inputs have been replaced with a real-time searchable dropdown. Available categories are loaded directly from the database and allow selecting an initial category.
+*   **INR-Only Pricing**: The generic price in cents and currency selectors have been removed. Pricing is fixed to **INR (₹)** as the native currency. Admins enter normal rupee values (e.g. `499`, `999`, `4999`), which are automatically converted to cents (`* 100`) internally for transaction processors.
+*   **YouTube Video ID Integration**: Full trailer URL inputs have been replaced with a simple **YouTube Video ID** input (e.g., `dQw4w9WgXcQ`). The platform automatically builds and stores the canonical watch URL (`https://www.youtube.com/watch?v=...`) internally.
+*   **Direct Banner Upload Flow**: Manual cover image URL pasting has been eliminated. The form features a premium drag-and-drop / click-to-select local file uploader that performs automatic validation, uploads assets securely via `/api/courses/upload-banner` to Cloudflare R2, and displays an instant cover preview with removal controls.
+
+### 2. Hardened Password Governance (Admin & Student Registrations)
+The platform includes enhanced credential security controls for both administrators and public student registrations:
+*   **5-Rule Strong Credentials Validation**: Passwords must strictly satisfy the following criteria:
+    *   Minimum **8 characters** in length
+    *   At least **one uppercase letter** (A-Z)
+    *   At least **one lowercase letter** (a-z)
+    *   At least **one number** (0-9)
+    *   At least **one special character** (e.g., `@`, `$`, `!`, `%`, `*`, `?`, `&`)
+*   **Interactive Password Strength Meter**: The `/admin/settings/change-password` viewport and the public `/register` viewport both embed a live, color-coded strength bar and a real-time criteria checklist that updates dynamically as the user types, displaying green checkmarks and matching validation.
+*   **Secure Verification flow**: Administrative updates fully validate current passwords using `bcrypt` comparison matches before updates are committed, and public signups enforce these rules client-side.

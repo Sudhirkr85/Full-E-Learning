@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useEffect } from "react";
+import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import { User, Mail, Lock, Eye, EyeOff, Loader2, Chrome, Github, ArrowRight, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,64 +22,54 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: "Empty", color: "bg-slate-850", shadow: "" });
-  const [passwordsMatch, setPasswordsMatch] = useState<boolean | null>(null);
-
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
   const [isGithubPending, startGithubTransition] = useTransition();
 
   const isAnyPending = isPending || isGooglePending || isGithubPending;
 
-  // Real-time password strength checker
-  useEffect(() => {
-    if (!password) {
-      setPasswordStrength({ score: 0, label: "Empty", color: "bg-slate-800", shadow: "" });
-      return;
+  // Real-time password strength checklist calculations (calculated inline for perfect reactivity)
+  const criteria = [
+    { id: "length", label: "At least 8 characters", met: password.length >= 8 },
+    { id: "upper", label: "One uppercase letter (A-Z)", met: /[A-Z]/.test(password) },
+    { id: "lower", label: "One lowercase letter (a-z)", met: /[a-z]/.test(password) },
+    { id: "number", label: "One number (0-9)", met: /[0-9]/.test(password) },
+    { id: "special", label: "One special character (e.g., @, $, !, %)", met: /[^A-Za-z0-9]/.test(password) },
+  ];
+
+  const satisfiedCount = criteria.filter((c) => c.met).length;
+
+  let strengthLabel = "Very Weak";
+  let strengthColor = "bg-rose-500";
+  let strengthWidth = "w-0";
+
+  if (password.length > 0) {
+    if (satisfiedCount === 5) {
+      strengthLabel = "Excellent / Strong";
+      strengthColor = "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]";
+      strengthWidth = "w-full";
+    } else if (satisfiedCount >= 3) {
+      strengthLabel = "Good";
+      strengthColor = "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]";
+      strengthWidth = "w-3/5";
+    } else {
+      strengthLabel = "Weak";
+      strengthColor = "bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]";
+      strengthWidth = "w-1/5";
     }
+  }
 
-    let score = 0;
-    if (password.length >= 8) score += 1;
-    if (/[0-9]/.test(password)) score += 1;
-    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 1;
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
-
-    let label = "Weak";
-    let color = "bg-rose-500";
-    let shadow = "shadow-[0_0_10px_rgba(244,63,94,0.3)]";
-
-    if (score === 2) {
-      label = "Fair";
-      color = "bg-orange-500";
-      shadow = "shadow-[0_0_10px_rgba(249,115,22,0.3)]";
-    } else if (score === 3) {
-      label = "Good";
-      color = "bg-indigo-500";
-      shadow = "shadow-[0_0_10px_rgba(99,102,241,0.3)]";
-    } else if (score === 4) {
-      label = "Strong";
-      color = "bg-emerald-500";
-      shadow = "shadow-[0_0_10px_rgba(16,185,129,0.3)]";
-    }
-
-    setPasswordStrength({ score, label, color, shadow });
-  }, [password]);
-
-  // Real-time password matching check
-  useEffect(() => {
-    if (!confirmPassword) {
-      setPasswordsMatch(null);
-      return;
-    }
-    setPasswordsMatch(password === confirmPassword);
-  }, [password, confirmPassword]);
+  const passwordsMatch = confirmPassword.length > 0 ? password === confirmPassword : null;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isAnyPending) return;
 
     if (password !== confirmPassword) {
-      setPasswordsMatch(false);
+      return;
+    }
+
+    if (satisfiedCount < 5) {
       return;
     }
 
@@ -226,38 +216,45 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
             </button>
           </div>
 
-          {/* Password Strength Indicator */}
-          {password && (
-            <div className="space-y-1.5 pt-1.5 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">Strength</span>
+          {/* Real-time Password Strength Meter */}
+          {password.length > 0 && (
+            <div className="space-y-2 p-3.5 rounded-xl bg-white/[0.02] border border-white/5 animate-in fade-in duration-300">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">Password Strength:</span>
                 <span className={cn(
-                  "font-bold uppercase tracking-widest text-[10px]",
-                  passwordStrength.score <= 1 && "text-rose-400",
-                  passwordStrength.score === 2 && "text-orange-400",
-                  passwordStrength.score === 3 && "text-indigo-400",
-                  passwordStrength.score === 4 && "text-emerald-400"
+                  "font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded",
+                  satisfiedCount === 5 ? "text-emerald-400 bg-emerald-950/40" :
+                  satisfiedCount >= 3 ? "text-amber-400 bg-amber-950/40" :
+                  "text-rose-400 bg-rose-950/40"
                 )}>
-                  {passwordStrength.label}
+                  {strengthLabel}
                 </span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden flex gap-0.5 border border-white/[0.02]">
-                {[1, 2, 3, 4].map((step) => (
-                  <div
-                    key={step}
-                    className={cn(
-                      "h-full flex-1 transition-all duration-500",
-                      step <= passwordStrength.score ? `${passwordStrength.color} ${passwordStrength.shadow}` : "bg-slate-900"
+              
+              {/* Strength Track */}
+              <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/[0.02]">
+                <div className={`h-full ${strengthColor} ${strengthWidth} transition-all duration-500 ease-out`} />
+              </div>
+
+              {/* Requirement Checklist */}
+              <div className="grid gap-2 sm:grid-cols-2 mt-3 pt-2 border-t border-white/5">
+                {criteria.map((c) => (
+                  <div key={c.id} className="flex items-center gap-2 text-[10px] font-medium transition duration-200">
+                    {c.met ? (
+                      <span className="h-4 w-4 rounded-full bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                        <Check className="h-2.5 w-2.5 text-emerald-400" />
+                      </span>
+                    ) : (
+                      <span className="h-4 w-4 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                        <X className="h-2 w-2 text-slate-500" />
+                      </span>
                     )}
-                  />
+                    <span className={c.met ? "text-emerald-300" : "text-slate-500"}>
+                      {c.label}
+                    </span>
+                  </div>
                 ))}
               </div>
-              {password.length < 8 && (
-                <p className="text-[10px] text-rose-400/90 flex items-center gap-1 font-medium">
-                  <span className="h-1 w-1 rounded-full bg-rose-400 shrink-0" />
-                  Must be at least 8 characters.
-                </p>
-              )}
             </div>
           )}
         </div>
@@ -299,7 +296,7 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
           </div>
 
           {/* Passwords Match Visualizer */}
-          {confirmPassword && (
+          {confirmPassword.length > 0 && (
             <div className="flex items-center gap-1.5 pt-1 animate-in fade-in duration-200">
               {passwordsMatch ? (
                 <span className="text-[10px] text-emerald-400 flex items-center gap-1 font-bold uppercase tracking-wider">
@@ -317,7 +314,7 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
         {/* Submit button */}
         <Button
           type="submit"
-          disabled={isAnyPending || (confirmPassword !== "" && !passwordsMatch)}
+          disabled={isAnyPending || (password.length > 0 && satisfiedCount < 5) || passwordsMatch === false}
           className="relative w-full h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 shadow-[0_4px_25px_-5px_rgba(99,102,241,0.5)] hover:shadow-[0_8px_35px_-5px_rgba(99,102,241,0.7)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:hover:scale-100 disabled:pointer-events-none"
         >
           {isPending ? (

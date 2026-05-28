@@ -1,15 +1,16 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { EnrollmentStatus } from "@prisma/client";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Container } from "@/components/ui/container";
+import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Container } from "@/components/ui/container";
 import { makeMetadata } from "@/lib/site";
-import { getCurrentUser } from "@/lib/auth";
 import { enrollInCourseAction } from "@/lib/courses/actions";
-import { getLearningCourseOverview } from "@/lib/courses/access";
 import { prisma } from "@/lib/prisma";
+import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, UserCircle2 } from "lucide-react";
+import { CourseDetailClient } from "./course-detail-client";
+
+export const dynamic = "force-dynamic";
 
 type CourseDetailsPageProps = {
   params: Promise<{
@@ -17,25 +18,84 @@ type CourseDetailsPageProps = {
   }>;
 };
 
-export const dynamic = "force-dynamic";
+function categoryGradient(categoryName?: string) {
+  switch (categoryName) {
+    case "Web Development":
+      return "from-blue-500 to-purple-600";
+    case "Mobile Development":
+      return "from-green-500 to-teal-600";
+    case "Backend":
+      return "from-orange-500 to-red-600";
+    default:
+      return "from-gray-600 to-gray-800";
+  }
+}
+
+function initials(name?: string | null) {
+  if (!name) return "IN";
+  const parts = name.trim().split(/\s+/);
+  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+}
 
 export async function generateMetadata({ params }: CourseDetailsPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const course = await getLearningCourseOverview(slug);
+  const course = await prisma.course.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    select: {
+      title: true,
+      excerpt: true,
+      description: true
+    }
+  });
 
   return makeMetadata({
-    title: course?.course.title ?? slug.replaceAll("-", " "),
-    description: course?.course.excerpt ?? course?.course.description ?? "Published course detail page with enrollment, lesson access, and progress tracking.",
+    title: course?.title ?? slug.replaceAll("-", " "),
+    description: course?.excerpt ?? course?.description ?? "Published course detail page with enrollment, lesson access, and progress tracking.",
     path: `/courses/${slug}`
   });
 }
 
 export default async function CourseDetailsPage({ params }: CourseDetailsPageProps) {
   const { slug } = await params;
-  const currentUser = await getCurrentUser();
-  const overview = await getLearningCourseOverview(slug, currentUser?.id);
+  const session = await auth();
 
-  if (!overview?.course) {
+  const course = await prisma.course.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    include: {
+      categories: {
+        include: { category: true }
+      },
+      teachers: {
+        include: {
+          teacher: {
+            select: { id: true, name: true, image: true }
+          }
+        },
+        take: 1,
+        orderBy: { sortOrder: "asc" }
+      },
+      sections: {
+        where: { isPublished: true },
+        orderBy: { orderIndex: "asc" },
+        include: {
+          lessons: {
+            where: { isPublished: true },
+            orderBy: { orderIndex: "asc" },
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              contentType: true,
+              isPreview: true,
+              orderIndex: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  if (!course) {
     return (
       <section className="py-16 md:py-24">
         <Container>
@@ -50,205 +110,144 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
     );
   }
 
-  const course = overview.course;
-  const totalLessonsCount = course.sections.reduce((count, section) => count + section.lessons.length, 0);
-  const totalResourcesCount = course.sections.reduce((count, section) => count + section.lessons.reduce((lessonCount, lesson) => lessonCount + lesson.resources.length, 0), 0);
-  const isEnrolled = overview.isEnrolled;
-  const hasEnrollment = Boolean(overview.enrollment);
-  const isStaff = overview.canBypass;
-  const canOpenLesson = Boolean(overview.continueHref);
-  const enrollmentStatus = overview.enrollment?.status;
-  const firstLesson = overview.firstLesson;
-
-  const tests = await prisma.test.findMany({
-    where: {
-      courseId: course.id,
-      isPublished: true,
-    },
-    include: {
-      _count: {
-        select: {
-          questions: true,
+  const enrollment = session?.user?.id
+    ? await prisma.enrollment.findUnique({
+        where: {
+          userId_courseId: {
+            userId: session.user.id,
+            courseId: course.id
+          }
         }
-      }
-    },
-    orderBy: { createdAt: "asc" }
-  });
+      })
+    : null;
 
-  const standaloneTests = tests.filter((t) => !t.sectionId);
+  const isEnrolled = Boolean(enrollment);
+  const price = course.priceCents ? Math.round(course.priceCents / 100) : 0;
+
+  let originalPrice: number | null = null;
+  if (course.metadata && typeof course.metadata === "object") {
+    const meta = course.metadata as { originalPrice?: unknown; learningOutcomes?: unknown; highlights?: unknown };
+    const parsedOriginal = Number(meta.originalPrice);
+    if (!Number.isNaN(parsedOriginal) && parsedOriginal > 0) {
+      originalPrice = Math.round(parsedOriginal);
+    }
+  }
+
+  const hasDiscount = originalPrice !== null && originalPrice > price && price > 0;
+  const safeOriginalPrice = Number(originalPrice ?? 0);
+  const discountPercent = hasDiscount ? Math.round(((safeOriginalPrice - price) / safeOriginalPrice) * 100) : 0;
+
+  const categoryName = course.categories[0]?.category.name ?? "General";
+  const teacher = course.teachers[0]?.teacher;
+  const sectionsCount = course.sections.length;
+  const lessonsCount = course.sections.reduce((count, section) => count + section.lessons.length, 0);
+
+  const metadataObj = course.metadata && typeof course.metadata === "object" ? (course.metadata as { learningOutcomes?: unknown; highlights?: unknown }) : null;
+  const learningOutcomes = Array.isArray(metadataObj?.learningOutcomes)
+    ? metadataObj.learningOutcomes.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : Array.isArray(metadataObj?.highlights)
+      ? metadataObj.highlights.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      : [];
 
   return (
-    <section className="py-16 md:py-24">
-      <Container>
-        <Badge variant="secondary">Course details</Badge>
-        <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight md:text-5xl">{course.title}</h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{course.description ?? course.excerpt ?? "Course details ready for lessons, resources, and protected enrollment flows."}</p>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 flex flex-col gap-8">
+          <div className="flex flex-col gap-4">
+            {course.coverImageUrl ? (
+              <img src={course.coverImageUrl} alt={course.title} className="w-full rounded-xl max-h-72 object-cover" />
+            ) : (
+              <div className={`w-full rounded-xl max-h-72 h-72 bg-gradient-to-br ${categoryGradient(categoryName)}`} />
+            )}
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Badge variant="outline">{course.level.toLowerCase()}</Badge>
-          <Badge variant="outline">{course.sections.length} sections</Badge>
-          <Badge variant="outline">{totalLessonsCount} lessons</Badge>
-          <Badge variant="outline">{totalResourcesCount} resources</Badge>
-          {hasEnrollment ? <Badge>{enrollmentStatus?.toLowerCase()}</Badge> : null}
-          {isStaff ? <Badge variant="secondary">staff access</Badge> : null}
-        </div>
-
-        <div className="mt-8 max-w-sm">
-          {isEnrolled ? (
-            <Button size="lg" className="w-full" asChild>
-              <Link href={`/student/courses/${course.slug}`}>Go to Course</Link>
-            </Button>
-          ) : !currentUser ? (
-            <Button size="lg" className="w-full" asChild>
-              <Link href="/login">Login to Enroll</Link>
-            </Button>
-          ) : (
-            <form action={enrollInCourseAction} className="w-full">
-              <input type="hidden" name="courseId" value={course.id} />
-              <Button size="lg" className="w-full" type="submit">
-                {course.priceCents === 0 || course.priceCents === null
-                  ? "Start Learning"
-                  : `Enroll Now — ₹${Math.round(course.priceCents / 100).toLocaleString("en-IN")}`}
-              </Button>
-            </form>
-          )}
-        </div>
-
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          {course.sections.map((section) => (
-            <Card key={section.id}>
-              <CardHeader>
-                <CardTitle>
-                  {section.orderIndex + 1}. {section.title}
-                </CardTitle>
-                <p className="text-sm leading-6 text-muted-foreground">{section.description ?? "Module overview coming soon."}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {section.lessons.map((lesson) => (
-                  <div key={lesson.id} className="rounded-xl border border-border bg-background/60 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="font-medium text-foreground">
-                        {lesson.orderIndex + 1}. {lesson.title}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="secondary">{lesson.contentType.toLowerCase()}</Badge>
-                        {lesson.isPreview ? <Badge variant="outline">preview</Badge> : <Badge variant="outline">locked</Badge>}
-                      </div>
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{lesson.description ?? "Lesson content will be added during course build-out."}</p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3">
-                      {lesson.isPreview || isEnrolled || isStaff ? (
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/courses/${course.slug}/lessons/${lesson.slug}`}>{lesson.isPreview ? "Open preview lesson" : "Open lesson"}</Link>
-                        </Button>
-                      ) : currentUser?.role === "STUDENT" ? (
-                        <span className="text-sm text-muted-foreground">Enroll to unlock this lesson.</span>
-                      ) : (
-                        <Button asChild size="sm" variant="outline">
-                          <Link href="/login">Sign in to unlock</Link>
-                        </Button>
-                      )}
-
-                      <span className="text-sm text-muted-foreground">{lesson.resources.length} protected resources</span>
-                    </div>
-                  </div>
-                ))}
-
-                {tests.filter((t) => t.sectionId === section.id).map((test) => (
-                  <div key={test.id} className="rounded-xl border border-primary/20 bg-primary/5 p-4 mt-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="space-y-0.5">
-                        <Badge variant="outline" className="text-[10px] capitalize bg-background">{test.type.toLowerCase()}</Badge>
-                        <h3 className="font-semibold text-foreground mt-1 text-sm sm:text-base">
-                          {test.title}
-                        </h3>
-                      </div>
-                      <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/25 text-xs">
-                        Passing: {test.passingScore}%
-                      </Badge>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{test.description ?? "Assessment to validate your learnings in this section."}</p>
-                    
-                    <div className="mt-3 flex items-center justify-between gap-4 text-xs text-muted-foreground">
-                      <span>{test._count.questions} questions</span>
-                      
-                      {isEnrolled || isStaff ? (
-                        <Button asChild size="sm" variant="default" className="h-8">
-                          <Link href={`/courses/${course.slug}/tests/${test.slug}`}>
-                            Open Assessment
-                          </Link>
-                        </Button>
-                      ) : currentUser?.role === "STUDENT" ? (
-                        <span className="text-xs text-muted-foreground font-medium">Enroll to unlock assessment.</span>
-                      ) : (
-                        <Button asChild size="sm" variant="outline" className="h-8">
-                          <Link href="/login">Sign in to unlock</Link>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {!course.sections.length ? (
-          <Card className="mt-10">
-            <CardHeader>
-              <CardTitle>No published lessons yet</CardTitle>
-              <CardDescription>This course is published, but the learning path has not been exposed yet.</CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {standaloneTests.length > 0 && (
-          <div className="mt-16 space-y-6">
-            <div className="max-w-2xl">
-              <Badge variant="secondary">Exams</Badge>
-              <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight">Course Assessments & Final Exams</h2>
-              <p className="mt-2 text-muted-foreground">Challenge yourself with standalone quizzes, practical mock tests, or final certification exams.</p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary" className="rounded-full px-2 py-1 text-xs">{categoryName}</Badge>
+              <Badge variant="outline" className="rounded-full px-2 py-1 text-xs">{course.level.toLowerCase()}</Badge>
             </div>
-            
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {standaloneTests.map((test) => (
-                <Card key={test.id} className="hover:border-primary/50 transition-all duration-200 flex flex-col justify-between">
-                  <CardHeader className="p-5 pb-3">
-                    <div className="flex items-center justify-between gap-3 flex-wrap">
-                      <Badge variant="outline" className="capitalize">{test.type.toLowerCase()}</Badge>
-                      <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/25 text-[10px] h-5 py-0">
-                        Passing: {test.passingScore}%
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-base pt-2 font-semibold">
-                      {test.title}
-                    </CardTitle>
-                    <p className="mt-2 text-xs text-muted-foreground line-clamp-3 leading-relaxed">{test.description ?? "Standalone assessment to validate your global understanding."}</p>
-                  </CardHeader>
-                  <CardContent className="p-5 pt-0 mt-auto border-t border-border/40 bg-muted/10 flex items-center justify-between gap-4 text-xs text-muted-foreground">
-                    <span>{test._count.questions} questions</span>
-                    
-                    {isEnrolled || isStaff ? (
-                      <Button asChild size="sm" className="h-8">
-                        <Link href={`/courses/${course.slug}/tests/${test.slug}`}>
-                          Take Test
-                        </Link>
-                      </Button>
-                    ) : currentUser?.role === "STUDENT" ? (
-                      <span className="text-xs text-muted-foreground">Enroll to unlock</span>
-                    ) : (
-                      <Button asChild size="sm" variant="outline" className="h-8">
-                        <Link href="/login">Sign in</Link>
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+
+            <h1 className="text-3xl font-bold">{course.title}</h1>
+            <p className="text-muted-foreground text-base">{course.subtitle ?? course.excerpt ?? "Published course ready for learning."}</p>
+
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><BookOpen className="h-4 w-4" /> {sectionsCount} sections</span>
+              <span className="inline-flex items-center gap-1"><Clapperboard className="h-4 w-4" /> {lessonsCount} lessons</span>
+              <span className="inline-flex items-center gap-1"><Clock3 className="h-4 w-4" /> {course.level.toLowerCase()}</span>
+              <span className="inline-flex items-center gap-1"><Globe className="h-4 w-4" /> {course.language}</span>
+            </div>
+
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              {teacher?.image ? (
+                <img src={teacher.image} alt={teacher.name ?? "Instructor"} className="h-9 w-9 rounded-full object-cover" />
+              ) : (
+                <div className="h-9 w-9 rounded-full border flex items-center justify-center text-xs font-semibold">{teacher?.name ? initials(teacher.name) : <UserCircle2 className="h-4 w-4" />}</div>
+              )}
+              <span>Instructor: {teacher?.name ?? "TBA"}</span>
             </div>
           </div>
-        )}
-      </Container>
-    </section>
+
+          <CourseDetailClient
+            slug={course.slug}
+            description={course.description ?? course.excerpt ?? "Course details will be updated soon."}
+            sections={course.sections}
+            isEnrolled={isEnrolled}
+            outcomes={learningOutcomes}
+          />
+        </div>
+
+        <div className="lg:col-span-1">
+          <div className="lg:sticky lg:top-6 border rounded-xl p-6 flex flex-col gap-4 bg-card">
+            <div>
+              {price === 0 ? (
+                <span className="text-3xl font-bold text-green-600">Free</span>
+              ) : hasDiscount ? (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-3xl font-bold">₹{price.toLocaleString("en-IN")}</span>
+                  <span className="text-lg line-through text-muted-foreground">₹{safeOriginalPrice.toLocaleString("en-IN")}</span>
+                  <span className="bg-green-100 text-green-700 text-sm font-bold px-2 py-1 rounded-full">{discountPercent}% OFF</span>
+                </div>
+              ) : (
+                <span className="text-3xl font-bold">₹{price.toLocaleString("en-IN")}</span>
+              )}
+            </div>
+
+            {!session?.user ? (
+              <Button size="lg" className="w-full" asChild>
+                <Link href="/login">Login to Enroll</Link>
+              </Button>
+            ) : isEnrolled ? (
+              <Button size="lg" className="w-full" asChild>
+                <Link href={`/student/courses/${course.slug}`}>Continue Learning</Link>
+              </Button>
+            ) : (
+              <form action={enrollInCourseAction} className="w-full">
+                <input type="hidden" name="courseId" value={course.id} />
+                <Button size="lg" className="w-full" type="submit">
+                  {price === 0 ? "Start Learning for Free" : `Enroll Now — ₹${price.toLocaleString("en-IN")}`}
+                </Button>
+              </form>
+            )}
+
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground border-t pt-4 mt-2">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                <span>{sectionsCount} sections · {lessonsCount} lessons</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                <span>Certificate on completion</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4" />
+                <span>Access on mobile & desktop</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Infinity className="h-4 w-4" />
+                <span>Lifetime access</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -677,6 +677,23 @@ The LMS now features a production-grade, highly responsive Course Purchase & Enr
 *   **Cryptographic Verification Route**: The `/api/courses/enroll/verify` endpoint verifies signature checkouts using SHA-256 HMAC encryption, transitions status to `ACTIVE`, creates course progress models, and dispatches the welcome email.
 *   **Webhook Fail-safe Protection**: Extends `/api/razorpay/webhook` to handle asynchronous `payment.captured` and `payment.failed` callbacks specifically for course enrollment Order IDs, offering complete protection when tabs are closed.
 *   **Brevo Transactional Welcome Mailer**: Connects to the REST email client to dispatch responsive welcome emails designed with custom futuristic dark styles (`#0a0a0f`) and clear learning expectations.
+### 15. Admin Coupon Management & Premium Checkout UI Refinements
+The platform has been enhanced with a robust, enterprise-grade Admin Coupon Management module and highly polished e-commerce checkout spacing improvements, fully optimized for both desktop and mobile viewports:
 
-
-
+*   **Universal Coupon Validation Engine**:
+    *   Centralized validation API at `/api/coupons/validate` dynamically processes percentage discount caps (`maxDiscountCents`), minimum order limits (`minimumOrderAmountCents`), start/end dates, global redemptions, and user-specific usage limits.
+    *   Supports scope targets spanning **ALL** platform items, **STORE** purchases, **COURSES** enrollments, or **SPECIFIC_COURSES** / **SPECIFIC_PRODUCTS** via database checkboxes.
+*   **Production-Ready Admin Coupon Desk (`/admin/coupons`)**:
+    *   Features real-time KPI metrics cards tracking Total Coupons, Active Promos, Expired Campaigns, and Total Redemptions.
+    *   Provides full CRUD panels with a dynamic multi-item select drawer, code uniqueness checks, live-preview cards, and detailed usage audit logs.
+*   **Complete Alphanumeric Sanitization Security**:
+    *   Enforces input sanitization via `replace(/[^A-Za-z0-9]/g, "")` across all coupon fields on the platform (form creation, mobile cart, cart drawer, course page) and backend API endpoints.
+    *   Automatically strips out `%` signs, spaces, and special symbols to prevent typos and ensure clean uppercase alphanumeric codes (e.g. `SUPER90`, `WELCOME10`).
+*   **Dynamic Date Formatting Safety**:
+    *   Employs a custom `formatDateForInput` helper inside the admin desk to handle both ISO string and raw JavaScript `Date` representations returned from server-side databases, resolving dynamic time-zone formatting and avoiding runtime `TypeError` crashes during campaigns updates.
+*   **Polished Spacing & Mobile-First Scrolling**:
+    *   Redesigned the standalone Mobile Cart Page (`(public)/cart/page.tsx`) to set dynamic viewport bounds (`h-[100dvh] overflow-hidden`) and group the items list, delivery information card, and coupon sections into a single natural scroll flow.
+    *   Transformed the floats-at-bottom `sticky` container into a premium inline **Pricing & Checkout Summary Card** (`bg-white/5 border border-white/10 rounded-xl p-4 mt-2 mx-4`).
+    *   This completely eliminates artificial vertical gaps on short-item checkouts and ensures the payment button remains easily clickable and beautifully aligned on compact mobile viewports without scroll bleed.
+*   **Build Verification**:
+    *   The entire platform compiles cleanly with strict typechecking rules under `npx tsc --noEmit`.

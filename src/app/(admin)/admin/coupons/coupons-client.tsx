@@ -271,17 +271,17 @@ export function CouponsClient({ initialCoupons, products, courses }: CouponsClie
       </div>
 
       {/* Premium Vitametrics Summary Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Total Coupons", val: totalCouponsCount, color: "text-indigo-400" },
           { label: "Active Promos", val: activeCount, color: "text-emerald-400" },
           { label: "Expired Campaigns", val: expiredCount, color: "text-rose-400" },
           { label: "Total Redemptions", val: totalUsesCount, color: "text-amber-400" }
         ].map((item, idx) => (
-          <Card key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-md">
+          <Card key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-3 md:p-4 shadow-lg backdrop-blur-md">
             <CardContent className="p-0 flex flex-col justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">{item.label}</span>
-              <span className={`text-2xl font-bold tracking-tight mt-2 ${item.color}`}>{item.val}</span>
+              <span className="text-[9px] md:text-[10px] text-slate-400 uppercase font-semibold tracking-wider">{item.label}</span>
+              <span className={`text-xl md:text-2xl font-bold tracking-tight mt-1 md:mt-2 ${item.color}`}>{item.val}</span>
             </CardContent>
           </Card>
         ))}
@@ -301,7 +301,7 @@ export function CouponsClient({ initialCoupons, products, courses }: CouponsClie
         </div>
       </div>
 
-      {/* Vouchers Table */}
+      {/* Vouchers Table / Cards Grid */}
       {filteredCoupons.length === 0 ? (
         <Card className="bg-[#090d20]/40 border-white/5 py-12 text-center rounded-2xl">
           <CardContent className="flex flex-col items-center justify-center space-y-3">
@@ -313,102 +313,192 @@ export function CouponsClient({ initialCoupons, products, courses }: CouponsClie
           </CardContent>
         </Card>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#090d20]/60 backdrop-blur-xl">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                <th className="px-6 py-4">Voucher Code</th>
-                <th className="px-6 py-4">Details</th>
-                <th className="px-6 py-4">Scope Scope</th>
-                <th className="px-6 py-4 text-center">Status</th>
-                <th className="px-6 py-4 text-center">Redeemed</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5 text-xs text-slate-300">
-              {filteredCoupons.map((coupon) => (
-                <tr key={coupon.id} className="hover:bg-white/[0.01] transition-colors duration-150">
-                  <td className="px-6 py-4 font-mono font-bold text-white tracking-wider">
-                    {coupon.code}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-0.5">
-                      <p className="font-semibold text-white">{coupon.name}</p>
-                      <p className="text-[10px] text-indigo-400">
-                        {coupon.couponType === "PERCENTAGE" 
-                          ? `${coupon.discountValue}% Off ${coupon.maxDiscountCents ? `(Up to ₹${coupon.maxDiscountCents / 100})` : ""}`
-                          : `Flat ₹${coupon.discountValue / 100} Off`}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant="outline" className="text-[9px] font-mono tracking-wider border-white/10 uppercase bg-slate-900/60">
+        <>
+          {/* Mobile Card List View (< 768px viewports) */}
+          <div className="block md:hidden space-y-3">
+            {filteredCoupons.map((coupon) => (
+              <div key={coupon.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3 shadow-md backdrop-blur-md">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="font-mono font-bold text-sm text-white tracking-widest uppercase">{coupon.code}</span>
+                    <h4 className="font-semibold text-xs text-slate-300 mt-0.5">{coupon.name}</h4>
+                  </div>
+                  {coupon.isActive ? (
+                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px]">Active</Badge>
+                  ) : (
+                    <Badge className="bg-slate-500/20 text-slate-300 border-slate-500/30 text-[10px]">Disabled</Badge>
+                  )}
+                </div>
+
+                <div className="space-y-1.5 border-t border-white/5 pt-2 text-[11px] text-slate-400">
+                  <div className="flex justify-between">
+                    <span>Discount Value:</span>
+                    <span className="font-semibold text-indigo-400">
+                      {coupon.couponType === "PERCENTAGE" 
+                        ? `${coupon.discountValue}% Off ${coupon.maxDiscountCents ? `(Up to ₹${coupon.maxDiscountCents / 100})` : ""}`
+                        : `Flat ₹${coupon.discountValue / 100} Off`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Target Scope:</span>
+                    <Badge variant="outline" className="text-[8px] font-mono tracking-wider border-white/10 uppercase bg-slate-900/60 leading-none h-4">
                       {coupon.appliesTo.replace("_", " ")}
                     </Badge>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {coupon.isActive ? (
-                      <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">Active</Badge>
-                    ) : (
-                      <Badge className="bg-slate-500/20 text-slate-300 border-slate-500/30">Disabled</Badge>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-center font-mono font-medium">
-                    {coupon.redeemedCount} {coupon.maxRedemptions ? `/ ${coupon.maxRedemptions}` : ""}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {loadingId === coupon.id ? (
-                        <Loader2 className="h-4 w-4 text-indigo-400 animate-spin mr-3" />
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleToggleActive(coupon.id, coupon.isActive)}
-                            className="p-1 text-slate-400 hover:text-white transition"
-                            title={coupon.isActive ? "Deactivate" : "Activate"}
-                          >
-                            {coupon.isActive ? (
-                              <ToggleRight className="h-5 w-5 text-emerald-400" />
-                            ) : (
-                              <ToggleLeft className="h-5 w-5" />
-                            )}
-                          </button>
-                          
-                          <Button 
-                            onClick={() => handleOpenEdit(coupon)}
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-8 rounded-lg hover:bg-white/5 hover:text-indigo-400 text-[10px]"
-                          >
-                            Edit
-                          </Button>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Usage Count:</span>
+                    <span className="font-mono text-slate-300">{coupon.redeemedCount} {coupon.maxRedemptions ? `/ ${coupon.maxRedemptions}` : ""}</span>
+                  </div>
+                </div>
 
-                          <Button 
-                            onClick={() => handleViewUsages(coupon)}
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-8 rounded-lg hover:bg-white/5 text-[10px] text-amber-400"
-                          >
-                            Logs
-                          </Button>
+                <div className="flex items-center justify-end gap-2 border-t border-white/5 pt-2">
+                  {loadingId === coupon.id ? (
+                    <Loader2 className="h-4 w-4 text-indigo-400 animate-spin" />
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleToggleActive(coupon.id, coupon.isActive)}
+                        className="p-1 text-slate-400 hover:text-white transition"
+                        title={coupon.isActive ? "Deactivate" : "Activate"}
+                      >
+                        {coupon.isActive ? (
+                          <ToggleRight className="h-5 w-5 text-emerald-400" />
+                        ) : (
+                          <ToggleLeft className="h-5 w-5" />
+                        )}
+                      </button>
+                      
+                      <Button 
+                        onClick={() => handleOpenEdit(coupon)}
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 rounded-lg hover:bg-white/5 hover:text-indigo-400 text-xs px-2"
+                      >
+                        Edit
+                      </Button>
 
-                          <Button
-                            onClick={() => handleDeleteClick(coupon.id)}
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0 rounded-lg hover:bg-rose-500/10 text-rose-400"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+                      <Button 
+                        onClick={() => handleViewUsages(coupon)}
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 rounded-lg hover:bg-white/5 text-xs text-amber-400 px-2"
+                      >
+                        Logs
+                      </Button>
+
+                      <Button
+                        onClick={() => handleDeleteClick(coupon.id)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-lg hover:bg-rose-500/10 text-rose-400 flex items-center justify-center"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View (>= 768px viewports) */}
+          <div className="hidden md:block overflow-x-auto rounded-2xl border border-white/5 bg-[#090d20]/60 backdrop-blur-xl">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <th className="px-6 py-4">Voucher Code</th>
+                  <th className="px-6 py-4">Details</th>
+                  <th className="px-6 py-4">Scope Scope</th>
+                  <th className="px-6 py-4 text-center">Status</th>
+                  <th className="px-6 py-4 text-center">Redeemed</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-xs text-slate-300">
+                {filteredCoupons.map((coupon) => (
+                  <tr key={coupon.id} className="hover:bg-white/[0.01] transition-colors duration-150">
+                    <td className="px-6 py-4 font-mono font-bold text-white tracking-wider">
+                      {coupon.code}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-white">{coupon.name}</p>
+                        <p className="text-[10px] text-indigo-400">
+                          {coupon.couponType === "PERCENTAGE" 
+                            ? `${coupon.discountValue}% Off ${coupon.maxDiscountCents ? `(Up to ₹${coupon.maxDiscountCents / 100})` : ""}`
+                            : `Flat ₹${coupon.discountValue / 100} Off`}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant="outline" className="text-[9px] font-mono tracking-wider border-white/10 uppercase bg-slate-900/60">
+                        {coupon.appliesTo.replace("_", " ")}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {coupon.isActive ? (
+                        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">Active</Badge>
+                      ) : (
+                        <Badge className="bg-slate-500/20 text-slate-300 border-slate-500/30">Disabled</Badge>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center font-mono font-medium">
+                      {coupon.redeemedCount} {coupon.maxRedemptions ? `/ ${coupon.maxRedemptions}` : ""}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {loadingId === coupon.id ? (
+                          <Loader2 className="h-4 w-4 text-indigo-400 animate-spin mr-3" />
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleToggleActive(coupon.id, coupon.isActive)}
+                              className="p-1 text-slate-400 hover:text-white transition"
+                              title={coupon.isActive ? "Deactivate" : "Activate"}
+                            >
+                              {coupon.isActive ? (
+                                <ToggleRight className="h-5 w-5 text-emerald-400" />
+                              ) : (
+                                <ToggleLeft className="h-5 w-5" />
+                              )}
+                            </button>
+                            
+                            <Button 
+                              onClick={() => handleOpenEdit(coupon)}
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-8 rounded-lg hover:bg-white/5 hover:text-indigo-400 text-[10px]"
+                            >
+                              Edit
+                            </Button>
+
+                            <Button 
+                              onClick={() => handleViewUsages(coupon)}
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-8 rounded-lg hover:bg-white/5 text-[10px] text-amber-400"
+                            >
+                              Logs
+                            </Button>
+
+                            <Button
+                              onClick={() => handleDeleteClick(coupon.id)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-lg hover:bg-rose-500/10 text-rose-400"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Create / Edit Form Modal */}

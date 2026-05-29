@@ -8,6 +8,7 @@ declare module "next-auth" {
       role: UserRole;
       firstName?: string | null;
       lastName?: string | null;
+      phone?: string | null;
       locale?: string | null;
       timezone?: string | null;
     } & DefaultSession["user"];
@@ -17,6 +18,7 @@ declare module "next-auth" {
     role: UserRole;
     firstName?: string | null;
     lastName?: string | null;
+    phone?: string | null;
     locale?: string | null;
     timezone?: string | null;
   }
@@ -27,6 +29,7 @@ declare module "next-auth/jwt" {
     role?: UserRole;
     firstName?: string | null;
     lastName?: string | null;
+    phone?: string | null;
     locale?: string | null;
     timezone?: string | null;
   }

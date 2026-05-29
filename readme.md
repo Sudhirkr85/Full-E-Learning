@@ -39,9 +39,9 @@ The application contains the following fully implemented production modules:
     *   **Role-Based Navigation**: Public, Student, Teacher, and Admin navbar states with dynamic link rendering based on Auth.js session role.
     *   **Mobile Responsive Drawer**: Hamburger menu with full side drawer on screens below 768px.
     *   **Notification Bell**: Real-time unread badge for logged-in users.
-    *   **Avatar Dropdown**: Role-specific menu with profile, dashboard, and logout actions.
+    *   **Avatar Dropdown**: Upgraded role-specific dropdown (Admin, Student, Teacher) matching the dashboard sidebar navigation links exactly, complete with an Identity Header, My Profile shortcut, and elegant low-opacity glass dividers.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
-*   **Admin**: Full admin dashboard with real-time platform stats (students, teachers, courses, revenue), user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration.
+*   **Admin**: Full admin dashboard featuring a high-fidelity SaaS overview dashboard (trend-indicating stat cards, dynamic Recharts Pie & Bar visualizations, and live recent enrollments database table), a hardened sidebar navigation with 'My Profile' and 'Audit Logs' integrations, user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration.
 *   **Store Management**: Admin can create and manage PDF Books and Physical Products. INR pricing only. Supports PDF document uploads for in-app online reading only (no direct downloads), and stock/shipping configurations for physical merchandise. Fully separate from LMS course flow.
 *   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources. Course listing page shows responsive grid (1/2/3/4 columns), thumbnail banners with category gradients, Free badge or ₹ INR pricing, original-price strike-through with calculated discount % OFF, hover animations, and teacher/section metadata. Course cards show single CTA: 'Continue Learning' if enrolled, 'View Details' otherwise. Course detail page shows 2-column layout (desktop) with sticky price card. Left side: thumbnail, meta, teacher info, description with read-more, curriculum accordion with preview/locked lessons. Right side: sticky card with INR pricing, discount badge, enrollment CTA based on login and enrollment state, and course includes section.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
@@ -52,7 +52,8 @@ The application contains the following fully implemented production modules:
 *   **Shipping & Manual Dispatch Desk**: Admin tools to collect physical shipping addresses, update courier tracking numbers, and send tracking links to students.
 *   **In-App Notification Hub**: Real-time sidebar tray displaying alerts for new enrollments, coupon usages, support ticket replies, and completed checkouts.
 *   **CRM Support Desk**: Ticket submission desks for students and an advanced split-pane ticket workspace for administrators, using JSON array fields for fast serialized message storage.
-*   **Student Profile Management**: Premium profile page where students can view and edit their personal information (display name, first/last name, email, mobile number) with view/edit toggle, animated status feedback, and secure server-side validation via the `/api/profile` route.
+*   **Student & Admin Profile Management**: Premium view/edit profile portals scoped specifically for roles with inline toggle transitions, uploader to Cloudflare R2 via `/api/profile/avatar`, and secure server-side validation via the `/api/profile` route.
+
 *   **Centralized Audit Logs**: Comprehensive auditing of security-critical actions (manual course updates, certificate generation, test releases) storing before/after states.
 *   **Email System**: REST email client utilizing Brevo's API. Dispatches fully responsive welcome letters, order invoices, and password reset codes.
 *   **SEO Optimization Engine**: Dynamically compiled robots.ts, sitemap.ts, semantic HTML5, and unique browser tags.
@@ -577,4 +578,15 @@ The platform includes enhanced credential security controls for both administrat
     *   **ADMIN**: Identity header with an `ADMIN ACCOUNT` badge, `My Profile` linking to `/admin/profile`, administrative operation panels, platform configurations, and a logout button.
     *   **STUDENT**: Identity header with a `STUDENT ACCOUNT` badge, `My Profile` linking to `/profile`, student-specific links matching their sidebar exactly, and logout.
     *   **TEACHER**: Identity header with a `TEACHER ACCOUNT` badge, `My Profile` linking to `/profile`, teacher-specific courses/categories links matching their sidebar exactly, and logout.
+
+### 5. Hardened Admin Sidebar & High-Fidelity Overview Dashboard
+*   **Hardened Admin Sidebar Layout**: Re-engineered desktop sidebar and mobile drawer links to implement the exact custom order for administrators (My Profile with `UserCircle` icon → divider → main administration links including **Audit Logs** with `ClipboardList` icon → divider → settings group with "Settings" section label → divider → Logout).
+*   **High-Fidelity SaaS Overview Dashboard**: Upgraded `/admin/dashboard` into a premium SaaS dashboard:
+    *   **Stat Cards & Real Dynamic Growth Trends**: Displays Total Students, Teachers, Courses, and Revenue. Growth trends (e.g. `+12% 30d`, `-5% 7d`) are **100% computed dynamically** from historical database records (comparing current periods with prior periods), with visual color scaling (emerald for growth, rose for decline).
+    *   **User Distribution Visualization**: Interactive donut chart showing Students vs Teachers vs Admins ratio with a center-label displaying total users.
+    *   **Historical Revenue Tracker**: Custom monthly bar chart summarizing INR (₹) transactions.
+    *   **Recent Enrollments Table**: Live database-backed listing tracking the latest 5 course checkouts.
+*   **Enrolled Student Details Desk**: Upgraded `/admin/courses/[courseId]` to include a premium **"Enrolled Students"** card. Admins can view detailed listings of enrolled students for each course, featuring names, emails, mobile numbers, and precise join timestamps, backed by a scrollable viewport.
+
+
 

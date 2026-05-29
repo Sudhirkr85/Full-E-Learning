@@ -4,10 +4,9 @@ import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { makeMetadata } from "@/lib/site";
-import { ArrowLeft, BookOpen, Clock, FileText, LayoutList, PlayCircle, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, LayoutList, PlayCircle, Users, Mail, Phone, Calendar } from "lucide-react";
 import { AddSectionForm, AddLessonForm } from "./outline-client";
 
 export const metadata: Metadata = makeMetadata({
@@ -31,7 +30,7 @@ export default async function AdminCourseDetailPage({ params }: CourseDetailPage
 
   const { courseId } = await params;
 
-  // Query course by ID, including sections (ordered) and lessons (ordered)
+  // Query course by ID, including sections, lessons, and enrolled student details
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     include: {
@@ -42,6 +41,18 @@ export default async function AdminCourseDetailPage({ params }: CourseDetailPage
           }
         },
         orderBy: { orderIndex: "asc" }
+      },
+      enrollments: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              phone: true
+            }
+          }
+        },
+        orderBy: { enrolledAt: "desc" }
       },
       _count: {
         select: { enrollments: true }
@@ -156,7 +167,7 @@ export default async function AdminCourseDetailPage({ params }: CourseDetailPage
           <AddSectionForm courseId={course.id} />
         </div>
 
-        {/* Right column: Course Details Info */}
+        {/* Right column: Course Details Info & Enrolled Student Details */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <BookOpen className="h-4.5 w-4.5 text-indigo-400" />
@@ -184,6 +195,48 @@ export default async function AdminCourseDetailPage({ params }: CourseDetailPage
                   {course.priceCents > 0 ? `₹${(course.priceCents / 100).toLocaleString('en-IN')}` : "Free"}
                 </span>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Enrolled Student Details */}
+          <h2 className="text-lg font-bold text-white flex items-center gap-2 pt-2">
+            <Users className="h-4.5 w-4.5 text-indigo-400" />
+            Enrolled Students ({course.enrollments.length})
+          </h2>
+          <Card className="bg-[#090d20]/50 border-white/5 backdrop-blur-xl">
+            <CardContent className="p-4 space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar">
+              {course.enrollments.length > 0 ? (
+                course.enrollments.map((enrollment) => (
+                  <div key={enrollment.id} className="p-3 rounded-xl border border-white/5 bg-slate-950/40 space-y-1.5 text-xs">
+                    <p className="font-extrabold text-white">{enrollment.user.name || "Student Account"}</p>
+                    
+                    <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+                      <Mail className="h-3 w-3 text-indigo-400/80 shrink-0" />
+                      <span className="truncate">{enrollment.user.email}</span>
+                    </div>
+
+                    {enrollment.user.phone && (
+                      <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+                        <Phone className="h-3 w-3 text-cyan-400/80 shrink-0" />
+                        <span>{enrollment.user.phone}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500 font-semibold uppercase tracking-wider pt-0.5 border-t border-white/5 mt-1">
+                      <Calendar className="h-2.5 w-2.5 shrink-0" />
+                      <span>Joined {new Date(enrollment.enrolledAt).toLocaleDateString("en-IN", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric"
+                      })}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-slate-500 py-6 text-xs italic">
+                  No students enrolled yet.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

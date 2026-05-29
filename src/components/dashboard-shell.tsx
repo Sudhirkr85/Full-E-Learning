@@ -6,7 +6,25 @@ import type { ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { ChevronRight, LayoutDashboard, Compass, ReceiptText, ShieldQuestion, ArrowLeft, LogOut, UserCircle, Menu, X } from "lucide-react";
+import { 
+  ChevronRight, 
+  LayoutDashboard, 
+  Compass, 
+  ReceiptText, 
+  ShieldQuestion, 
+  ArrowLeft, 
+  LogOut, 
+  UserCircle, 
+  Menu, 
+  X,
+  Users,
+  FolderOpen,
+  ShoppingBag,
+  ClipboardList,
+  Lock,
+  Sliders,
+  BookOpen
+} from "lucide-react";
 import { LogoutModal } from "@/components/navbar/logout-modal";
 
 type NavItem = {
@@ -37,10 +55,82 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
     const l = label.toLowerCase();
     if (l.includes("overview")) return <LayoutDashboard className="h-4 w-4 shrink-0" />;
     if (l.includes("profile")) return <UserCircle className="h-4 w-4 shrink-0" />;
-    if (l.includes("course")) return <Compass className="h-4 w-4 shrink-0" />;
-    if (l.includes("order")) return <ReceiptText className="h-4 w-4 shrink-0" />;
+    if (l.includes("course")) return <BookOpen className="h-4 w-4 shrink-0" />;
+    if (l.includes("user")) return <Users className="h-4 w-4 shrink-0" />;
+    if (l.includes("category")) return <FolderOpen className="h-4 w-4 shrink-0" />;
+    if (l.includes("store") || l.includes("order")) return <ShoppingBag className="h-4 w-4 shrink-0" />;
     if (l.includes("ticket") || l.includes("support")) return <ShieldQuestion className="h-4 w-4 shrink-0" />;
+    if (l.includes("audit")) return <ClipboardList className="h-4 w-4 shrink-0" />;
+    if (l.includes("password")) return <Lock className="h-4 w-4 shrink-0" />;
+    if (l.includes("config") || l.includes("platform")) return <Sliders className="h-4 w-4 shrink-0" />;
     return <LayoutDashboard className="h-4 w-4 shrink-0" />;
+  };
+
+  const renderSidebarLinks = (closeMobileMenu?: () => void) => {
+    const linkClasses = (item: { href: string; label: string }) => {
+      const isActive = pathname === item.href && (item.href !== "/admin/dashboard" || item.label === "Overview");
+      return cn(
+        "rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300 flex items-center justify-between border",
+        isActive 
+          ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]" 
+          : "bg-transparent text-slate-400 border-transparent hover:border-white/5 hover:bg-white/5 hover:text-white"
+      );
+    };
+
+    const renderLink = (item: { href: string; label: string }) => {
+      const isActive = pathname === item.href && (item.href !== "/admin/dashboard" || item.label === "Overview");
+      return (
+        <Link
+          key={`${item.label}-${item.href}`}
+          href={item.href}
+          onClick={closeMobileMenu}
+          className={linkClasses(item)}
+        >
+          <span className="flex items-center gap-2.5">
+            {getNavIcon(item.label)}
+            {item.label}
+          </span>
+          <ChevronRight className={cn("h-3 w-3 opacity-60 transition duration-300", isActive ? "translate-x-0.5" : "")} />
+        </Link>
+      );
+    };
+
+    if (role === "ADMIN") {
+      // Custom structured rendering for Admin:
+      // My Profile -> divider -> Overview, Users, Courses, Categories, Store, Support Tickets, Audit Logs -> divider -> Settings Label -> Change Password, Platform Config
+      const profileLink = { label: "My Profile", href: "/admin/profile" };
+      const mainLinks = [
+        { label: "Overview", href: "/admin/dashboard" },
+        { label: "Users", href: "/admin/users" },
+        { label: "Courses", href: "/admin/courses" },
+        { label: "Categories", href: "/admin/categories" },
+        { label: "Store", href: "/admin/store" },
+        { label: "Support Tickets", href: "/admin/support" },
+        { label: "Audit Logs", href: "/admin/audit-logs" }
+      ];
+      const settingsLinks = [
+        { label: "Change Password", href: "/admin/settings/change-password" },
+        { label: "Platform Config", href: "/admin/settings/platform" }
+      ];
+
+      return (
+        <div className="flex flex-col gap-1.5">
+          {renderLink(profileLink)}
+          <hr className="my-1.5 border-white/5" />
+          {mainLinks.map(renderLink)}
+          <hr className="my-1.5 border-white/5" />
+          <p className="px-3.5 py-1 text-[9px] font-bold uppercase tracking-widest text-indigo-400/80">Settings</p>
+          {settingsLinks.map(renderLink)}
+        </div>
+      );
+    }
+
+    // Default rendering for other roles:
+    return (
+      <div className="flex flex-col gap-1.5">
+        {nav.map(renderLink)}
+      </div>
+    );
   };
 
   return (
@@ -78,29 +168,9 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
             </div>
 
             <nav className="mt-6 flex flex-col gap-1.5">
-              {nav.map((item) => {
-                const isActive = pathname === item.href && (item.href !== "/admin/dashboard" || item.label === "Overview");
-                return (
-                  <Link
-                    key={`${item.label}-${item.href}`}
-                    href={item.href}
-                    className={cn(
-                      "rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300 flex items-center justify-between border",
-                      isActive 
-                        ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]" 
-                        : "bg-transparent text-slate-400 border-transparent hover:border-white/5 hover:bg-white/5 hover:text-white"
-                    )}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      {getNavIcon(item.label)}
-                      {item.label}
-                    </span>
-                    <ChevronRight className={cn("h-3 w-3 opacity-60 transition duration-300", isActive ? "translate-x-0.5" : "")} />
-                  </Link>
-                );
-              })}
+              {renderSidebarLinks()}
 
-              <div className="h-[1px] bg-white/5 my-2" />
+              <hr className="my-2 border-white/5" />
 
               <button
                 onClick={() => setIsLogoutModalOpen(true)}
@@ -144,29 +214,8 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{description}</p>
               </div>
               <nav className="mt-6 flex flex-col gap-1.5">
-                {nav.map((item) => {
-                  const isActive = pathname === item.href && (item.href !== "/admin/dashboard" || item.label === "Overview");
-                  return (
-                    <Link
-                      key={`${item.label}-${item.href}`}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        "rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300 flex items-center justify-between border",
-                        isActive
-                          ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]"
-                          : "bg-transparent text-slate-400 border-transparent hover:border-white/5 hover:bg-white/5 hover:text-white"
-                      )}
-                    >
-                      <span className="flex items-center gap-2.5">
-                        {getNavIcon(item.label)}
-                        {item.label}
-                      </span>
-                      <ChevronRight className={cn("h-3 w-3 opacity-60 transition duration-300", isActive ? "translate-x-0.5" : "")} />
-                    </Link>
-                  );
-                })}
-                <div className="h-[1px] bg-white/5 my-2" />
+                {renderSidebarLinks(() => setIsMobileMenuOpen(false))}
+                <hr className="my-2 border-white/5" />
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);

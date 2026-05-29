@@ -34,12 +34,14 @@ export const teacherNav = [
 ];
 
 export const adminNav = [
+  { label: "My Profile", href: "/admin/profile" },
   { label: "Overview", href: "/admin/dashboard" },
   { label: "Users", href: "/admin/users" },
   { label: "Courses", href: "/admin/courses" },
   { label: "Categories", href: "/admin/categories" },
   { label: "Store", href: "/admin/store" },
   { label: "Support Tickets", href: "/admin/support" },
+  { label: "Audit Logs", href: "/admin/audit-logs" },
   { label: "Change Password", href: "/admin/settings/change-password" },
   { label: "Platform Config", href: "/admin/settings/platform" }
 ];

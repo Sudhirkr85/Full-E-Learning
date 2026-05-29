@@ -669,4 +669,14 @@ To elevate the user checkout journey, the intermediate checkout routes have been
     NEXT_PUBLIC_RAZORPAY_KEY_ID=your_key_id
     ```
 
+### 14. Course Purchase & Enrollment Flow (Razorpay + Brevo + SWR)
+The LMS now features a production-grade, highly responsive Course Purchase & Enrollment Flow, complete with instant free enrollment, direct Razorpay checkouts, webhook fail-safes, real-time SWR syncing, and beautiful transactional Brevo notifications:
+*   **Aesthetic Responsive Pricing sync**: Sticky pricing cards on the public course detail page dynamically query `/api/courses/[courseId]/enrollment-status` via `SWR`, hiding pricing tags and rendering glowing emerald `Enrolled` badges instantly when enrollment is active.
+*   **Double-Click Protection & Safe Scripting**: Enrollment buttons enforce double-click blocks (`disabled={enrollLoading}` and loading spinner transitions), verify global `window.Razorpay` script existence, and gracefully log cancellations inside `/api/courses/enroll/fail`.
+*   **Strict Order Retry Policy**: Encountering payment dismissals or merchant failures automatically prompts "Complete Payment" CTAs that call `/api/courses/enroll/checkout` to generate a brand new enrollment record and fresh Razorpay order (keeping old failed entries clean for historical audit logs).
+*   **Cryptographic Verification Route**: The `/api/courses/enroll/verify` endpoint verifies signature checkouts using SHA-256 HMAC encryption, transitions status to `ACTIVE`, creates course progress models, and dispatches the welcome email.
+*   **Webhook Fail-safe Protection**: Extends `/api/razorpay/webhook` to handle asynchronous `payment.captured` and `payment.failed` callbacks specifically for course enrollment Order IDs, offering complete protection when tabs are closed.
+*   **Brevo Transactional Welcome Mailer**: Connects to the REST email client to dispatch responsive welcome emails designed with custom futuristic dark styles (`#0a0a0f`) and clear learning expectations.
+
+
 

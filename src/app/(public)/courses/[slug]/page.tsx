@@ -203,37 +203,19 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
 
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-6 border rounded-xl p-6 flex flex-col gap-4 bg-card">
-            <div>
-              {price === 0 ? (
-                <span className="text-3xl font-bold text-green-600">Free</span>
-              ) : hasDiscount ? (
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-3xl font-bold">₹{price.toLocaleString("en-IN")}</span>
-                  <span className="text-lg line-through text-muted-foreground">₹{safeOriginalPrice.toLocaleString("en-IN")}</span>
-                  <span className="bg-green-100 text-green-700 text-sm font-bold px-2 py-1 rounded-full">{discountPercent}% OFF</span>
-                </div>
-              ) : (
-                <span className="text-3xl font-bold">₹{price.toLocaleString("en-IN")}</span>
-              )}
-            </div>
-
-            {!session?.user ? (
-              <Button size="lg" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl" asChild>
-                <Link href="/login">Login to Enroll</Link>
-              </Button>
-            ) : (
-              <EnrollButton
-                courseId={course.id}
-                coursePrice={price}
-                courseName={course.title}
-                courseSlug={course.slug}
-                isEnrolled={isEnrolled}
-                isFree={price === 0}
-                userPhone={dbUser?.phone || ""}
-                userEmail={dbUser?.email || session.user.email || ""}
-                userName={dbUser?.name || session.user.name || ""}
-              />
-            )}
+            <EnrollButton
+              courseId={course.id}
+              coursePrice={price}
+              courseName={course.title}
+              courseSlug={course.slug}
+              isEnrolled={isEnrolled}
+              isFree={price === 0}
+              userPhone={dbUser?.phone || ""}
+              userEmail={dbUser?.email || session?.user?.email || ""}
+              userName={dbUser?.name || session?.user?.name || ""}
+              isLoggedIn={Boolean(session?.user)}
+              originalPrice={originalPrice}
+            />
 
             <div className="flex flex-col gap-2 text-sm text-muted-foreground border-t pt-4 mt-2">
               <div className="flex items-center gap-2">

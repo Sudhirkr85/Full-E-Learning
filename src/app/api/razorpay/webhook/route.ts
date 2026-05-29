@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { sendOrderConfirmationEmail } from "@/lib/email/brevo";
+import { sendOrderConfirmationEmail, sendCourseEnrollmentEmail } from "@/lib/email/brevo";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
@@ -31,6 +31,71 @@ export async function POST(req: NextRequest) {
     if (event.event === 'payment.captured') {
       const razorpayOrderId = event.payload.payment.entity.order_id;
       const razorpayPaymentId = event.payload.payment.entity.id;
+
+      // Check if this is a course enrollment payment
+      const enrollment = await prisma.enrollment.findFirst({
+        where: { razorpayOrderId },
+        include: { course: true, user: true }
+      });
+
+      if (enrollment && enrollment.status !== 'ACTIVE') {
+        await prisma.enrollment.update({
+          where: { id: enrollment.id },
+          data: {
+            status: 'ACTIVE',
+            paymentStatus: 'COMPLETED',
+            razorpayPaymentId,
+            enrolledAt: new Date(),
+            paidAt: new Date()
+          }
+        });
+
+        // Initialize course progress if not existing
+        try {
+          const existingProgress = await prisma.courseProgress.findUnique({
+            where: { enrollmentId: enrollment.id }
+          });
+          if (!existingProgress) {
+            const courseWithSections = await prisma.course.findUnique({
+              where: { id: enrollment.courseId },
+              include: {
+                sections: {
+                  include: { lessons: true }
+                }
+              }
+            });
+            const totalLessons = courseWithSections?.sections.reduce((sum, sec) => sum + sec.lessons.length, 0) || 0;
+            await prisma.courseProgress.create({
+              data: {
+                enrollmentId: enrollment.id,
+                progressPercent: 0,
+                completedLessonsCount: 0,
+                totalLessonsCount: totalLessons
+              }
+            });
+          }
+        } catch (progressErr) {
+          console.error("Webhook progress creation failed:", progressErr);
+        }
+
+        // Send email only once
+        if (!enrollment.emailSentAt) {
+          try {
+            await sendCourseEnrollmentEmail({
+              userEmail: enrollment.user.email,
+              userName: enrollment.user.name,
+              courseTitle: enrollment.course.title,
+              courseId: enrollment.course.id
+            });
+            await prisma.enrollment.update({
+              where: { id: enrollment.id },
+              data: { emailSentAt: new Date() }
+            });
+          } catch (emailErr) {
+            console.error("Webhook welcome email dispatch error:", emailErr);
+          }
+        }
+      }
 
       // Find the internal order
       const order = await prisma.order.findFirst({
@@ -124,6 +189,20 @@ export async function POST(req: NextRequest) {
     if (event.event === 'payment.failed') {
       const razorpayOrderId = event.payload.payment.entity.order_id;
       const errorDescription = event.payload.payment.entity.error_description;
+
+      // Fail course enrollment if matched
+      await prisma.enrollment.updateMany({
+        where: {
+          razorpayOrderId,
+          status: { not: 'ACTIVE' }
+        },
+        data: {
+          status: 'FAILED',
+          paymentStatus: 'FAILED',
+          failureReason: errorDescription || 'Payment failed',
+          failedAt: new Date()
+        }
+      });
 
       // Find internal orders associated with the Razorpay Order ID
       const order = await prisma.order.findFirst({

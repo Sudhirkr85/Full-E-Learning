@@ -159,3 +159,107 @@ export async function sendOrderConfirmationEmail({ order, user }: SendOrderConfi
     textContent
   });
 }
+
+interface SendCourseEnrollmentEmailParams {
+  userEmail: string;
+  userName: string | null;
+  courseTitle: string;
+  courseId: string;
+}
+
+export async function sendCourseEnrollmentEmail({
+  userEmail,
+  userName,
+  courseTitle,
+  courseId
+}: SendCourseEnrollmentEmailParams) {
+  const firstName = userName ? userName.trim().split(/\s+/)[0] : "Student";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+  const courseUrl = `${appUrl}/student/courses/${courseId}`;
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Welcome to the Course</title>
+    </head>
+    <body style="background-color: #0a0a0f; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 40px 0;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #0d1117; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+        
+        <!-- Header -->
+        <div style="background-color: #0d1117; padding: 32px; text-align: center; border-bottom: 1px solid #1e293b;">
+          <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">
+            🚀 E-LEARNING<span style="color: #7c3aed;">.IN</span>
+          </h1>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 40px 32px; background-color: #0d1117;">
+          <h2 style="font-size: 22px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 16px;">
+            Hi ${firstName},
+          </h2>
+          <p style="font-size: 15px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px;">
+            You have successfully enrolled in <strong>${courseTitle}</strong>! We are thrilled to have you join us.
+          </p>
+
+          <!-- Course Access CTA -->
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${courseUrl}" style="background-color: #7c3aed; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);">
+              Start Learning Now
+            </a>
+          </div>
+
+          <!-- What to expect -->
+          <div style="background-color: #0a0a0f; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; margin-top: 30px;">
+            <h3 style="font-size: 14px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+              What to Expect
+            </h3>
+            <ul style="font-size: 13px; color: #94a3b8; line-height: 1.6; margin: 0; padding-left: 20px;">
+              <li style="margin-bottom: 8px;">Access all lessons immediately</li>
+              <li style="margin-bottom: 8px;">Track your progress in your dashboard</li>
+              <li>Earn a certificate on completion</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #0a0a0f; padding: 32px; text-align: center; border-top: 1px solid #1e293b; font-size: 12px; color: #64748b;">
+          <p style="margin: 0 0 8px 0;">
+            Need help? Contact our support desk at <a href="mailto:${supportEmail}" style="color: #7c3aed; text-decoration: none;">${supportEmail}</a>
+          </p>
+          <p style="margin: 0;">
+            © ${new Date().getFullYear()} E-Learning Platform. All rights reserved.
+          </p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textContent = `
+    Hi ${firstName},
+
+    You have successfully enrolled in ${courseTitle}!
+
+    Start Learning Now: ${courseUrl}
+
+    What to expect:
+    - Access all lessons immediately
+    - Track your progress in your dashboard
+    - Earn a certificate on completion
+
+    Support contact: ${supportEmail}
+  `;
+
+  return await sendEmail({
+    toEmail: userEmail,
+    toName: userName || "Student",
+    subject: `You're enrolled in ${courseTitle} 🎉`,
+    htmlContent,
+    textContent
+  });
+}

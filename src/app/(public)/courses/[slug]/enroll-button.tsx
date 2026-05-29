@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Loader2, GraduationCap, ArrowRight } from "lucide-react";
+import useSWR from "swr";
+import { toast } from "sonner";
+import { Loader2, PlayCircle, Lock } from "lucide-react";
 
 interface EnrollButtonProps {
   courseId: string;
@@ -16,296 +16,311 @@ interface EnrollButtonProps {
   userPhone?: string;
   userEmail?: string;
   userName?: string;
+  isLoggedIn: boolean;
+  originalPrice?: number | null;
 }
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function EnrollButton({
   courseId,
   coursePrice,
   courseName,
   courseSlug,
-  isEnrolled,
+  isEnrolled: initialIsEnrolled,
   isFree,
   userPhone = "",
   userEmail = "",
-  userName = ""
+  userName = "",
+  isLoggedIn,
+  originalPrice = null
 }: EnrollButtonProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showPhoneModal, setShowPhoneModal] = useState(false);
-  const [phoneInput, setPhoneInput] = useState("");
-  const [phoneError, setPhoneError] = useState("");
-  const [savingPhone, setSavingPhone] = useState(false);
-  const [localPhone, setLocalPhone] = useState(userPhone);
+  const [enrollLoading, setEnrollLoading] = useState(false);
   const router = useRouter();
 
-  const handleEnroll = async (overridePhone?: string) => {
-    const activePhone = overridePhone !== undefined ? overridePhone : localPhone;
-    
-    // Check if phone number is present; if not, request it first
-    if (!activePhone) {
-      setShowPhoneModal(true);
-      return;
-    }
+  // Use SWR exclusively for enrollment status fetching
+  const { data: enrollmentStatus, mutate } = useSWR(
+    isLoggedIn ? `/api/courses/${courseId}/enrollment-status` : null,
+    fetcher
+  );
 
-    setLoading(true);
-    setError("");
+  const status = enrollmentStatus?.status || null;
+  const isCurrentlyEnrolled = enrollmentStatus ? (enrollmentStatus.status === "ACTIVE") : initialIsEnrolled;
 
+  // Free Enrollment Handler
+  const handleFreeEnroll = async () => {
+    setEnrollLoading(true);
     try {
-      // 1. FREE COURSE — Direct Enrollment Flow
-      if (isFree) {
-        const res = await fetch("/api/checkout/free", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ courseId })
-        });
-        const data = await res.json();
-        if (data.success && data.redirectUrl) {
-          router.push(data.redirectUrl);
-          router.refresh();
-        } else {
-          setError(data.error || "Free enrollment failed. Please try again.");
-          setLoading(false);
-        }
-        return;
-      }
-
-      // 2. PAID COURSE — Razorpay Payment Flow
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/courses/enroll/free', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ courseId })
-      });
-      const order = await res.json();
-
-      if (!res.ok) {
-        setError(order.error || "Failed to initialize order.");
-        setLoading(false);
-        return;
-      }
-
-      // Check if Razorpay script is already loaded
-      const isScriptLoaded = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-      
-      const initializeRzp = () => {
-        const rzp = new (window as any).Razorpay({
-          key: order.keyId,
-          amount: order.amount,
-          currency: order.currency,
-          name: "E-Learning Academy",
-          description: order.courseName,
-          order_id: order.orderId,
-          prefill: {
-            email: order.userEmail || "",
-            name: order.userName || "",
-            contact: activePhone
-          },
-          theme: { color: "#6366f1" },
-          handler: async (response: any) => {
-            setLoading(true);
-            try {
-              // Verify payment
-              const verifyRes = await fetch("/api/checkout/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                  courseId
-                })
-              });
-              const result = await verifyRes.json();
-              if (result.success && result.redirectUrl) {
-                router.push(result.redirectUrl);
-                router.refresh();
-              } else {
-                setError("Payment verification failed. Please contact support.");
-              }
-            } catch (err) {
-              setError("Signature verification failed. Please contact support.");
-            } finally {
-              setLoading(false);
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              setLoading(false);
-              setError("Payment cancelled. You can try again.");
-            }
-          }
-        });
-        rzp.open();
-      };
-
-      if (isScriptLoaded) {
-        initializeRzp();
-      } else {
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        script.onload = initializeRzp;
-        script.onerror = () => {
-          setError("Failed to load Razorpay payment SDK.");
-          setLoading(false);
-        };
-        document.body.appendChild(script);
-      }
-    } catch (err: any) {
-      setError("An unexpected connection error occurred. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  const handleSavePhone = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPhoneError("");
-
-    // Standard INR 10 digit validation
-    const cleaned = phoneInput.replace(/\D/g, "");
-    if (cleaned.length !== 10) {
-      setPhoneError("Please enter a valid 10-digit mobile number.");
-      return;
-    }
-
-    setSavingPhone(true);
-    try {
-      const res = await fetch("/api/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: userName || "Student",
-          email: userEmail,
-          phone: cleaned
-        })
       });
 
       const data = await res.json();
+
       if (!res.ok) {
-        setPhoneError(data.error || "Failed to update phone number.");
-        setSavingPhone(false);
+        toast.error(data.message || "Something went wrong. Please refresh and try again.");
         return;
       }
 
-      setLocalPhone(cleaned);
-      setShowPhoneModal(false);
-      // Immediately resume the enrollment process!
-      handleEnroll(cleaned);
-    } catch (err) {
-      setPhoneError("An error occurred while saving. Please try again.");
+      toast.success("Enrolled successfully! Welcome to the course.");
+      await mutate();
+      router.push(`/student/courses/${courseId}`);
+    } catch {
+      toast.error("Something went wrong. Please refresh and try again.");
     } finally {
-      setSavingPhone(false);
+      setEnrollLoading(false);
     }
   };
 
-  if (isEnrolled) {
+  // Paid Enrollment Handler (with direct Razorpay modal)
+  const handlePaidEnroll = async () => {
+    setEnrollLoading(true);
+    try {
+      // 1. Create a brand new enrollment + new Razorpay order (Retry Policy)
+      const res = await fetch('/api/courses/enroll/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Something went wrong. Please refresh and try again.");
+        setEnrollLoading(false);
+        return;
+      }
+
+      const { razorpayOrderId, enrollmentId, amount } = data;
+
+      // 2. Razorpay Script Safety Check before initialization
+      if (typeof window === 'undefined' || !(window as any).Razorpay) {
+        toast.error("Payment system failed to load. Please refresh and try again.");
+        setEnrollLoading(false);
+        return;
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        amount: amount,
+        currency: "INR",
+        name: "E-Learning Platform",
+        description: courseName,
+        order_id: razorpayOrderId,
+        prefill: {
+          name: userName || "",
+          email: userEmail || "",
+          contact: userPhone || "",
+        },
+        theme: { color: "#7c3aed" },
+        modal: {
+          ondismiss: async () => {
+            try {
+              await fetch('/api/courses/enroll/fail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  enrollmentId,
+                  reason: 'Payment dismissed'
+                })
+              });
+            } catch (err) {
+              console.error("Failed to call fail route:", err);
+            }
+            await mutate();
+            toast.warning("Payment cancelled.");
+            setEnrollLoading(false);
+          }
+        },
+        handler: async (response: any) => {
+          setEnrollLoading(true);
+          try {
+            const verifyRes = await fetch('/api/courses/enroll/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                enrollmentId,
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+
+            if (verifyRes.ok) {
+              toast.success("Payment successful! Welcome to the course.");
+              await mutate();
+              router.push(`/student/courses/${courseId}`);
+            } else {
+              toast.error(verifyData.message || "Payment verification failed. If amount was deducted, contact support.");
+            }
+          } catch {
+            toast.error("Payment verification failed. If amount was deducted, contact support.");
+          } finally {
+            setEnrollLoading(false);
+          }
+        }
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+
+      razorpay.on('payment.failed', async (response: any) => {
+        try {
+          await fetch('/api/courses/enroll/fail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              enrollmentId,
+              reason: response.error.description || response.error.code,
+            })
+          });
+        } catch (err) {
+          console.error("Failed to report payment failure:", err);
+        }
+        await mutate();
+        toast.error("Payment failed. Please try again or use a different method.");
+        setEnrollLoading(false);
+      });
+
+      razorpay.open();
+
+    } catch {
+      toast.error("Something went wrong. Please refresh and try again.");
+      setEnrollLoading(false);
+    }
+  };
+
+  // Price and Badge Display Block
+  const renderPricingBlock = () => {
+    if (isCurrentlyEnrolled) {
+      return (
+        <div className="flex items-center gap-2 mb-2">
+          <span className="bg-emerald-500/15 text-emerald-500 text-sm font-bold px-3 py-1.5 rounded-full border border-emerald-500/25">
+            Enrolled
+          </span>
+        </div>
+      );
+    }
+
+    if (isFree || coursePrice === 0) {
+      return (
+        <div className="mb-2">
+          <span className="text-3xl font-bold text-emerald-600">Free</span>
+        </div>
+      );
+    }
+
+    const safeOriginal = Number(originalPrice ?? 0);
+    const hasDiscount = originalPrice !== null && originalPrice > coursePrice && coursePrice > 0;
+    const discountPercent = hasDiscount ? Math.round(((safeOriginal - coursePrice) / safeOriginal) * 100) : 0;
+
+    if (hasDiscount) {
+      return (
+        <div className="flex items-center gap-3 flex-wrap mb-2">
+          <span className="text-3xl font-bold">₹{coursePrice.toLocaleString("en-IN")}</span>
+          <span className="text-lg line-through text-muted-foreground">₹{safeOriginal.toLocaleString("en-IN")}</span>
+          <span className="bg-emerald-100 text-emerald-700 text-sm font-bold px-2 py-1 rounded-full">{discountPercent}% OFF</span>
+        </div>
+      );
+    }
+
     return (
-      <Button size="lg" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl" asChild>
-        <Link href="/student/dashboard" className="flex items-center justify-center gap-1.5">
-          <GraduationCap className="h-5 w-5" />
-          Continue Learning
-        </Link>
-      </Button>
+      <div className="mb-2">
+        <span className="text-3xl font-bold">₹{coursePrice.toLocaleString("en-IN")}</span>
+      </div>
     );
-  }
+  };
+
+  const renderEnrollmentButton = () => {
+    // 1. Not logged in
+    if (!isLoggedIn) {
+      return (
+        <button
+          onClick={() => router.push('/login')}
+          className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+        >
+          Login to Enroll
+        </button>
+      );
+    }
+
+    // 2. Already Enrolled (ACTIVE)
+    if (isCurrentlyEnrolled) {
+      return (
+        <button
+          onClick={() => router.push(`/student/courses/${courseId}`)}
+          className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+        >
+          <PlayCircle className="w-4 h-4" /> Continue Learning
+        </button>
+      );
+    }
+
+    // 3. Enrollment pending payment (PENDING status)
+    if (status === "PENDING") {
+      return (
+        <button
+          onClick={handlePaidEnroll}
+          disabled={enrollLoading}
+          className="w-full h-12 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+        >
+          {enrollLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+            </>
+          ) : (
+            "Complete Payment"
+          )}
+        </button>
+      );
+    }
+
+    // 4. Free Course
+    if (isFree) {
+      return (
+        <button
+          onClick={handleFreeEnroll}
+          disabled={enrollLoading}
+          className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+        >
+          {enrollLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Enrolling...
+            </>
+          ) : (
+            "Enroll Free"
+          )}
+        </button>
+      );
+    }
+
+    // 5. Paid Course
+    return (
+      <button
+        onClick={handlePaidEnroll}
+        disabled={enrollLoading}
+        className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+      >
+        {enrollLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+          </>
+        ) : (
+          <>
+            <Lock className="w-4 h-4" /> Buy Now — ₹{coursePrice}
+          </>
+        )}
+      </button>
+    );
+  };
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <Button
-        size="lg"
-        onClick={() => handleEnroll()}
-        disabled={loading}
-        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)] h-12"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing...
-          </>
-        ) : isFree ? (
-          "Start Learning for Free"
-        ) : (
-          `Enroll Now — ₹${coursePrice.toLocaleString("en-IN")}`
-        )}
-      </Button>
-
-      {/* Phone Number Request Modal Overlay */}
-      {showPhoneModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#090d20] border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative animate-in fade-in zoom-in duration-200 text-left">
-            <h3 className="text-xl font-bold tracking-tight text-white mb-2">
-              Mobile Number Required
-            </h3>
-            <p className="text-sm text-slate-300 mb-6">
-              Please enter your 10-digit mobile number to proceed with the checkout and payment verification.
-            </p>
-            
-            <form onSubmit={handleSavePhone} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  Phone Number
-                </label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-4 text-slate-400 text-sm font-semibold border-r border-slate-800 pr-3 mr-3">+91</span>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="98765 43210"
-                    maxLength={10}
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ""))}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-16 pr-4 py-3 text-white placeholder-slate-600 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  />
-                </div>
-                {phoneError && (
-                  <p className="text-xs text-red-400 mt-2 font-semibold">{phoneError}</p>
-                )}
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={savingPhone}
-                  onClick={() => setShowPhoneModal(false)}
-                  className="flex-1 rounded-xl h-11 border-slate-800 hover:bg-slate-900 bg-transparent text-sm font-semibold text-slate-300 hover:text-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={savingPhone}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl h-11 text-sm shadow-[0_0_15px_rgba(99,102,241,0.25)] border-0"
-                >
-                  {savingPhone ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Continue"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Quick try-again widget for cancelled or failed attempts */}
-      {error && (
-        <div className="flex flex-col gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl mt-1 text-center">
-          <p className="text-xs font-semibold text-red-400">{error}</p>
-          {error.includes("cancelled") && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleEnroll()}
-              className="w-full border-indigo-500/20 bg-indigo-500/5 text-indigo-300 hover:bg-indigo-500/10 hover:text-white rounded-lg h-9 text-xs"
-            >
-              Try Again
-            </Button>
-          )}
-        </div>
-      )}
+      {renderPricingBlock()}
+      {renderEnrollmentButton()}
     </div>
   );
 }

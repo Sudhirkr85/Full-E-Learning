@@ -28,6 +28,7 @@ The architecture leverages modern, industry-standard technologies selected for p
 *   **Firebase FCM (Cloud Messaging)**: Exposes real-time background and foreground push notifications to keep students informed of active tickets and orders.
 *   **Brevo Email Service**: Reusable fetch-based REST mailing client. Dispatches visually stunning HTML transactional notifications for student registrations, payment receipts, and security link changes.
 *   **Auth.js (v5)**: Credentials provider login featuring secure JWT session encryption, role-based route middleware protection, and strict layout guards.
+*   **Store cart empty state**: The public store drawer uses a dark violet empty-state CTA with no light borders so it matches the rest of the glassmorphic cart shell.
 
 ---
 
@@ -48,7 +49,7 @@ The application contains the following fully implemented production modules:
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
 *   **Tests & Quizzes (Assessments)**: Graded exams, practice tests, and quizzes. Supports single-choice, multiple-choice, true/false, and short-answer questions with auto-grading scripts.
 *   **Blockchain-Verified Certificates**: Automatic 100% progress verification, average score calculation, cryptographically signed `CERT-[YEAR]-[HEX]` verification codes, public canonical verification pages, and print layouts.
-*   **Store & Coupon System**: Transaction-safe catalog supporting PDF Book and Physical Product types. Includes percentage and flat-rate coupon processors (e.g. `SUPER90`, `WELCOME10`). Includes a secure, in-app protected PDF online reader preventing direct document downloads.
+*   **Store & Coupon System**: Transaction-safe catalog supporting PDF Book and Physical Product types. Includes percentage and flat-rate coupon processors (e.g. `SUPER90`, `WELCOME10`). Includes a secure, in-app protected PDF online reader preventing direct downloads. Features a state-of-the-art **Stale & Ghost Cart Item Pruning & Silent Validation Engine** that automatically verifies item existence, active state, and inventory count on page load, drawer open, and checkout. It dynamically cleanses the cart of deleted/unpublished products without blocking checkouts on remaining valid items, displaying elegant self-dismissing Toast alerts and instantly syncing cart badge counters.
 *   **Razorpay Integration**: Complete Razorpay payment flow: server-side order creation, client-side Razorpay checkout modal, HMAC-SHA256 payment verification, webhook handler for payment.captured and payment.failed events, atomic DB transaction creating Payment record + Enrollment on success, free course direct enrollment, payment retry on cancel/failure, and success page redirect.
 *   **Shipping & Manual Dispatch Desk**: Admin tools to collect physical shipping addresses, update courier tracking numbers, and send tracking links to students.
 *   **In-App Notification Hub**: Real-time sidebar tray displaying alerts for new enrollments, coupon usages, support ticket replies, and completed checkouts.

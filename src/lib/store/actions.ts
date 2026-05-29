@@ -207,8 +207,8 @@ export async function createOrderAction(params: {
           where: { id: item.productId },
         });
 
-        if (!product || product.status !== ProductStatus.ACTIVE) {
-          throw new Error(`Product with ID ${item.productId} is not available.`);
+        if (!product || (product.status !== ProductStatus.ACTIVE && product.status !== ProductStatus.PUBLISHED)) {
+          throw new Error("One or more items in your cart are no longer available and have been removed.");
         }
 
         // Verify physical inventory stock if applicable

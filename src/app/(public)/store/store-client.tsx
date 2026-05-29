@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Container } from "@/components/ui/container";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import { Product, ProductType } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 interface StoreClientProps {
   products: Product[];
@@ -37,6 +38,20 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Custom Toast State
+  const [toast, setToast] = useState<{ message: string; type: "amber" | "green" | "neutral" | "red" } | null>(null);
+
+  const showToast = (message: string, type: "amber" | "green" | "neutral" | "red" = "neutral") => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 768px)");
@@ -44,6 +59,69 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     media.addEventListener("change", handler);
     return () => media.removeEventListener("change", handler);
+  }, []);
+
+  // Silently validate all cart item IDs
+  const validateCartItems = async (currentCart: CartItem[]): Promise<CartItem[]> => {
+    if (currentCart.length === 0) return [];
+    
+    let validItems: CartItem[] = [];
+    let removedNames: string[] = [];
+    let hasChanges = false;
+    
+    for (const item of currentCart) {
+      try {
+        const res = await fetch(`/api/store/products/${item.product.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Update product object just in case price or stock changed
+          validItems.push({
+            product: data.product,
+            quantity: Math.min(item.quantity, data.product.inventoryCount ?? item.quantity)
+          });
+          if (item.quantity !== Math.min(item.quantity, data.product.inventoryCount ?? item.quantity)) {
+            hasChanges = true;
+          }
+        } else {
+          removedNames.push(item.product.title || "An item");
+          hasChanges = true;
+        }
+      } catch (e) {
+        console.error("Failed to validate item", item.product.id, e);
+        // Fallback: keep item in cart if validation endpoint fails due to network/timeout
+        validItems.push(item);
+      }
+    }
+    
+    if (hasChanges) {
+      saveCart(validItems);
+      if (removedNames.length > 0) {
+        showToast("One or more items in your cart are no longer available and have been removed.", "amber");
+      }
+    }
+    return validItems;
+  };
+
+  // Run validation on cart open
+  useEffect(() => {
+    if (isCartOpen) {
+      validateCartItems(cart);
+    }
+  }, [isCartOpen]);
+
+  // Run validation on initial load
+  useEffect(() => {
+    const storedCart = localStorage.getItem("el_store_cart");
+    if (storedCart) {
+      try {
+        const parsed = JSON.parse(storedCart);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          validateCartItems(parsed);
+        }
+      } catch (e) {
+        console.error("Error parsing cart in initial load validation", e);
+      }
+    }
   }, []);
 
   const handleCartTrigger = () => {
@@ -105,6 +183,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       newCart.push({ product, quantity: 1 });
     }
     saveCart(newCart);
+    showToast("Item added to cart.", "green");
     
     if (isMobile) {
       router.push("/cart");
@@ -115,8 +194,10 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
 
   // Remove from cart
   const removeFromCart = (productId: string) => {
+    const item = cart.find(item => item.product.id === productId);
     const newCart = cart.filter(item => item.product.id !== productId);
     saveCart(newCart);
+    showToast("Item removed from cart.", "neutral");
     if (newCart.length === 0) {
       handleRemoveCoupon();
     }
@@ -132,12 +213,13 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       // Stock check if applicable
       const product = newCart[existingIndex].product;
       if (product.inventoryCount !== null && delta > 0 && product.inventoryCount < newQty) {
-        alert(`Only ${product.inventoryCount} items left in stock.`);
+        showToast(`'${product.title}' is currently out of stock and has been removed from your cart.`, "amber");
         return;
       }
 
       if (newQty <= 0) {
         newCart.splice(existingIndex, 1);
+        showToast("Item removed from cart.", "neutral");
       } else {
         newCart[existingIndex].quantity = newQty;
       }
@@ -162,8 +244,14 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     if (res.success && res.coupon && res.discountCents !== undefined) {
       setAppliedCoupon(res.coupon);
       setCouponDiscount(res.discountCents);
+      showToast(`Coupon applied! You saved ₹${(res.discountCents / 100).toFixed(0)}.`, "green");
     } else {
-      setCouponError(res.error ?? "Invalid coupon code.");
+      let friendlyCouponError = "This coupon code is invalid or has expired. Please try a different code.";
+      if (res.error?.includes("already used") || res.error?.includes("once")) {
+        friendlyCouponError = "You have already used this coupon. Each coupon can only be used once.";
+      }
+      setCouponError(friendlyCouponError);
+      showToast(friendlyCouponError, "red");
       setAppliedCoupon(null);
       setCouponDiscount(0);
     }
@@ -206,18 +294,26 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     e.preventDefault();
     setCheckoutError("");
     
-    if (cart.length === 0) {
-      setCheckoutError("Your cart is empty.");
+    // 1. Silent pre-validation before submission
+    const verifiedCart = await validateCartItems(cart);
+    if (verifiedCart.length === 0) {
+      const emptyError = "Your cart is empty. The items you added are no longer available in the store.";
+      setCheckoutError(emptyError);
+      showToast(emptyError, "red");
       return;
     }
 
     if (!billingEmail) {
-      setCheckoutError("Please enter your billing email address.");
+      const emailError = "Please enter your billing email address.";
+      setCheckoutError(emailError);
+      showToast(emailError, "red");
       return;
     }
 
     if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1)) {
-      setCheckoutError("Please fill out all required shipping fields for products in your cart.");
+      const shippingError = "Please fill out all required shipping fields for products in your cart.";
+      setCheckoutError(shippingError);
+      showToast(shippingError, "red");
       return;
     }
 
@@ -238,7 +334,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
 
     const res = await createOrderAction({
       billingEmail,
-      cartItems: cart.map(item => ({
+      cartItems: verifiedCart.map(item => ({
         productId: item.product.id,
         quantity: item.quantity,
       })),
@@ -261,7 +357,24 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       // Redirect to secure payment gateway route
       router.push(`/checkout/${res.order.id}`);
     } else {
-      setCheckoutError(res.error ?? "Failed to process checkout. Please try again.");
+      // technical to friendly error mapping
+      let friendlyError = "Something went wrong. Please refresh the page and try again.";
+      const rawError = res.error || "";
+      
+      if (rawError.includes("no longer available") || rawError.includes("not available")) {
+        friendlyError = "One or more items in your cart are no longer available and have been removed.";
+        validateCartItems(verifiedCart); // Reclean just in case
+      } else if (rawError.includes("Insufficient stock") || rawError.includes("stock")) {
+        friendlyError = "An item in your cart is currently out of stock and has been adjusted or removed.";
+        validateCartItems(verifiedCart); // Reclean to sync with stock limits
+      } else if (rawError.includes("Coupon") || rawError.includes("coupon")) {
+        friendlyError = "This coupon code is invalid or has expired. Please try a different code.";
+      } else if (rawError.includes("network") || rawError.includes("fetch")) {
+        friendlyError = "We couldn't verify your cart items. Please check your connection and try again.";
+      }
+
+      setCheckoutError(friendlyError);
+      showToast(friendlyError, "red");
     }
   };
 
@@ -483,12 +596,12 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
               <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-contain">
                 {cart.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-20">
-                    <ShoppingCart className="h-12 w-12 text-slate-500 opacity-30" />
+                    <ShoppingCart className="h-12 w-12 text-violet-400/40" />
                     <h3 className="font-semibold text-lg text-white">Your cart is empty</h3>
                     <p className="text-sm text-slate-400 max-w-[250px]">
                       Browse our items catalog and add playbooks or access vouchers to get started.
                     </p>
-                    <Button onClick={() => setIsCartOpen(false)} variant="outline" size="sm" className="border-white/20 text-slate-300 hover:bg-white/10">
+                    <Button onClick={() => setIsCartOpen(false)} size="sm" className="w-full h-11 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors">
                       Back to shopping
                     </Button>
                   </div>
@@ -787,6 +900,18 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
               )}
             </form>
           </div>
+        </div>
+      )}
+      {/* Custom Toast Notification System */}
+      {toast && (
+        <div className={cn(
+          "fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-2xl text-xs font-bold shadow-2xl border backdrop-blur-md transition-all duration-300",
+          toast.type === "amber" && "bg-amber-500/20 border-amber-500/30 text-amber-300 shadow-amber-500/10",
+          toast.type === "green" && "bg-emerald-500/20 border-emerald-500/30 text-emerald-300 shadow-emerald-500/10",
+          toast.type === "red" && "bg-rose-500/20 border-rose-500/30 text-rose-300 shadow-rose-500/10",
+          toast.type === "neutral" && "bg-slate-900/90 border-white/10 text-white shadow-black/40"
+        )}>
+          {toast.message}
         </div>
       )}
     </div>

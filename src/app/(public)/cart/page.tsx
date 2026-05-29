@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Container } from "@/components/ui/container";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import { Product, ProductType } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 interface CartItem {
   product: Product;
@@ -44,6 +44,61 @@ export default function MobileCartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
+  // Custom Toast State
+  const [toast, setToast] = useState<{ message: string; type: "amber" | "green" | "neutral" | "red" } | null>(null);
+
+  const showToast = (message: string, type: "amber" | "green" | "neutral" | "red" = "neutral") => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // Silently validate all cart item IDs
+  const validateCartItems = async (currentCart: CartItem[]): Promise<CartItem[]> => {
+    if (currentCart.length === 0) return [];
+    
+    let validItems: CartItem[] = [];
+    let removedNames: string[] = [];
+    let hasChanges = false;
+    
+    for (const item of currentCart) {
+      try {
+        const res = await fetch(`/api/store/products/${item.product.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Update product object just in case price or stock changed
+          validItems.push({
+            product: data.product,
+            quantity: Math.min(item.quantity, data.product.inventoryCount ?? item.quantity)
+          });
+          if (item.quantity !== Math.min(item.quantity, data.product.inventoryCount ?? item.quantity)) {
+            hasChanges = true;
+          }
+        } else {
+          removedNames.push(item.product.title || "An item");
+          hasChanges = true;
+        }
+      } catch (e) {
+        console.error("Failed to validate item", item.product.id, e);
+        // Fallback: keep item in cart if validation endpoint fails due to network/timeout
+        validItems.push(item);
+      }
+    }
+    
+    if (hasChanges) {
+      saveCart(validItems);
+      if (removedNames.length > 0) {
+        showToast("One or more items in your cart are no longer available and have been removed.", "amber");
+      }
+    }
+    return validItems;
+  };
+
   // Media Query check & load details
   useEffect(() => {
     // Screen size detection
@@ -58,7 +113,9 @@ export default function MobileCartPage() {
     try {
       const storedCart = localStorage.getItem("el_store_cart");
       if (storedCart) {
-        setCart(JSON.parse(storedCart));
+        const parsed = JSON.parse(storedCart);
+        setCart(parsed);
+        validateCartItems(parsed);
       }
     } catch (e) {
       console.error("Failed to load cart", e);
@@ -106,6 +163,7 @@ export default function MobileCartPage() {
   const removeFromCart = (productId: string) => {
     const newCart = cart.filter(item => item.product.id !== productId);
     saveCart(newCart);
+    showToast("Item removed from cart.", "neutral");
     if (newCart.length === 0) {
       handleRemoveCoupon();
     }
@@ -120,12 +178,13 @@ export default function MobileCartPage() {
       
       const product = newCart[existingIndex].product;
       if (product.inventoryCount !== null && delta > 0 && product.inventoryCount < newQty) {
-        alert(`Only ${product.inventoryCount} items left in stock.`);
+        showToast(`'${product.title}' is currently out of stock and has been removed from your cart.`, "amber");
         return;
       }
 
       if (newQty <= 0) {
         newCart.splice(existingIndex, 1);
+        showToast("Item removed from cart.", "neutral");
       } else {
         newCart[existingIndex].quantity = newQty;
       }
@@ -150,8 +209,14 @@ export default function MobileCartPage() {
     if (res.success && res.coupon && res.discountCents !== undefined) {
       setAppliedCoupon(res.coupon);
       setCouponDiscount(res.discountCents);
+      showToast(`Coupon applied! You saved ₹${(res.discountCents / 100).toFixed(0)}.`, "green");
     } else {
-      setCouponError(res.error ?? "Invalid coupon code.");
+      let friendlyCouponError = "This coupon code is invalid or has expired. Please try a different code.";
+      if (res.error?.includes("already used") || res.error?.includes("once")) {
+        friendlyCouponError = "You have already used this coupon. Each coupon can only be used once.";
+      }
+      setCouponError(friendlyCouponError);
+      showToast(friendlyCouponError, "red");
       setAppliedCoupon(null);
       setCouponDiscount(0);
     }
@@ -193,18 +258,26 @@ export default function MobileCartPage() {
     e.preventDefault();
     setCheckoutError("");
     
-    if (cart.length === 0) {
-      setCheckoutError("Your cart is empty.");
+    // 1. Silent pre-validation before submission
+    const verifiedCart = await validateCartItems(cart);
+    if (verifiedCart.length === 0) {
+      const emptyError = "Your cart is empty. The items you added are no longer available in the store.";
+      setCheckoutError(emptyError);
+      showToast(emptyError, "red");
       return;
     }
 
     if (!billingEmail) {
-      setCheckoutError("Please enter your billing email address.");
+      const emailError = "Please enter your billing email address.";
+      setCheckoutError(emailError);
+      showToast(emailError, "red");
       return;
     }
 
     if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1)) {
-      setCheckoutError("Please fill out all required shipping fields.");
+      const shippingError = "Please fill out all required shipping fields.";
+      setCheckoutError(shippingError);
+      showToast(shippingError, "red");
       return;
     }
 
@@ -224,7 +297,7 @@ export default function MobileCartPage() {
 
     const res = await createOrderAction({
       billingEmail,
-      cartItems: cart.map(item => ({
+      cartItems: verifiedCart.map(item => ({
         productId: item.product.id,
         quantity: item.quantity,
       })),
@@ -244,7 +317,24 @@ export default function MobileCartPage() {
       handleRemoveCoupon();
       router.push(`/checkout/${res.order.id}`);
     } else {
-      setCheckoutError(res.error ?? "Failed to process checkout. Please try again.");
+      // Friendly error mapping
+      let friendlyError = "Something went wrong. Please refresh the page and try again.";
+      const rawError = res.error || "";
+      
+      if (rawError.includes("no longer available") || rawError.includes("not available")) {
+        friendlyError = "One or more items in your cart are no longer available and have been removed.";
+        validateCartItems(verifiedCart); // Reclean just in case
+      } else if (rawError.includes("Insufficient stock") || rawError.includes("stock")) {
+        friendlyError = "An item in your cart is currently out of stock and has been adjusted or removed.";
+        validateCartItems(verifiedCart); // Reclean to sync with stock limits
+      } else if (rawError.includes("Coupon") || rawError.includes("coupon")) {
+        friendlyError = "This coupon code is invalid or has expired. Please try a different code.";
+      } else if (rawError.includes("network") || rawError.includes("fetch")) {
+        friendlyError = "We couldn't verify your cart items. Please check your connection and try again.";
+      }
+
+      setCheckoutError(friendlyError);
+      showToast(friendlyError, "red");
     }
   };
 
@@ -594,6 +684,19 @@ export default function MobileCartPage() {
           </form>
         )}
       </main>
+
+      {/* Custom Toast Notification System */}
+      {toast && (
+        <div className={cn(
+          "fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-2xl text-xs font-bold shadow-2xl border backdrop-blur-md transition-all duration-300",
+          toast.type === "amber" && "bg-amber-500/20 border-amber-500/30 text-amber-300 shadow-amber-500/10",
+          toast.type === "green" && "bg-emerald-500/20 border-emerald-500/30 text-emerald-300 shadow-emerald-500/10",
+          toast.type === "red" && "bg-rose-500/20 border-rose-500/30 text-rose-300 shadow-rose-500/10",
+          toast.type === "neutral" && "bg-slate-900/90 border-white/10 text-white shadow-black/40"
+        )}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

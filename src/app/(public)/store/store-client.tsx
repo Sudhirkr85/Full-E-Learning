@@ -122,6 +122,26 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     }
   };
 
+  // Helper to format phone to: 91021 30956
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    let clean = digits;
+    if (clean.startsWith("91") && clean.length > 10) {
+      clean = clean.substring(2);
+    }
+    clean = clean.slice(0, 10);
+    if (clean.length > 5) {
+      return `${clean.slice(0, 5)} ${clean.slice(5)}`;
+    }
+    return clean;
+  };
+
+  // Helper to validate phone number (must be 10 digits and start with 6-9)
+  const validatePhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, "");
+    return digits.length === 10 && /^[6-9]\d{9}$/.test(digits);
+  };
+
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -130,7 +150,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
 
   // Billing and shipping details
   const [billingEmail, setBillingEmail] = useState(profileUser?.email || "");
-  const [billingPhone, setBillingPhone] = useState(profileUser?.phone || "");
+  const [billingPhone, setBillingPhone] = useState(profileUser?.phone ? formatPhoneNumber(profileUser.phone) : "");
   const [fullName, setFullName] = useState(profileUser?.name || "");
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
@@ -138,7 +158,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   const [shippingState, setShippingState] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("India");
-  const [shippingPhone1, setShippingPhone1] = useState(profileUser?.phone || "");
+  const [shippingPhone1, setShippingPhone1] = useState(profileUser?.phone ? formatPhoneNumber(profileUser.phone) : "");
   const [shippingPhone2, setShippingPhone2] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -224,18 +244,32 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       return;
     }
 
-    if (!billingPhone || billingPhone.length < 10) {
-      const phoneError = "Please enter a valid phone number (at least 10 digits).";
+    if (!billingPhone || !validatePhone(billingPhone)) {
+      const phoneError = "Please enter a valid 10-digit billing phone number.";
       setCheckoutError(phoneError);
       toast.error(phoneError);
       return;
     }
 
-    if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1)) {
-      const shippingError = "Please fill out all required shipping fields.";
-      setCheckoutError(shippingError);
-      toast.error(shippingError);
-      return;
+    if (hasPhysicalOrShippingNeed) {
+      if (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1) {
+        const shippingError = "Please fill out all required shipping fields.";
+        setCheckoutError(shippingError);
+        toast.error(shippingError);
+        return;
+      }
+      if (!validatePhone(shippingPhone1)) {
+        const phoneError = "Please enter a valid 10-digit primary shipping phone number.";
+        setCheckoutError(phoneError);
+        toast.error(phoneError);
+        return;
+      }
+      if (shippingPhone2 && !validatePhone(shippingPhone2)) {
+        const phoneError = "Please enter a valid 10-digit secondary shipping phone number.";
+        setCheckoutError(phoneError);
+        toast.error(phoneError);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -683,14 +717,19 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                         </div>
                         <div>
                           <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Phone / Mobile *</label>
-                          <input
-                            type="tel"
-                            value={billingPhone}
-                            onChange={(e) => setBillingPhone(e.target.value)}
-                            placeholder="+91 98765 43210"
-                            required
-                            className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50"
-                          />
+                          <div className="relative flex items-center">
+                            <span className="absolute left-3 text-slate-400 text-sm font-semibold select-none border-r border-white/10 pr-2.5 h-5 flex items-center">
+                              +91
+                            </span>
+                            <input
+                              type="tel"
+                              value={billingPhone}
+                              onChange={(e) => setBillingPhone(formatPhoneNumber(e.target.value))}
+                              placeholder="91021 30956"
+                              required
+                              className="w-full h-11 bg-white/5 border border-white/10 rounded-xl pl-14 pr-3 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50"
+                            />
+                          </div>
                         </div>
 
                         {/* Physical shipping fields */}
@@ -763,15 +802,47 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                                 />
                               </div>
                               <div>
-                                <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Primary Phone *</label>
+                                <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Country</label>
                                 <input
-                                  type="tel"
-                                  required
-                                  placeholder="+91 99999 88888"
-                                  value={shippingPhone1}
-                                  onChange={(e) => setShippingPhone1(e.target.value)}
+                                  type="text"
+                                  value={country}
+                                  onChange={(e) => setCountry(e.target.value)}
                                   className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                                 />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Primary Phone *</label>
+                                <div className="relative flex items-center">
+                                  <span className="absolute left-3 text-slate-400 text-xs font-semibold select-none border-r border-white/10 pr-2 h-4 flex items-center">
+                                    +91
+                                  </span>
+                                  <input
+                                    type="tel"
+                                    required
+                                    placeholder="91021 30956"
+                                    value={shippingPhone1}
+                                    onChange={(e) => setShippingPhone1(formatPhoneNumber(e.target.value))}
+                                    className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl pl-12 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Secondary Phone</label>
+                                <div className="relative flex items-center">
+                                  <span className="absolute left-3 text-slate-400 text-xs font-semibold select-none border-r border-white/10 pr-2 h-4 flex items-center">
+                                    +91
+                                  </span>
+                                  <input
+                                    type="tel"
+                                    placeholder="90000 00000"
+                                    value={shippingPhone2}
+                                    onChange={(e) => setShippingPhone2(formatPhoneNumber(e.target.value))}
+                                    className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl pl-12 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                                  />
+                                </div>
                               </div>
                             </div>
                           </div>

@@ -31,6 +31,26 @@ export default function MobileCartPage() {
     }
   }, [initializeCart, router]);
 
+  // Helper to format phone to: 91021 30956
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    let clean = digits;
+    if (clean.startsWith("91") && clean.length > 10) {
+      clean = clean.substring(2);
+    }
+    clean = clean.slice(0, 10);
+    if (clean.length > 5) {
+      return `${clean.slice(0, 5)} ${clean.slice(5)}`;
+    }
+    return clean;
+  };
+
+  // Helper to validate phone number (must be 10 digits and start with 6-9)
+  const validatePhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, "");
+    return digits.length === 10 && /^[6-9]\d{9}$/.test(digits);
+  };
+
   // Billing states
   const [billingEmail, setBillingEmail] = useState("");
   const [billingPhone, setBillingPhone] = useState("");
@@ -106,12 +126,18 @@ export default function MobileCartPage() {
         const data = await res.json();
         const email = data?.user?.email;
         const phone = data?.user?.phone;
+        const name = data?.user?.name;
 
         if (typeof email === "string" && email && !billingEmail) {
           setBillingEmail(email);
         }
-        if (typeof phone === "string" && phone && !billingPhone) {
-          setBillingPhone(phone);
+        if (typeof phone === "string" && phone) {
+          const formatted = formatPhoneNumber(phone);
+          if (!billingPhone) setBillingPhone(formatted);
+          if (!shippingPhone1) setShippingPhone1(formatted);
+        }
+        if (typeof name === "string" && name && !fullName) {
+          setFullName(name);
         }
       } catch {
         // Non-blocking: checkout form still works with manual entry.
@@ -119,7 +145,7 @@ export default function MobileCartPage() {
     };
 
     hydrateBillingFromProfile();
-  }, [billingEmail, billingPhone]);
+  }, [billingEmail, billingPhone, fullName, shippingPhone1]);
 
   const hasPhysicalOrShippingNeed = cart.some(
     item => item.product.shippingRequired === true || item.product.productType === ProductType.PHYSICAL
@@ -140,14 +166,24 @@ export default function MobileCartPage() {
       return;
     }
 
-    if (!billingPhone || billingPhone.length < 10) {
-      toast.error("Please enter a valid phone number (at least 10 digits).");
+    if (!billingPhone || !validatePhone(billingPhone)) {
+      toast.error("Please enter a valid 10-digit billing phone number.");
       return;
     }
 
-    if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1)) {
-      toast.error("Please fill out all required shipping fields.");
-      return;
+    if (hasPhysicalOrShippingNeed) {
+      if (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1) {
+        toast.error("Please fill out all required shipping fields.");
+        return;
+      }
+      if (!validatePhone(shippingPhone1)) {
+        toast.error("Please enter a valid 10-digit primary shipping phone number.");
+        return;
+      }
+      if (shippingPhone2 && !validatePhone(shippingPhone2)) {
+        toast.error("Please enter a valid 10-digit secondary shipping phone number.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -360,14 +396,19 @@ export default function MobileCartPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Billing Phone / Mobile *</label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="+91 98765 43210"
-                  value={billingPhone}
-                  onChange={(e) => setBillingPhone(e.target.value)}
-                  className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50 transition-colors"
-                />
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-slate-400 text-sm font-semibold select-none border-r border-white/10 pr-2.5 h-5 flex items-center">
+                    +91
+                  </span>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="91021 30956"
+                    value={billingPhone}
+                    onChange={(e) => setBillingPhone(formatPhoneNumber(e.target.value))}
+                    className="w-full h-11 bg-white/5 border border-white/10 rounded-xl pl-14 pr-3 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50 transition-colors"
+                  />
+                </div>
               </div>
             </div>
             {hasPhysicalOrShippingNeed && (
@@ -463,11 +504,34 @@ export default function MobileCartPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Primary Phone *</label>
-                    <input type="tel" required placeholder="+91 98765 43210" value={shippingPhone1} onChange={(e) => setShippingPhone1(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3 text-slate-400 text-xs font-semibold select-none border-r border-white/10 pr-2 h-4 flex items-center">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="91021 30956"
+                        value={shippingPhone1}
+                        onChange={(e) => setShippingPhone1(formatPhoneNumber(e.target.value))}
+                        className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl pl-12 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Secondary Phone</label>
-                    <input type="tel" placeholder="+91 90000 00000" value={shippingPhone2} onChange={(e) => setShippingPhone2(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3 text-slate-400 text-xs font-semibold select-none border-r border-white/10 pr-2 h-4 flex items-center">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        placeholder="90000 00000"
+                        value={shippingPhone2}
+                        onChange={(e) => setShippingPhone2(formatPhoneNumber(e.target.value))}
+                        className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl pl-12 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

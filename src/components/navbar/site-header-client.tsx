@@ -159,15 +159,16 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
           </div>
         </Container>
 
-        {/* Responsive Slide Drawer */}
-        <MobileDrawer
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          user={user}
-          unreadCount={unreadCount}
-          onLogoutClick={() => setIsLogoutModalOpen(true)}
-        />
       </header>
+
+      {/* Responsive Slide Drawer */}
+      <MobileDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        user={user}
+        unreadCount={unreadCount}
+        onLogoutClick={() => setIsLogoutModalOpen(true)}
+      />
 
       {/* Reusable Logout Confirmation Popup - Rendered outside <header> to bypass backdrop-blur coordinate containment */}
       <LogoutModal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)} />

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
-import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Ticket, Lock, X, Loader2 } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Ticket, Lock, X, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import { ProductType } from "@prisma/client";
@@ -34,6 +34,15 @@ export default function MobileCartPage() {
   // Billing states
   const [billingEmail, setBillingEmail] = useState("");
   const [billingPhone, setBillingPhone] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [shippingState, setShippingState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("India");
+  const [shippingPhone1, setShippingPhone1] = useState("");
+  const [shippingPhone2, setShippingPhone2] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -136,12 +145,23 @@ export default function MobileCartPage() {
       return;
     }
 
-    if (hasPhysicalOrShippingNeed) {
-      toast.error("Please use desktop checkout to enter your detailed shipping address.");
+    if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1)) {
+      toast.error("Please fill out all required shipping fields.");
       return;
     }
 
     setIsSubmitting(true);
+    const shippingDetails = hasPhysicalOrShippingNeed ? {
+      fullName,
+      addressLine1,
+      addressLine2,
+      city,
+      state: shippingState,
+      postalCode,
+      country,
+      primaryPhone: shippingPhone1,
+      secondaryPhone: shippingPhone2,
+    } : null;
 
     try {
       const res = await fetch('/api/store/checkout', {
@@ -156,7 +176,7 @@ export default function MobileCartPage() {
           billingPhone,
           couponCode: appliedCoupon?.code || null,
           orderNotes: null,
-          shippingAddress: null,
+          shippingAddress: shippingDetails,
         })
       });
 
@@ -351,9 +371,10 @@ export default function MobileCartPage() {
               </div>
             </div>
             {hasPhysicalOrShippingNeed && (
-              <p className="text-xs text-amber-400/90 font-medium bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
-                ⚠️ Physical products are in your cart. You will need to enter your shipping details during checkout on a desktop screen.
-              </p>
+              <div className="flex justify-between text-slate-400 text-sm">
+                <span>Shipping</span>
+                <span>{shippingChargeCents === 0 ? "FREE" : `â‚¹${shippingChargeCents / 100}`}</span>
+              </div>
             )}
           </div>
 
@@ -402,9 +423,53 @@ export default function MobileCartPage() {
               </div>
             )}
             {hasPhysicalOrShippingNeed && (
-              <div className="flex justify-between text-slate-400 text-sm">
-                <span>Shipping</span>
-                <span>{shippingChargeCents === 0 ? "FREE" : `₹${shippingChargeCents / 100}`}</span>
+              <div className="space-y-3 p-4 border border-white/10 bg-white/5 rounded-2xl">
+                <div className="flex items-center gap-1.5 text-violet-400 font-semibold text-xs uppercase tracking-wide">
+                  <Package className="h-3.5 w-3.5" />
+                  <span>Shipping Address Required</span>
+                </div>
+                <div>
+                  <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Recipient Name *</label>
+                  <input type="text" required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 1 *</label>
+                  <input type="text" required placeholder="House no, street" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                </div>
+                <div>
+                  <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 2</label>
+                  <input type="text" placeholder="Apartment, landmark (optional)" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">City *</label>
+                    <input type="text" required placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">State *</label>
+                    <input type="text" required placeholder="State" value={shippingState} onChange={(e) => setShippingState(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">PIN Code *</label>
+                    <input type="text" required placeholder="110001" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Country</label>
+                    <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Primary Phone *</label>
+                    <input type="tel" required placeholder="+91 98765 43210" value={shippingPhone1} onChange={(e) => setShippingPhone1(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Secondary Phone</label>
+                    <input type="tel" placeholder="+91 90000 00000" value={shippingPhone2} onChange={(e) => setShippingPhone2(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  </div>
+                </div>
               </div>
             )}
             <div className="flex justify-between text-white font-bold text-base pt-1 border-t border-white/5">
@@ -435,3 +500,4 @@ export default function MobileCartPage() {
     </div>
   );
 }
+

@@ -7,6 +7,7 @@ import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Ticket, Lock, X, Loader2,
 import { toast } from "sonner";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import { ProductType } from "@prisma/client";
+import { Button } from "@/components/ui/button";
 
 export default function MobileCartPage() {
   const router = useRouter();
@@ -63,18 +64,147 @@ export default function MobileCartPage() {
   const [country, setCountry] = useState("India");
   const [shippingPhone1, setShippingPhone1] = useState("");
   const [shippingPhone2, setShippingPhone2] = useState("");
+  
+  // Coupon
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
+  const [couponSuccessMsg, setCouponSuccessMsg] = useState("");
+  const [showCouponInput, setShowCouponInput] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Address Modal States
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    fullName: "",
+    mobileNumber: "",
+    emailAddress: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    pincode: ""
+  });
+
   const subtotalCents = cart.reduce((acc, item) => acc + (item.product.priceCents * item.quantity), 0);
+
+  // Sync profile details
+  const syncProfileAddress = async () => {
+    try {
+      const res = await fetch("/api/profile", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.user) {
+        const u = data.user;
+        if (u.email && !billingEmail) setBillingEmail(u.email);
+        if (u.phone) {
+          const formatted = formatPhoneNumber(u.phone);
+          if (!billingPhone) setBillingPhone(formatted);
+          if (!shippingPhone1) setShippingPhone1(formatted);
+        }
+        if (u.name && !fullName) setFullName(u.name);
+        
+        if (u.addressLine1) setAddressLine1(u.addressLine1);
+        if (u.addressLine2) setAddressLine2(u.addressLine2);
+        if (u.city) setCity(u.city);
+        if (u.state) setShippingState(u.state);
+        if (u.postalCode) setPostalCode(u.postalCode);
+        if (u.country) setCountry(u.country);
+
+        setAddressForm({
+          fullName: u.name || fullName || "",
+          mobileNumber: u.phone ? formatPhoneNumber(u.phone) : (billingPhone || ""),
+          emailAddress: u.email || billingEmail || "",
+          addressLine1: u.addressLine1 || "",
+          addressLine2: u.addressLine2 || "",
+          city: u.city || "",
+          state: u.state || "",
+          pincode: u.postalCode || ""
+        });
+      }
+    } catch (e) {
+      // Non-blocking
+    }
+  };
+
+  useEffect(() => {
+    syncProfileAddress();
+  }, []);
+
+  const openEditAddressModal = () => {
+    setAddressForm({
+      fullName: fullName,
+      mobileNumber: shippingPhone1 || billingPhone,
+      emailAddress: billingEmail,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
+      city: city,
+      state: shippingState,
+      pincode: postalCode
+    });
+    setShowAddressModal(true);
+  };
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addressForm.fullName || !addressForm.mobileNumber || !addressForm.emailAddress) {
+      toast.error("Name, Mobile, and Email are required.");
+      return;
+    }
+
+    if (hasPhysicalOrShippingNeed && (!addressForm.addressLine1 || !addressForm.city || !addressForm.state || !addressForm.pincode)) {
+      toast.error("Please fill in all address fields for physical delivery.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: addressForm.fullName,
+          email: addressForm.emailAddress,
+          phone: addressForm.mobileNumber,
+          addressLine1: addressForm.addressLine1,
+          addressLine2: addressForm.addressLine2,
+          city: addressForm.city,
+          state: addressForm.state,
+          postalCode: addressForm.pincode,
+          country: "India"
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        toast.error(errData.error || "Failed to save address info.");
+        return;
+      }
+
+      setFullName(addressForm.fullName);
+      setBillingEmail(addressForm.emailAddress);
+      setBillingPhone(formatPhoneNumber(addressForm.mobileNumber));
+      setShippingPhone1(formatPhoneNumber(addressForm.mobileNumber));
+      setAddressLine1(addressForm.addressLine1);
+      setAddressLine2(addressForm.addressLine2);
+      setCity(addressForm.city);
+      setShippingState(addressForm.state);
+      setPostalCode(addressForm.pincode);
+      setCountry("India");
+
+      setShowAddressModal(false);
+      toast.success("Delivery / Contact Information updated successfully!");
+    } catch {
+      toast.error("Failed to connect. Please try again.");
+    }
+  };
 
   // Apply Coupon
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     setCouponError("");
+    setCouponSuccessMsg("");
     if (!couponCode) return;
 
     try {
@@ -82,14 +212,15 @@ export default function MobileCartPage() {
       if (res.success && res.coupon && res.discountCents !== undefined) {
         setAppliedCoupon(res.coupon);
         setCouponDiscount(res.discountCents);
-        toast.success(`Coupon applied! You saved ₹${(res.discountCents / 100).toFixed(0)}.`, { duration: 3000 });
+        setCouponSuccessMsg(`✓ ${res.coupon.code} applied! You saved ₹${(res.discountCents / 100).toFixed(0)}.`);
+        toast.success(`Coupon applied successfully!`);
       } else {
-        let friendlyCouponError = "This coupon code is invalid or has expired.";
+        let friendlyCouponError = "✕ This coupon is invalid or expired.";
         if (res.error?.includes("already used") || res.error?.includes("once")) {
-          friendlyCouponError = "You have already used this coupon.";
+          friendlyCouponError = "✕ You have already used this coupon.";
         }
         setCouponError(friendlyCouponError);
-        toast.error(friendlyCouponError);
+        toast.error(friendlyCouponError.replace("✕ ", ""));
         setAppliedCoupon(null);
         setCouponDiscount(0);
       }
@@ -103,6 +234,7 @@ export default function MobileCartPage() {
     setCouponDiscount(0);
     setCouponCode("");
     setCouponError("");
+    setCouponSuccessMsg("");
   };
 
   // Recalculate discount on subtotal changes
@@ -115,44 +247,20 @@ export default function MobileCartPage() {
         discount = appliedCoupon.discountValue;
       }
       setCouponDiscount(Math.min(discount, subtotalCents));
+      setCouponSuccessMsg(`✓ ${appliedCoupon.code} applied! You saved ₹${(Math.min(discount, subtotalCents) / 100).toFixed(0)}.`);
     }
   }, [subtotalCents, appliedCoupon]);
-
-  useEffect(() => {
-    const hydrateBillingFromProfile = async () => {
-      try {
-        const res = await fetch("/api/profile", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        const email = data?.user?.email;
-        const phone = data?.user?.phone;
-        const name = data?.user?.name;
-
-        if (typeof email === "string" && email && !billingEmail) {
-          setBillingEmail(email);
-        }
-        if (typeof phone === "string" && phone) {
-          const formatted = formatPhoneNumber(phone);
-          if (!billingPhone) setBillingPhone(formatted);
-          if (!shippingPhone1) setShippingPhone1(formatted);
-        }
-        if (typeof name === "string" && name && !fullName) {
-          setFullName(name);
-        }
-      } catch {
-        // Non-blocking: checkout form still works with manual entry.
-      }
-    };
-
-    hydrateBillingFromProfile();
-  }, [billingEmail, billingPhone, fullName, shippingPhone1]);
 
   const hasPhysicalOrShippingNeed = cart.some(
     item => item.product.shippingRequired === true || item.product.productType === ProductType.PHYSICAL
   );
 
+  const physicalSubtotalCents = cart
+    .filter(item => item.product.productType === ProductType.PHYSICAL || item.product.shippingRequired)
+    .reduce((acc, item) => acc + (item.product.priceCents * item.quantity), 0);
+
   const shippingChargeCents = hasPhysicalOrShippingNeed 
-    ? (subtotalCents > 50000 ? 0 : 5000) 
+    ? (physicalSubtotalCents >= 49900 ? 0 : 4000) 
     : 0;
 
   const totalCents = Math.max(0, subtotalCents - couponDiscount + shippingChargeCents);
@@ -173,15 +281,11 @@ export default function MobileCartPage() {
 
     if (hasPhysicalOrShippingNeed) {
       if (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1) {
-        toast.error("Please fill out all required shipping fields.");
+        toast.error("Please fill out and save your delivery details before proceeding.");
         return;
       }
       if (!validatePhone(shippingPhone1)) {
         toast.error("Please enter a valid 10-digit primary shipping phone number.");
-        return;
-      }
-      if (shippingPhone2 && !validatePhone(shippingPhone2)) {
-        toast.error("Please enter a valid 10-digit secondary shipping phone number.");
         return;
       }
     }
@@ -234,7 +338,7 @@ export default function MobileCartPage() {
         description: `${cart.length} item(s)`,
         order_id: razorpayOrderId,
         prefill: {
-          name: "",
+          name: fullName || "",
           email: billingEmail,
           contact: billingPhone,
         },
@@ -318,6 +422,7 @@ export default function MobileCartPage() {
           <h2 className="text-white font-bold text-lg">Your cart is empty</h2>
           <p className="text-slate-400 text-sm text-center max-w-[280px]">Browse our catalog and add items to get started.</p>
           <button 
+            type="button"
             onClick={() => router.push("/store")} 
             className="w-full h-11 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors mt-2"
           >
@@ -328,7 +433,7 @@ export default function MobileCartPage() {
         /* Cart Form */
         <form onSubmit={handleCheckout} className="flex-1 flex flex-col justify-between overflow-hidden">
           {/* Scrollable Items area */}
-          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-3">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-6">
             {cart.map((item) => (
               <div key={item.productId} className="bg-white/5 border border-white/10 rounded-xl p-3 flex gap-3 items-center">
                 <img
@@ -381,74 +486,100 @@ export default function MobileCartPage() {
               </div>
             ))}
 
-            {/* Email & Phone input fields */}
-            <div className="pt-4 space-y-3">
-              <div className="space-y-1.5">
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Billing Email Address *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="you@example.com"
-                  value={billingEmail}
-                  onChange={(e) => setBillingEmail(e.target.value)}
-                  className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Billing Phone / Mobile *</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3 text-slate-400 text-sm font-semibold select-none border-r border-white/10 pr-2.5 h-5 flex items-center">
-                    +91
-                  </span>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="91021 30956"
-                    value={billingPhone}
-                    onChange={(e) => setBillingPhone(formatPhoneNumber(e.target.value))}
-                    className="w-full h-11 bg-white/5 border border-white/10 rounded-xl pl-14 pr-3 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50 transition-colors"
-                  />
+            {/* Contact & Delivery Details (Card Style) */}
+            <div className="space-y-4 pt-4 border-t border-white/10">
+              <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">
+                {hasPhysicalOrShippingNeed ? "Delivery Information" : "Contact Information"}
+              </h3>
+              
+              {(!hasPhysicalOrShippingNeed && billingEmail && billingPhone) || 
+               (hasPhysicalOrShippingNeed && fullName && billingPhone && billingEmail && addressLine1 && postalCode) ? (
+                <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2 relative">
+                  <div className="text-sm font-bold text-white flex justify-between items-center">
+                    <span>{fullName || "Recipient Name"}</span>
+                    <button
+                      type="button"
+                      onClick={openEditAddressModal}
+                      className="text-xs text-violet-400 hover:text-violet-300 font-semibold transition"
+                    >
+                      [Edit]
+                    </button>
+                  </div>
+                  <div className="text-xs text-slate-300 space-y-1">
+                    <p>{billingPhone}</p>
+                    <p>{billingEmail}</p>
+                    {hasPhysicalOrShippingNeed && (
+                      <p className="mt-1 text-slate-400">
+                        {addressLine1}
+                        {addressLine2 ? `, ${addressLine2}` : ""}<br />
+                        {city}, {shippingState} - {postalCode}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-4 bg-white/5 border border-dashed border-white/20 rounded-xl text-center space-y-3">
+                  <p className="text-xs text-slate-400">
+                    {hasPhysicalOrShippingNeed ? "No address added yet" : "No contact info added yet"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={openEditAddressModal}
+                    className="inline-flex items-center justify-center px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-lg transition"
+                  >
+                    {hasPhysicalOrShippingNeed ? "[+ Add Address]" : "[+ Add Contact]"}
+                  </button>
+                </div>
+              )}
             </div>
-            {hasPhysicalOrShippingNeed && (
-              <div className="flex justify-between text-slate-400 text-sm">
-                <span>Shipping</span>
-                <span>{shippingChargeCents === 0 ? "FREE" : `â‚¹${shippingChargeCents / 100}`}</span>
-              </div>
-            )}
           </div>
 
           {/* Coupon section */}
-          <div className="px-4 py-3 border-t border-white/10 bg-[#0a0a0f]">
-            {appliedCoupon ? (
-              <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Ticket className="w-4 h-4" /> Code: {appliedCoupon.code}
-                </span>
-                <button type="button" onClick={handleRemoveCoupon} className="p-1 hover:bg-emerald-500/20 rounded-full transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+          <div className="px-4 py-3 border-t border-white/10 bg-[#0a0a0f] space-y-3">
+            {!showCouponInput && !appliedCoupon ? (
+              <button
+                type="button"
+                onClick={() => setShowCouponInput(true)}
+                className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition"
+              >
+                Have a Coupon? [Apply Coupon]
+              </button>
             ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="COUPONCODE"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  className="flex-1 h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
-                />
-                <button 
-                  type="button" 
-                  onClick={handleApplyCoupon} 
-                  className="h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shrink-0"
-                >
-                  Apply
-                </button>
+              <div className="space-y-3">
+                <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Discount Coupon</h3>
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <Ticket className="h-4 w-4 text-emerald-400" />
+                      <span>Code: {appliedCoupon.code}</span>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={handleRemoveCoupon} 
+                      className="h-6 w-6 p-0 text-emerald-400 hover:bg-emerald-500/10 rounded-full"
+                    >
+                      [Remove Coupon]
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Coupon Code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <Button type="button" onClick={handleApplyCoupon} size="sm" className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
+                      Apply
+                    </Button>
+                  </div>
+                )}
+                {couponSuccessMsg && <p className="text-xs text-emerald-400 font-medium">{couponSuccessMsg}</p>}
+                {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
               </div>
             )}
-            {couponError && <p className="text-xs text-rose-500 mt-1">{couponError}</p>}
           </div>
 
           {/* Sticky bottom bar */}
@@ -457,88 +588,24 @@ export default function MobileCartPage() {
               <span>Subtotal</span>
               <span>₹{(subtotalCents / 100).toLocaleString("en-IN")}</span>
             </div>
-            {couponDiscount > 0 && (
-              <div className="flex justify-between text-emerald-400 text-sm">
-                <span>Discount Applied</span>
-                <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
+            {hasPhysicalOrShippingNeed && (
+              <div className="flex justify-between text-slate-400 text-sm">
+                <span>Shipping Fee</span>
+                <span>{shippingChargeCents === 0 ? "FREE" : `₹${shippingChargeCents / 100}`}</span>
               </div>
             )}
-            {hasPhysicalOrShippingNeed && (
-              <div className="space-y-3 p-4 border border-white/10 bg-white/5 rounded-2xl">
-                <div className="flex items-center gap-1.5 text-violet-400 font-semibold text-xs uppercase tracking-wide">
-                  <Package className="h-3.5 w-3.5" />
-                  <span>Shipping Address Required</span>
-                </div>
-                <div>
-                  <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Recipient Name *</label>
-                  <input type="text" required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
-                </div>
-                <div>
-                  <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 1 *</label>
-                  <input type="text" required placeholder="House no, street" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
-                </div>
-                <div>
-                  <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 2</label>
-                  <input type="text" placeholder="Apartment, landmark (optional)" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">City *</label>
-                    <input type="text" required placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
-                  </div>
-                  <div>
-                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">State *</label>
-                    <input type="text" required placeholder="State" value={shippingState} onChange={(e) => setShippingState(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">PIN Code *</label>
-                    <input type="text" required placeholder="110001" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
-                  </div>
-                  <div>
-                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Country</label>
-                    <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Primary Phone *</label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-3 text-slate-400 text-xs font-semibold select-none border-r border-white/10 pr-2 h-4 flex items-center">
-                        +91
-                      </span>
-                      <input
-                        type="tel"
-                        required
-                        placeholder="91021 30956"
-                        value={shippingPhone1}
-                        onChange={(e) => setShippingPhone1(formatPhoneNumber(e.target.value))}
-                        className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl pl-12 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Secondary Phone</label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-3 text-slate-400 text-xs font-semibold select-none border-r border-white/10 pr-2 h-4 flex items-center">
-                        +91
-                      </span>
-                      <input
-                        type="tel"
-                        placeholder="90000 00000"
-                        value={shippingPhone2}
-                        onChange={(e) => setShippingPhone2(formatPhoneNumber(e.target.value))}
-                        className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl pl-12 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-                      />
-                    </div>
-                  </div>
-                </div>
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-emerald-400 text-sm">
+                <span>Discount</span>
+                <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
               </div>
             )}
             <div className="flex justify-between text-white font-bold text-base pt-1 border-t border-white/5">
               <span>Total Price</span>
               <span>₹{(totalCents / 100).toLocaleString("en-IN")}</span>
+            </div>
+            <div className="text-[10px] text-emerald-400 font-semibold mt-1">
+              ✓ Tax included
             </div>
 
             <button 
@@ -554,12 +621,135 @@ export default function MobileCartPage() {
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  Secure Checkout
+                  Proceed to Payment
                 </>
               )}
             </button>
           </div>
         </form>
+      )}
+
+      {/* Address Reusable Modal */}
+      {showAddressModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[#0d1117] border border-white/10 rounded-2xl p-6 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h3 className="text-lg font-bold text-white">
+              {hasPhysicalOrShippingNeed ? "Edit Delivery Address" : "Edit Contact Information"}
+            </h3>
+            <form onSubmit={handleSaveAddress} className="space-y-3">
+              <div>
+                <label className="text-[10px] text-slate-400 uppercase font-semibold">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={addressForm.fullName}
+                  onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-400 uppercase font-semibold">Mobile Number *</label>
+                <input
+                  type="tel"
+                  required
+                  value={addressForm.mobileNumber}
+                  onChange={(e) => setAddressForm({ ...addressForm, mobileNumber: formatPhoneNumber(e.target.value) })}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                  placeholder="98765 43210"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-400 uppercase font-semibold">Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  value={addressForm.emailAddress}
+                  onChange={(e) => setAddressForm({ ...addressForm, emailAddress: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                  placeholder="john@email.com"
+                />
+              </div>
+
+              {hasPhysicalOrShippingNeed && (
+                <>
+                  <div>
+                    <label className="text-[10px] text-slate-400 uppercase font-semibold">Address Line 1 *</label>
+                    <input
+                      type="text"
+                      required
+                      value={addressForm.addressLine1}
+                      onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                      placeholder="House no, street address"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 uppercase font-semibold">Address Line 2 (Optional)</label>
+                    <input
+                      type="text"
+                      value={addressForm.addressLine2}
+                      onChange={(e) => setAddressForm({ ...addressForm, addressLine2: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                      placeholder="Apartment, suite, unit etc."
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-400 uppercase font-semibold">City *</label>
+                      <input
+                        type="text"
+                        required
+                        value={addressForm.city}
+                        onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                        placeholder="Delhi"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 uppercase font-semibold">State *</label>
+                      <input
+                        type="text"
+                        required
+                        value={addressForm.state}
+                        onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                        placeholder="Delhi"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 uppercase font-semibold">Pincode *</label>
+                    <input
+                      type="text"
+                      required
+                      value={addressForm.pincode}
+                      onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500"
+                      placeholder="110001"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddressModal(false)}
+                  className="px-4 py-2 border border-white/10 text-slate-300 rounded-lg text-sm hover:bg-white/5 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-sm font-semibold transition"
+                >
+                  Save Address
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

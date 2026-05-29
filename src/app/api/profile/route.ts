@@ -8,7 +8,13 @@ const profileSchema = z.object({
   firstName: z.string().max(50).optional().nullable(),
   lastName: z.string().max(50).optional().nullable(),
   email: z.string().email("Invalid email address"),
-  phone: z.string().max(20).optional().nullable()
+  phone: z.string().max(20).optional().nullable(),
+  addressLine1: z.string().max(200).optional().nullable(),
+  addressLine2: z.string().max(200).optional().nullable(),
+  city: z.string().max(100).optional().nullable(),
+  state: z.string().max(100).optional().nullable(),
+  postalCode: z.string().max(20).optional().nullable(),
+  country: z.string().max(100).optional().nullable(),
 });
 
 export async function GET() {
@@ -35,12 +41,24 @@ export async function GET() {
 
     const meta = (user.metadata as Record<string, unknown> | null) ?? {};
     const metaPhone = typeof meta.phone === "string" ? meta.phone : "";
+    const addressLine1 = typeof meta.addressLine1 === "string" ? meta.addressLine1 : "";
+    const addressLine2 = typeof meta.addressLine2 === "string" ? meta.addressLine2 : "";
+    const city = typeof meta.city === "string" ? meta.city : "";
+    const state = typeof meta.state === "string" ? meta.state : "";
+    const postalCode = typeof meta.postalCode === "string" ? meta.postalCode : "";
+    const country = typeof meta.country === "string" ? meta.country : "India";
 
     return NextResponse.json({
       user: {
         name: user.name ?? "",
         email: user.email ?? "",
         phone: user.phone ?? metaPhone ?? "",
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        postalCode,
+        country,
       }
     });
   } catch {
@@ -69,7 +87,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { name, firstName, lastName, email, phone } = parsed.data;
+    const { name, firstName, lastName, email, phone, addressLine1, addressLine2, city, state, postalCode, country } = parsed.data;
 
     // Check if email is already taken by another user
     if (email !== session.user.email) {
@@ -86,6 +104,23 @@ export async function PUT(request: Request) {
       }
     }
 
+    const existingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { metadata: true }
+    });
+
+    const currentMeta = (existingUser?.metadata as Record<string, unknown> | null) ?? {};
+    const updatedMeta = {
+      ...currentMeta,
+      phone: phone || currentMeta.phone || null,
+      addressLine1: addressLine1 || null,
+      addressLine2: addressLine2 || null,
+      city: city || null,
+      state: state || null,
+      postalCode: postalCode || null,
+      country: country || "India",
+    };
+
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
@@ -93,7 +128,8 @@ export async function PUT(request: Request) {
         firstName: firstName || null,
         lastName: lastName || null,
         email,
-        phone: phone || null
+        phone: phone || null,
+        metadata: updatedMeta
       },
       select: {
         id: true,
@@ -104,6 +140,7 @@ export async function PUT(request: Request) {
         phone: true,
         image: true,
         role: true,
+        metadata: true,
         createdAt: true
       }
     });

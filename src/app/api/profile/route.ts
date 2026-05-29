@@ -11,6 +11,46 @@ const profileSchema = z.object({
   phone: z.string().max(20).optional().nullable()
 });
 
+export async function GET() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        metadata: true,
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const meta = (user.metadata as Record<string, unknown> | null) ?? {};
+    const metaPhone = typeof meta.phone === "string" ? meta.phone : "";
+
+    return NextResponse.json({
+      user: {
+        name: user.name ?? "",
+        email: user.email ?? "",
+        phone: user.phone ?? metaPhone ?? "",
+      }
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(request: Request) {
   try {
     const session = await auth();

@@ -89,6 +89,29 @@ export default function MobileCartPage() {
     }
   }, [subtotalCents, appliedCoupon]);
 
+  useEffect(() => {
+    const hydrateBillingFromProfile = async () => {
+      try {
+        const res = await fetch("/api/profile", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const email = data?.user?.email;
+        const phone = data?.user?.phone;
+
+        if (typeof email === "string" && email && !billingEmail) {
+          setBillingEmail(email);
+        }
+        if (typeof phone === "string" && phone && !billingPhone) {
+          setBillingPhone(phone);
+        }
+      } catch {
+        // Non-blocking: checkout form still works with manual entry.
+      }
+    };
+
+    hydrateBillingFromProfile();
+  }, [billingEmail, billingPhone]);
+
   const hasPhysicalOrShippingNeed = cart.some(
     item => item.product.shippingRequired === true || item.product.productType === ProductType.PHYSICAL
   );

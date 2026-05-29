@@ -13,7 +13,8 @@ import {
   ShieldQuestion, 
   Lock, 
   Sliders, 
-  LogOut 
+  LogOut,
+  GraduationCap
 } from "lucide-react";
 
 interface AvatarDropdownProps {
@@ -136,6 +137,14 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                   Users
                 </Link>
                 <Link
+                  href="/admin/enrollments"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                >
+                  <GraduationCap className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
+                  Enrollments
+                </Link>
+                <Link
                   href="/admin/courses"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
@@ -166,6 +175,14 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                 >
                   <ShieldQuestion className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Support Tickets
+                </Link>
+                <Link
+                  href="/admin/audit-logs"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                >
+                  <Users className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
+                  Audit Logs
                 </Link>
 
                 <hr className="my-1.5 border-white/5" />
@@ -244,6 +261,14 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                 >
                   <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Courses
+                </Link>
+                <Link
+                  href="/teacher/enrollments"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                >
+                  <Users className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
+                  My Students
                 </Link>
                 <Link
                   href="/teacher/categories"

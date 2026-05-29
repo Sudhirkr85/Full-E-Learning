@@ -41,7 +41,8 @@ The application contains the following fully implemented production modules:
     *   **Notification Bell**: Real-time unread badge for logged-in users.
     *   **Avatar Dropdown**: Upgraded role-specific dropdown (Admin, Student, Teacher) matching the dashboard sidebar navigation links exactly, complete with an Identity Header, My Profile shortcut, and elegant low-opacity glass dividers.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
-*   **Admin**: Full admin dashboard featuring a high-fidelity SaaS overview dashboard (trend-indicating stat cards, dynamic Recharts Pie & Bar visualizations, and live recent enrollments database table), a hardened sidebar navigation with 'My Profile' and 'Audit Logs' integrations, user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration.
+*   **Admin**: Full admin dashboard featuring a high-fidelity SaaS overview dashboard (trend-indicating stat cards, dynamic Recharts Pie & Bar visualizations, and live recent enrollments database table), a hardened sidebar navigation with 'My Profile' and 'Audit Logs' integrations, user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration. Enrollment & Orders Desk: Full platform-wide student enrollment viewer with search, filter by status, progress bars, and metric cards. Features a **Total Platform Revenue** card tracking Course and Store sales together with clear sub-breakdowns (avoiding double-counting). Separate Store Orders tab showing only PDF, Physical, Bundle, and Membership purchases (strictly excluding `COURSE_ACCESS` orders) with payment status, product type icons, amount paid in ₹ INR, and dedicated empty states.
+*   **Teacher**: My Students Dashboard: Course-scoped enrollment viewer at /teacher/enrollments showing only students enrolled in the teacher's own courses. Includes progress tracking, completion status, and mobile numbers. Payment and revenue data is intentionally hidden.
 *   **Store Management**: Admin can create and manage PDF Books and Physical Products. INR pricing only. Supports PDF document uploads for in-app online reading only (no direct downloads), and stock/shipping configurations for physical merchandise. Fully separate from LMS course flow.
 *   **Courses & Lesson Navigation**: Dynamic public course catalogs, preview lessons, locked learning modules, and protected lesson resources. Course listing page shows responsive grid (1/2/3/4 columns), thumbnail banners with category gradients, Free badge or ₹ INR pricing, original-price strike-through with calculated discount % OFF, hover animations, and teacher/section metadata. Course cards show single CTA: 'Continue Learning' if enrolled, 'View Details' otherwise. Course detail page shows 2-column layout (desktop) with sticky price card. Left side: thumbnail, meta, teacher info, description with read-more, curriculum accordion with preview/locked lessons. Right side: sticky card with INR pricing, discount badge, enrollment CTA based on login and enrollment state, and course includes section.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly.
@@ -256,7 +257,7 @@ Authentication is powered by **Auth.js (v5)**, **bcryptjs**, and **OAuth 2.0 Int
 *   **JWT Sessions**: Encrypted client-side cookies storing active `userId`, `email`, and `role`.
 *   **Next.js Middleware**: Intercepts requests to check authentication states. Automatically redirects unauthenticated users or restricts unauthorized routes:
     *   **STUDENT**: Can access `/student/*`, `/courses/*` (enrolled), and `/profile/*`. Blocked from `/teacher/*` and `/admin/*`.
-    *   **TEACHER**: Can access `/teacher/*`, `/courses/*` (bypass enrollments), and `/profile/*`.
+    *   **TEACHER**: Can access `/teacher/*`, `/courses/*` (bypass enrollments), and `/profile/*`. Can access `/teacher/enrollments` to view students enrolled in their own courses.
     *   **ADMIN**: Full platform access. Can manage all users, courses, categories, support tickets, and platform configurations. Admin stays on /admin/* routes always and does not redirect to /teacher/* routes. Can change password via /admin/settings/change-password. Can promote students to Teacher.
 *   **Super Admin Protection**: A single permanent super admin account is seeded via `prisma/seed.ts` using an upsert strategy. The admin email is defined in `src/lib/admin-config.ts` as `SUPER_ADMIN_EMAIL`. This email is blocked from public registration. The admin account is protected at the Prisma middleware layer — `delete` and `deleteMany` operations on `ADMIN`-role users throw a hard error, preventing accidental removal from any admin UI or script.
 
@@ -270,6 +271,8 @@ Every admin page is protected — session and role === "ADMIN" verified on both 
 |------|-----|----------|
 | Overview | /admin/dashboard | Real stats: students, teachers, courses, revenue |
 | Users | /admin/users | View all users, search, filter, promote to Teacher |
+| Enrollments | /admin/enrollments | All student enrollments, search, filter, progress |
+| (Teacher) My Students | /teacher/enrollments | Teacher-scoped enrollment view, no payment data |
 | Courses | /admin/courses | All courses, publish/archive/delete |
 | Course Detail | /admin/courses/[id] | Sections, lessons, enrollments |
 | Categories | /admin/categories | Add, edit, delete categories |
@@ -587,6 +590,11 @@ The platform includes enhanced credential security controls for both administrat
     *   **Historical Revenue Tracker**: Custom monthly bar chart summarizing INR (₹) transactions.
     *   **Recent Enrollments Table**: Live database-backed listing tracking the latest 5 course checkouts.
 *   **Enrolled Student Details Desk**: Upgraded `/admin/courses/[courseId]` to include a premium **"Enrolled Students"** card. Admins can view detailed listings of enrolled students for each course, featuring names, emails, mobile numbers, and precise join timestamps, backed by a scrollable viewport.
+
+### 6. Role-Scoped Enrollment & Orders Dashboards
+*   **Admin Enrollment & Store Orders Dashboard**: Designed and created a comprehensive manager at `/admin/enrollments` protected for admins. Features 4 metrics cards (Total Enrollments, Active Learners, Store Revenue in ₹, and Pending Dispatch), a search filter, All/Active/Completed enrollment filter pills, and a 2-tab layout separating course enrollments from catalog product purchases (with visual payment status badges and product type icons).
+*   **Teacher "My Students" Dashboard**: Created a course-scoped student progress view at `/teacher/enrollments` protected for teachers. Fetches only students enrolled in their own courses. Features 3 metrics cards (My Students, Active Learners, and Completions), search, progress bars, and status filter pills, completely shielding sensitive store payments or revenue metrics.
+
 
 
 

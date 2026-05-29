@@ -30,6 +30,7 @@ export const studentNav = [
 export const teacherNav = [
   { label: "Overview", href: "/teacher/dashboard" },
   { label: "Courses", href: "/teacher/courses" },
+  { label: "My Students", href: "/teacher/enrollments" },
   { label: "Categories", href: "/teacher/categories" }
 ];
 
@@ -37,6 +38,7 @@ export const adminNav = [
   { label: "My Profile", href: "/admin/profile" },
   { label: "Overview", href: "/admin/dashboard" },
   { label: "Users", href: "/admin/users" },
+  { label: "Enrollments", href: "/admin/enrollments" },
   { label: "Courses", href: "/admin/courses" },
   { label: "Categories", href: "/admin/categories" },
   { label: "Store", href: "/admin/store" },

@@ -23,7 +23,8 @@ import {
   ClipboardList,
   Lock,
   Sliders,
-  BookOpen
+  BookOpen,
+  GraduationCap
 } from "lucide-react";
 import { LogoutModal } from "@/components/navbar/logout-modal";
 
@@ -56,6 +57,8 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
     if (l.includes("overview")) return <LayoutDashboard className="h-4 w-4 shrink-0" />;
     if (l.includes("profile")) return <UserCircle className="h-4 w-4 shrink-0" />;
     if (l.includes("course")) return <BookOpen className="h-4 w-4 shrink-0" />;
+    if (l.includes("enrollment")) return <GraduationCap className="h-4 w-4 shrink-0" />;
+    if (l.includes("student")) return <Users className="h-4 w-4 shrink-0" />;
     if (l.includes("user")) return <Users className="h-4 w-4 shrink-0" />;
     if (l.includes("category")) return <FolderOpen className="h-4 w-4 shrink-0" />;
     if (l.includes("store") || l.includes("order")) return <ShoppingBag className="h-4 w-4 shrink-0" />;
@@ -97,11 +100,12 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
 
     if (role === "ADMIN") {
       // Custom structured rendering for Admin:
-      // My Profile -> divider -> Overview, Users, Courses, Categories, Store, Support Tickets, Audit Logs -> divider -> Settings Label -> Change Password, Platform Config
+      // My Profile -> divider -> Overview, Users, Enrollments, Courses, Categories, Store, Support Tickets, Audit Logs -> divider -> Settings Label -> Change Password, Platform Config
       const profileLink = { label: "My Profile", href: "/admin/profile" };
       const mainLinks = [
         { label: "Overview", href: "/admin/dashboard" },
         { label: "Users", href: "/admin/users" },
+        { label: "Enrollments", href: "/admin/enrollments" },
         { label: "Courses", href: "/admin/courses" },
         { label: "Categories", href: "/admin/categories" },
         { label: "Store", href: "/admin/store" },

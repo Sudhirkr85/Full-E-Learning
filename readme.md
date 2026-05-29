@@ -609,6 +609,13 @@ The platform includes enhanced credential security controls for both administrat
 *   **Glassmorphic Course Catalog**: Formatted catalog filter pills in a semi-transparent `bg-white/5 border border-white/10 text-slate-300` layout, paired with glowing active states.
 *   **Premium Interactive Course Cards**: Created a dark glassmorphic card component featuring dynamic hardware-accelerated translation lifts (`hover:-translate-y-1.5 hover:shadow-indigo-500/20`), cover thumbnail banner grids, text overlay titles, and a detailed INR pricing grid layout (strikethroughs, discount percentages, and Free paths).
 
+### 9. Premium Store UI & Localized Smart-Checkout
+*   **Cinematic Dark Glassmorphic Product Cards**: Store product cards have been upgraded with high-end glassmorphic visuals (`bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl hover:-translate-y-1.5 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-300`) featuring beautiful green `% OFF` discount badges calculated dynamically from metadata.
+*   **Responsive Product Catalog Grid**: Responsive column alignments dynamically adjust to fit standard viewports seamlessly: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6`.
+*   **Polished Smart-Checkout & Pre-filling**: Prefills the billing email, recipient's name, and primary mobile number directly from the student's DB profile or metadata JSON securely, while keeping it fully editable.
+*   **Localized Delhi-based Placeholders**: Employs Delhi-specific details (e.g. `Sudhir Kumar`, `A-12, Ring Road, Lajpat Nagar IV`, `New Delhi`, `Delhi`, `110024`) as intuitive Indian localized form placeholder prompts.
+*   **Primary & Secondary Shipping Phone Numbers**: Fully collects a mandatory primary phone and an optional secondary phone for secure physical product fulfillment, stored transparently inside order metadata.
+
 
 
 

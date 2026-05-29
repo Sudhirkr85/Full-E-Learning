@@ -16,6 +16,11 @@ import { Product, ProductType } from "@prisma/client";
 
 interface StoreClientProps {
   products: Product[];
+  profileUser?: {
+    email: string;
+    name: string;
+    phone: string;
+  } | null;
 }
 
 interface CartItem {
@@ -23,7 +28,7 @@ interface CartItem {
   quantity: number;
 }
 
-export function StoreClient({ products }: StoreClientProps) {
+export function StoreClient({ products, profileUser }: StoreClientProps) {
   const router = useRouter();
   
   // State
@@ -35,14 +40,17 @@ export function StoreClient({ products }: StoreClientProps) {
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
-  const [billingEmail, setBillingEmail] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [billingEmail, setBillingEmail] = useState(profileUser?.email || "");
+  const [billingPhone, setBillingPhone] = useState(profileUser?.phone || "");
+  const [fullName, setFullName] = useState(profileUser?.name || "");
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
   const [city, setCity] = useState("");
   const [shippingState, setShippingState] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("India");
+  const [shippingPhone1, setShippingPhone1] = useState(profileUser?.phone || "");
+  const [shippingPhone2, setShippingPhone2] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
@@ -159,12 +167,17 @@ export function StoreClient({ products }: StoreClientProps) {
     }
   }, [subtotalCents, appliedCoupon]);
 
-  const totalCents = Math.max(0, subtotalCents - couponDiscount);
-
   // Check if cart contains physical product / shipping need
   const hasPhysicalOrShippingNeed = cart.some(
     item => item.product.shippingRequired === true || item.product.productType === ProductType.PHYSICAL
   );
+
+  // Free shipping above ₹500 (50000 cents), otherwise shipping is ₹50 (5000 cents)
+  const shippingChargeCents = hasPhysicalOrShippingNeed 
+    ? (subtotalCents > 50000 ? 0 : 5000) 
+    : 0;
+
+  const totalCents = Math.max(0, subtotalCents - couponDiscount + shippingChargeCents);
 
   // Checkout submission
   const handleCheckout = async (e: React.FormEvent) => {
@@ -181,7 +194,7 @@ export function StoreClient({ products }: StoreClientProps) {
       return;
     }
 
-    if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState)) {
+    if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1)) {
       setCheckoutError("Please fill out all required shipping fields for products in your cart.");
       return;
     }
@@ -197,6 +210,8 @@ export function StoreClient({ products }: StoreClientProps) {
       state: shippingState,
       postalCode,
       country,
+      primaryPhone: shippingPhone1,
+      secondaryPhone: shippingPhone2,
     } : null;
 
     const res = await createOrderAction({
@@ -208,6 +223,7 @@ export function StoreClient({ products }: StoreClientProps) {
       couponCode: appliedCoupon?.code,
       notes,
       metadata: {
+        billingPhone,
         shippingAddress: shippingDetails,
         shippingStatus: hasPhysicalOrShippingNeed ? "PROCESSING" : "NOT_APPLICABLE",
       }
@@ -251,12 +267,12 @@ export function StoreClient({ products }: StoreClientProps) {
   };
 
   return (
-    <div className="relative min-h-screen pb-20">
+    <div className="relative min-h-screen pb-20 bg-[#0a0a0f] text-slate-100">
       {/* Floating Shopping Cart Trigger */}
       <div className="fixed bottom-6 right-6 z-30">
         <Button 
           onClick={() => setIsCartOpen(true)}
-          className="h-14 w-14 rounded-full shadow-lg bg-amber-500 hover:bg-amber-600 text-background p-0 relative transition-transform hover:scale-105"
+          className="h-14 w-14 rounded-full shadow-lg bg-violet-600 hover:bg-violet-500 text-white p-0 relative transition-transform hover:scale-105"
         >
           <ShoppingCart className="h-6 w-6" />
           {cart.length > 0 && (
@@ -334,14 +350,18 @@ export function StoreClient({ products }: StoreClientProps) {
             </p>
           </div>
         ) : (
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => {
-              const formattedPrice = `₹${(product.priceCents / 100).toLocaleString("en-IN")}`;
+              const meta = product.metadata as { originalPrice?: unknown } | null;
+              const originalPrice = meta?.originalPrice ? Number(meta.originalPrice) : null;
+              const price = product.priceCents / 100;
+              const hasDiscount = originalPrice !== null && originalPrice > price && price > 0;
+              const discountPercent = hasDiscount ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
 
               return (
                 <Card 
                   key={product.id}
-                  className="flex flex-col overflow-hidden border border-border/60 shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1 bg-card/60 backdrop-blur-[2px]"
+                  className="flex flex-col bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:-translate-y-1.5 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-300"
                 >
                   {/* Card Image */}
                   <div className="relative aspect-[16/10] bg-muted overflow-hidden">
@@ -359,20 +379,28 @@ export function StoreClient({ products }: StoreClientProps) {
                   </div>
 
                   {/* Card Content */}
-                  <div className="flex flex-col flex-1 p-6">
+                  <div className="flex flex-col flex-1 p-6 bg-transparent">
                     <div className="flex-1 space-y-3">
-                      <h3 className="font-display text-xl font-bold text-foreground leading-tight hover:text-amber-500 transition">
+                      <h3 className="font-display text-lg font-semibold text-white leading-tight hover:text-violet-400 transition">
                         <Link href={`/store/${product.slug}`}>{product.title}</Link>
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                      <p className="text-sm text-slate-400 line-clamp-3">
                         {product.description || "Unlock premium architecture designs and tools."}
                       </p>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Price</span>
-                        <span className="text-2xl font-extrabold text-foreground">{formattedPrice}</span>
+                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-2xl font-bold text-white">
+                          <span className="text-violet-400">₹</span>
+                          {price.toLocaleString("en-IN")}
+                        </span>
+                        {hasDiscount && (
+                          <div className="flex items-center">
+                            <span className="line-through text-slate-500 text-xs font-semibold">₹{originalPrice.toLocaleString("en-IN")}</span>
+                            <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full ml-1.5">{discountPercent}% OFF</span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex gap-2">
@@ -380,14 +408,14 @@ export function StoreClient({ products }: StoreClientProps) {
                           asChild
                           variant="ghost" 
                           size="sm" 
-                          className="text-xs text-muted-foreground"
+                          className="text-xs border border-white/20 text-slate-300 hover:bg-white/10 hover:text-white"
                         >
                           <Link href={`/store/${product.slug}`}>Details</Link>
                         </Button>
                         <Button 
                           onClick={() => addToCart(product)}
                           size="sm"
-                          className="bg-amber-500 hover:bg-amber-600 text-background flex items-center gap-1.5"
+                          className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-1.5"
                         >
                           Add to Cart
                         </Button>
@@ -411,33 +439,33 @@ export function StoreClient({ products }: StoreClientProps) {
           />
 
           {/* Drawer Body */}
-          <div className="relative w-full max-w-md bg-card border-l border-border h-full shadow-2xl flex flex-col z-10 transition-transform duration-300">
+          <div className="relative w-full max-w-md bg-[#0d0d18] border-l border-white/10 h-full shadow-2xl flex flex-col z-10 transition-transform duration-300">
             {/* Drawer Header */}
-            <div className="p-6 border-b border-border flex items-center justify-between">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-amber-500" />
-                <h2 className="text-lg font-semibold">Your Shopping Cart</h2>
+                <ShoppingCart className="h-5 w-5 text-violet-400" />
+                <h2 className="text-lg font-semibold text-white">Your Shopping Cart</h2>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setIsCartOpen(false)}
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full text-white hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
 
             {/* Drawer Items & Forms (Scrollable container) */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
               {cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-20">
-                  <ShoppingCart className="h-12 w-12 text-muted-foreground opacity-30" />
-                  <h3 className="font-semibold text-lg">Your cart is empty</h3>
-                  <p className="text-sm text-muted-foreground max-w-[250px]">
+                  <ShoppingCart className="h-12 w-12 text-slate-500 opacity-30" />
+                  <h3 className="font-semibold text-lg text-white">Your cart is empty</h3>
+                  <p className="text-sm text-slate-400 max-w-[250px]">
                     Browse our items catalog and add playbooks or access vouchers to get started.
                   </p>
-                  <Button onClick={() => setIsCartOpen(false)} variant="outline" size="sm">
+                  <Button onClick={() => setIsCartOpen(false)} variant="outline" size="sm" className="border-white/20 text-slate-300 hover:bg-white/10">
                     Back to shopping
                   </Button>
                 </div>
@@ -445,18 +473,18 @@ export function StoreClient({ products }: StoreClientProps) {
                 <>
                   {/* Cart Items list */}
                   <div className="space-y-4">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Cart Items ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h3>
-                    <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden bg-muted/20">
+                    <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Cart Items ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h3>
+                    <div className="space-y-3">
                       {cart.map((item) => (
-                        <div key={item.product.id} className="p-4 flex gap-4 items-center">
+                        <div key={item.product.id} className="p-4 flex gap-4 items-center bg-white/5 border border-white/10 rounded-xl">
                           <img
                             src={item.product.coverImageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
                             alt={item.product.title}
                             className="w-12 h-12 object-cover rounded-lg bg-muted flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-sm text-foreground truncate">{item.product.title}</h4>
-                            <p className="text-xs text-muted-foreground mt-0.5">
+                            <h4 className="font-semibold text-sm text-white truncate">{item.product.title}</h4>
+                            <p className="text-sm text-violet-400 font-semibold mt-0.5">
                               ₹{((item.product.priceCents * item.quantity) / 100).toLocaleString("en-IN")}
                             </p>
                           </div>
@@ -465,16 +493,16 @@ export function StoreClient({ products }: StoreClientProps) {
                               variant="ghost" 
                               size="icon" 
                               onClick={() => updateQuantity(item.product.id, -1)}
-                              className="h-6 w-6 rounded-full"
+                              className="h-6 w-6 bg-white/10 hover:bg-white/20 text-white rounded-lg"
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
-                            <span className="text-sm font-semibold w-4 text-center">{item.quantity}</span>
+                            <span className="text-sm font-semibold w-6 text-center text-white">{item.quantity}</span>
                             <Button 
                               variant="ghost" 
                               size="icon" 
                               onClick={() => updateQuantity(item.product.id, 1)}
-                              className="h-6 w-6 rounded-full"
+                              className="h-6 w-6 bg-white/10 hover:bg-white/20 text-white rounded-lg"
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
@@ -482,7 +510,7 @@ export function StoreClient({ products }: StoreClientProps) {
                               variant="ghost" 
                               size="icon" 
                               onClick={() => removeFromCart(item.product.id)}
-                              className="h-6 w-6 text-destructive/80 hover:text-destructive hover:bg-destructive/5 rounded-full ml-1"
+                              className="h-6 w-6 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-full ml-1"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
@@ -493,19 +521,19 @@ export function StoreClient({ products }: StoreClientProps) {
                   </div>
 
                   {/* Coupon Code section */}
-                  <div className="space-y-3 pt-4 border-t border-border">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Discount Coupon</h3>
+                  <div className="space-y-3 pt-4 border-t border-white/10">
+                    <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Discount Coupon</h3>
                     {appliedCoupon ? (
-                      <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-xl p-3 text-sm">
+                      <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
                         <div className="flex items-center gap-1.5 font-medium">
-                          <Ticket className="h-4 w-4 text-emerald-500" />
+                          <Ticket className="h-4 w-4 text-emerald-400" />
                           <span>Code: {appliedCoupon.code} Applied</span>
                         </div>
                         <Button 
                           type="button" 
                           variant="ghost" 
                           onClick={handleRemoveCoupon} 
-                          className="h-6 w-6 p-0 text-emerald-600 hover:bg-emerald-500/10 rounded-full"
+                          className="h-6 w-6 p-0 text-emerald-400 hover:bg-emerald-500/10 rounded-full"
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -517,9 +545,9 @@ export function StoreClient({ products }: StoreClientProps) {
                           placeholder="PROMOCODE10"
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                          className="flex-1 bg-background border border-border rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
-                        <Button type="submit" size="sm" variant="secondary" className="px-3 text-xs">
+                        <Button type="submit" size="sm" className="px-3 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">
                           Apply
                         </Button>
                       </form>
@@ -527,112 +555,147 @@ export function StoreClient({ products }: StoreClientProps) {
                     {couponError && <p className="text-xs text-destructive">{couponError}</p>}
                   </div>
 
-                  {/* Checkout Secure Fields */}
-                  <form onSubmit={handleCheckout} className="space-y-4 pt-4 border-t border-border">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Billing & Checkout</h3>
+                  <form onSubmit={handleCheckout} className="space-y-4 pt-4 border-t border-white/10">
+                    <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Billing & Checkout</h3>
                     
                     <div className="space-y-3">
-                      <div>
-                        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Billing Email (Where keys/receipts go) *</label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="name@example.com"
-                          value={billingEmail}
-                          onChange={(e) => setBillingEmail(e.target.value)}
-                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Email *</label>
+                          <input
+                            type="email"
+                            required
+                            placeholder="sudhir.kumar@gmail.com"
+                            value={billingEmail}
+                            onChange={(e) => setBillingEmail(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Phone / Mobile (Editable)</label>
+                          <input
+                            type="tel"
+                            placeholder="+91 99999 88888"
+                            value={billingPhone}
+                            onChange={(e) => setBillingPhone(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          />
+                        </div>
                       </div>
 
                       {/* Render physical shipping address if needed */}
                       {hasPhysicalOrShippingNeed && (
-                        <div className="space-y-3 p-4 border border-amber-500/20 bg-amber-500/[0.02] rounded-2xl">
-                          <div className="flex items-center gap-1.5 text-amber-600 font-semibold text-xs mb-1 uppercase tracking-wide">
+                        <div className="space-y-3 p-4 border border-white/10 bg-white/5 rounded-2xl">
+                          <div className="flex items-center gap-1.5 text-violet-400 font-semibold text-xs mb-1 uppercase tracking-wide">
                             <Package className="h-3.5 w-3.5" />
                             <span>Shipping Address Required</span>
                           </div>
                           
                           <div>
-                            <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Recipient Full Name *</label>
+                            <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Recipient Full Name *</label>
                             <input
                               type="text"
                               required
-                              placeholder="John Doe"
+                              placeholder="Sudhir Kumar"
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
-                              className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                             />
                           </div>
 
                           <div>
-                            <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Address Line 1 *</label>
+                            <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 1 *</label>
                             <input
                               type="text"
                               required
-                              placeholder="Street Name, Apt, Building No."
+                              placeholder="A-12, Ring Road, Lajpat Nagar IV"
                               value={addressLine1}
                               onChange={(e) => setAddressLine1(e.target.value)}
-                              className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                             />
                           </div>
 
                           <div>
-                            <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Address Line 2 (Optional)</label>
+                            <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 2 (Optional)</label>
                             <input
                               type="text"
-                              placeholder="Floor, Land Mark, Suite"
+                              placeholder="Near Metro Station"
                               value={addressLine2}
                               onChange={(e) => setAddressLine2(e.target.value)}
-                              className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                             />
                           </div>
 
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">City *</label>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">City *</label>
                               <input
                                 type="text"
                                 required
-                                placeholder="Bengaluru"
+                                placeholder="New Delhi"
                                 value={city}
                                 onChange={(e) => setCity(e.target.value)}
-                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                               />
                             </div>
                             <div>
-                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">State / Province *</label>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">State / Province *</label>
                               <input
                                 type="text"
                                 required
-                                placeholder="Karnataka"
+                                placeholder="Delhi"
                                 value={shippingState}
                                 onChange={(e) => setShippingState(e.target.value)}
-                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                               />
                             </div>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">PIN / Postal Code *</label>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">PIN / Postal Code *</label>
                               <input
                                 type="text"
                                 required
-                                placeholder="560001"
+                                placeholder="110024"
                                 value={postalCode}
                                 onChange={(e) => setPostalCode(e.target.value)}
-                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                               />
                             </div>
                             <div>
-                              <label className="text-[9px] text-muted-foreground uppercase tracking-wider block mb-1">Country *</label>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Country *</label>
                               <input
                                 type="text"
                                 required
                                 placeholder="India"
                                 value={country}
                                 onChange={(e) => setCountry(e.target.value)}
-                                className="w-full bg-background border border-border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Primary Phone *</label>
+                              <input
+                                type="tel"
+                                required
+                                placeholder="+91 99999 88888"
+                                value={shippingPhone1}
+                                onChange={(e) => setShippingPhone1(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Secondary Phone (Optional)</label>
+                              <input
+                                type="tel"
+                                placeholder="+91 88888 77777"
+                                value={shippingPhone2}
+                                onChange={(e) => setShippingPhone2(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                               />
                             </div>
                           </div>
@@ -640,13 +703,13 @@ export function StoreClient({ products }: StoreClientProps) {
                       )}
 
                       <div>
-                        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Order Notes (Optional)</label>
+                        <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Order Notes (Optional)</label>
                         <textarea
                           placeholder="Any special instructions for this order..."
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
                           rows={2}
-                          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
                         />
                       </div>
                     </div>
@@ -654,18 +717,30 @@ export function StoreClient({ products }: StoreClientProps) {
                     {checkoutError && <p className="text-xs text-destructive font-medium">{checkoutError}</p>}
 
                     {/* Price summary block */}
-                    <div className="space-y-1.5 pt-4 border-t border-border text-sm">
-                      <div className="flex justify-between text-muted-foreground">
+                    <div className="space-y-1.5 pt-4 border-t border-white/10 text-sm">
+                      <div className="flex justify-between text-slate-300">
                         <span>Cart Subtotal</span>
                         <span>₹{(subtotalCents / 100).toLocaleString("en-IN")}</span>
                       </div>
                       {couponDiscount > 0 && (
-                        <div className="flex justify-between text-emerald-600 font-medium">
+                        <div className="flex justify-between text-emerald-400 font-medium">
                           <span>Discount Applied</span>
                           <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-lg font-extrabold text-foreground pt-2 border-t border-dashed">
+                      {hasPhysicalOrShippingNeed && (
+                        <div className="flex justify-between text-slate-300">
+                          <span>Shipping Charges</span>
+                          <span>
+                            {shippingChargeCents === 0 ? (
+                              <span className="text-emerald-400 font-medium">FREE (Above ₹500)</span>
+                            ) : (
+                              `₹${(shippingChargeCents / 100).toLocaleString("en-IN")}`
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-lg font-extrabold text-white pt-2 border-t border-dashed border-white/10">
                         <span>Total Price</span>
                         <span>₹{(totalCents / 100).toLocaleString("en-IN")}</span>
                       </div>
@@ -675,7 +750,7 @@ export function StoreClient({ products }: StoreClientProps) {
                     <Button 
                       type="submit" 
                       disabled={isSubmitting}
-                      className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-background font-bold text-sm flex items-center justify-center gap-1.5 rounded-xl mt-4"
+                      className="w-full h-11 bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm flex items-center justify-center gap-1.5 rounded-xl mt-4"
                     >
                       <Lock className="h-4 w-4" />
                       {isSubmitting ? "Generating secure order..." : "Secure Checkout Payment"}

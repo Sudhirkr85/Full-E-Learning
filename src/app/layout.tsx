@@ -39,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-background text-foreground`}>
+      <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-[#0a0a0f] text-foreground`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

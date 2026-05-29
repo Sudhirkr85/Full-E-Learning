@@ -615,6 +615,8 @@ The platform includes enhanced credential security controls for both administrat
 *   **Polished Smart-Checkout & Pre-filling**: Prefills the billing email, recipient's name, and primary mobile number directly from the student's DB profile or metadata JSON securely, while keeping it fully editable.
 *   **Localized Delhi-based Placeholders**: Employs Delhi-specific details (e.g. `Sudhir Kumar`, `A-12, Ring Road, Lajpat Nagar IV`, `New Delhi`, `Delhi`, `110024`) as intuitive Indian localized form placeholder prompts.
 *   **Primary & Secondary Shipping Phone Numbers**: Fully collects a mandatory primary phone and an optional secondary phone for secure physical product fulfillment, stored transparently inside order metadata.
+*   **Always-Dark Scroll-Transition Header**: Transitioned header background from `bg-[#0d1117]/80 backdrop-blur-sm` (unscrolled) to slightly more opaque `bg-[#0d1117]/95 backdrop-blur-md border-b border-white/10` when scrolled past 10px, for a polished dark brand atmosphere.
+*   **Anti-Flash Dark Canvas**: Set `bg-[#0a0a0f]` directly on root `layout.tsx` layout body to completely shield students from white page-hydration flashes.
 
 
 

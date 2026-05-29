@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Zap } from "lucide-react";
 import { siteConfig } from "@/lib/site";
 import { Container } from "@/components/ui/container";
-import { HeaderCartButton } from "./header-cart-button";
 import { AvatarDropdown } from "./avatar-dropdown";
 import { MobileDrawer } from "./mobile-drawer";
 import { LogoutModal } from "./logout-modal";
@@ -26,6 +25,16 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -59,9 +68,16 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#030712]/80 backdrop-blur-md supports-[backdrop-filter]:bg-[#030712]/60 transition-all duration-300">
+      <header className={cn(
+        "sticky top-0 z-50 w-full transition-all duration-300",
+        isScrolled 
+          ? "bg-[#0d1117]/95 backdrop-blur-md border-b border-white/10" 
+          : "bg-[#0d1117]/80 backdrop-blur-sm border-b border-transparent"
+      )}>
         {/* Premium subtle bottom border glow */}
-        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
+        {isScrolled && (
+          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
+        )}
 
         <Container className="flex h-14 md:h-16 items-center justify-between gap-4 px-4 max-w-7xl mx-auto">
           
@@ -104,9 +120,7 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
 
           {/* Right Section: Actions */}
           <div className="flex items-center gap-4">
-            <div className="hidden md:block">
-              <HeaderCartButton />
-            </div>
+
 
             {user ? (
               /* Logged In View (Desktop) */

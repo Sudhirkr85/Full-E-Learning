@@ -618,6 +618,13 @@ The platform includes enhanced credential security controls for both administrat
 *   **Always-Dark Scroll-Transition Header**: Transitioned header background from `bg-[#0d1117]/80 backdrop-blur-sm` (unscrolled) to slightly more opaque `bg-[#0d1117]/95 backdrop-blur-md border-b border-white/10` when scrolled past 10px, for a polished dark brand atmosphere.
 *   **Anti-Flash Dark Canvas**: Set `bg-[#0a0a0f]` directly on root `layout.tsx` layout body to completely shield students from white page-hydration flashes.
 
+### 10. Cinematic Hero Section "Tech Mastery Preview" Card
+*   **High-Fidelity Preview Experience**: Replaced the interactive dashboard mockup on the landing page hero with a premium, fully visual **Tech Mastery Preview** card (`bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl`).
+*   **Animated Typographic Terminal**: Showcases a simulated developer terminal running compiled code scripts with a CSS-pulsing cursor (`animate-pulse`) simulating active placement checking.
+*   **Glow-Dot Technology Stack Badges**: Highlights key industry skills (React, Node.js, PostgreSQL, Docker, AWS) using translucent pills combined with vibrant colored glowing dots.
+*   **Skills You'll Master Accordion**: Displays a checklist of 3 high-impact engineering milestones emphasized with emerald green icons.
+*   **Outcome Stat Chips**: Embeds 3 dark stat chips ("Full Stack", "AI Ready", "Job Ready") featuring micro-scale translation transforms on mouse hover.
+
 
 
 

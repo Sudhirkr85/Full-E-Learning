@@ -148,15 +148,15 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* RIGHT: Floating Futuristic AI Dashboard Mockup */}
+            {/* RIGHT: Tech Mastery Preview Card */}
             <div className="lg:col-span-5 relative z-10 flex justify-center">
-              <div className="relative w-full max-w-[420px] aspect-[4/5] glass-card-premium rounded-3xl p-5 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] group overflow-hidden">
+              <div className="relative w-full max-w-[420px] bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] group overflow-hidden flex flex-col justify-between gap-5 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] hover:border-white/20">
                 {/* Decorative border glows */}
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"></div>
                 <div className="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
 
-                {/* Dashboard Mockup Content */}
-                <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                {/* Card Header Content */}
+                <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-rose-500"></div>
                     <div className="h-3 w-3 rounded-full bg-amber-500"></div>
@@ -164,71 +164,85 @@ export default async function HomePage() {
                   </div>
                   <Badge className="bg-indigo-950/60 border-indigo-500/30 text-indigo-300 text-xs px-2.5 py-0.5 rounded-full">
                     <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 pulse-dot mr-1.5 inline-block"></span>
-                    Live Learning Sandbox
+                    Tech Mastery Preview
                   </Badge>
                 </div>
 
-                <div className="space-y-4">
-                  {/* User Profile widget */}
-                  <div className="rounded-2xl bg-white/5 p-3.5 border border-white/[0.05] flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center font-bold text-white text-sm">
-                        SK
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-semibold text-white">Sudhir Kumar</h4>
-                        <p className="text-[10px] text-slate-400">Software Developer Path</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-cyan-950/60 border-cyan-500/30 text-cyan-300 text-[10px] px-2 py-0">Rank #12</Badge>
+                {/* Fake code block with typing cursor */}
+                <div className="rounded-xl bg-black/50 p-4 border border-white/5 overflow-hidden text-left relative font-mono text-xs">
+                  <div className="flex items-center gap-1.5 mb-2 opacity-50">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                    <span className="text-[9px] ml-1.5">mastery_sandbox.ts</span>
                   </div>
+                  <div className="space-y-1 text-slate-300">
+                    <div className="text-indigo-400 font-semibold"><span className="text-purple-400">import</span> &#123; AI_CoPilot, NextJS &#125; <span className="text-purple-400">from</span> <span className="text-emerald-400">&quot;academy&quot;</span>;</div>
+                    <div className="text-blue-400"><span className="text-purple-400">const</span> engineer = <span className="text-purple-400">new</span> Developer(&quot;Sudhir Kumar&quot;);</div>
+                    <div className="text-slate-400 font-medium">engineer.buildSaaS(&#123; productionReady: true &#125;);</div>
+                    <div className="flex items-center text-cyan-400">
+                      <span>&gt;&gt; Ready for placement...</span>
+                      <span className="w-1.5 h-4 ml-1 bg-cyan-400 animate-pulse"></span>
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Skills radar stubs */}
+                {/* Tech stack badge pills with colored glow dots */}
+                <div className="flex flex-wrap gap-2 py-1 justify-center">
+                  <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-200 text-xs px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] inline-block"></span>
+                    React
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-200 text-xs px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] inline-block"></span>
+                    Node.js
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-200 text-xs px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] inline-block"></span>
+                    PostgreSQL
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-200 text-xs px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)] inline-block"></span>
+                    Docker
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-200 text-xs px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] inline-block"></span>
+                    AWS
+                  </span>
+                </div>
+
+                {/* Skills You'll Master section */}
+                <div className="space-y-2.5 text-left">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Skills You&apos;ll Master</h4>
                   <div className="space-y-2">
-                    <div className="flex justify-between text-[11px] font-medium text-slate-300">
-                      <span>AI Agent Orchestration</span>
-                      <span className="text-cyan-400">88%</span>
+                    <div className="flex items-center gap-2.5 text-slate-200 text-xs font-medium">
+                      <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>AI Agent Orchestration & Custom Tools</span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full" style={{ width: "88%" }}></div>
+                    <div className="flex items-center gap-2.5 text-slate-200 text-xs font-medium">
+                      <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>Full Stack SaaS Next.js Production Scale</span>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-[11px] font-medium text-slate-300">
-                      <span>Next.js Production Ready</span>
-                      <span className="text-purple-400">92%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style={{ width: "92%" }}></div>
+                    <div className="flex items-center gap-2.5 text-slate-200 text-xs font-medium">
+                      <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>High-Volume Distributed System Design</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Activity Widget */}
-                  <div className="rounded-2xl bg-[#080d20] p-4 border border-white/[0.05] space-y-3.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Task</span>
-                      <span className="text-[10px] text-indigo-400 font-medium flex items-center gap-1">
-                        <Terminal className="h-3 w-3" /> Labs
-                      </span>
-                    </div>
-                    <p className="text-xs font-medium text-slate-200">Challenge: Integrate Secure Webhook Signatures</p>
-                    <div className="flex items-center justify-between text-[10px] text-slate-400">
-                      <span>Status: In progress</span>
-                      <span className="text-amber-400 font-medium">Estimated: 45 min</span>
-                    </div>
+                {/* Stat chips */}
+                <div className="grid grid-cols-3 gap-2.5 pt-4 border-t border-white/5">
+                  <div className="rounded-xl bg-white/5 p-2.5 border border-white/5 text-center transition-all duration-300 hover:bg-white/10">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Path</p>
+                    <p className="text-xs font-bold text-white mt-0.5">Full Stack</p>
                   </div>
-
-                  {/* Performance metric blocks */}
-                  <div className="grid grid-cols-2 gap-3.5">
-                    <div className="rounded-2xl bg-white/[0.03] p-3 border border-white/[0.03] text-center">
-                      <p className="text-[10px] text-slate-400">AI Agent Build Time</p>
-                      <p className="text-base font-bold text-white mt-1">4.2 Hours</p>
-                    </div>
-                    <div className="rounded-2xl bg-white/[0.03] p-3 border border-white/[0.03] text-center">
-                      <p className="text-[10px] text-slate-400">Assessments Cleared</p>
-                      <p className="text-base font-bold text-white mt-1">18 / 20</p>
-                    </div>
+                  <div className="rounded-xl bg-white/5 p-2.5 border border-white/5 text-center transition-all duration-300 hover:bg-white/10">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Focus</p>
+                    <p className="text-xs font-bold text-white mt-0.5">AI Ready</p>
+                  </div>
+                  <div className="rounded-xl bg-white/5 p-2.5 border border-white/5 text-center transition-all duration-300 hover:bg-white/10">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Outcome</p>
+                    <p className="text-xs font-bold text-white mt-0.5">Job Ready</p>
                   </div>
                 </div>
 

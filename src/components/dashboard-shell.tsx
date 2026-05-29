@@ -100,7 +100,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
 
     if (role === "ADMIN") {
       // Custom structured rendering for Admin:
-      // My Profile -> divider -> Overview, Users, Enrollments, Courses, Categories, Store, Support Tickets, Audit Logs -> divider -> Settings Label -> Change Password, Platform Config
+      // My Profile -> divider -> Overview, Users, Enrollments, Courses, Categories, Store, Support Tickets, Audit Logs, Coupons -> divider -> Settings Label -> Change Password, Platform Config
       const profileLink = { label: "My Profile", href: "/admin/profile" };
       const mainLinks = [
         { label: "Overview", href: "/admin/dashboard" },
@@ -109,6 +109,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         { label: "Courses", href: "/admin/courses" },
         { label: "Categories", href: "/admin/categories" },
         { label: "Store", href: "/admin/store" },
+        { label: "Coupons", href: "/admin/coupons" },
         { label: "Support Tickets", href: "/admin/support" },
         { label: "Audit Logs", href: "/admin/audit-logs" }
       ];

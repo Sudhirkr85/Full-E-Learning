@@ -878,14 +878,13 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                                 <Ticket className="h-4 w-4 text-emerald-400" />
                                 <span>Code: {appliedCoupon.code}</span>
                               </div>
-                              <Button 
+                              <button 
                                 type="button" 
-                                variant="ghost" 
                                 onClick={handleRemoveCoupon} 
-                                className="h-6 w-6 p-0 text-emerald-400 hover:bg-emerald-500/10 rounded-full"
+                                className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors px-2 py-1 hover:bg-emerald-500/10 rounded-lg"
                               >
-                                [Remove Coupon]
-                              </Button>
+                                [Remove]
+                              </button>
                             </div>
                           ) : (
                             <div className="flex gap-2">
@@ -893,7 +892,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                                 type="text"
                                 placeholder="Coupon Code"
                                 value={couponCode}
-                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                onChange={(e) => setCouponCode(e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())}
                                 className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                               />
                               <Button type="button" onClick={handleApplyCoupon} size="sm" className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">

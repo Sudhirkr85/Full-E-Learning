@@ -58,6 +58,34 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    // Write Coupon usage entry if a coupon was used during store checkout
+    const orderMeta = existingOrder.metadata as any || {};
+    if (orderMeta.couponCode) {
+      try {
+        const coupon = await prisma.coupon.findUnique({
+          where: { code: orderMeta.couponCode.toUpperCase() }
+        });
+        if (coupon) {
+          await prisma.couponUsage.create({
+            data: {
+              couponId: coupon.id,
+              userId: existingOrder.userId || "",
+              orderId: order.id,
+              discountCents: existingOrder.discountCents,
+            }
+          });
+          await prisma.coupon.update({
+            where: { id: coupon.id },
+            data: {
+              redeemedCount: { increment: 1 }
+            }
+          });
+        }
+      } catch (couponErr) {
+        console.error("Failed to log coupon usage in payment verify route:", couponErr);
+      }
+    }
+
     // Create or update payment success ledger transaction
     await prisma.payment.upsert({
       where: { providerPaymentId: razorpay_payment_id },

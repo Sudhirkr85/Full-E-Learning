@@ -82,7 +82,10 @@ export function EnrollButton({
       const res = await fetch('/api/courses/enroll/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId })
+        body: JSON.stringify({ 
+          courseId,
+          couponCode: appliedCoupon ? appliedCoupon.code : null
+        })
       });
 
       const data = await res.json();
@@ -193,6 +196,56 @@ export function EnrollButton({
     }
   };
 
+  // Coupon apply/remove states
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [couponSuccessMsg, setCouponSuccessMsg] = useState("");
+  const [showCouponInput, setShowCouponInput] = useState(false);
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCouponError("");
+    setCouponSuccessMsg("");
+    if (!couponCode) return;
+
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponCode,
+          amountCents: coursePrice * 100,
+          scope: "COURSES",
+          items: [courseId]
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAppliedCoupon(data.coupon);
+        setCouponDiscount(data.discountCents);
+        setCouponSuccessMsg(`✓ ${data.coupon.code} applied! You saved ₹${(data.discountCents / 100).toFixed(0)}.`);
+        toast.success("Coupon applied successfully!");
+      } else {
+        setCouponError(data.error || "✕ This coupon is invalid or expired.");
+        toast.error(data.error || "This coupon is invalid or expired.");
+      }
+    } catch {
+      toast.error("Failed to validate coupon.");
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponCode("");
+    setCouponError("");
+    setCouponSuccessMsg("");
+  };
+
+  const finalPayablePrice = Math.max(coursePrice - (couponDiscount / 100), 0);
+
   // Price and Badge Display Block
   const renderPricingBlock = () => {
     if (isCurrentlyEnrolled) {
@@ -217,19 +270,33 @@ export function EnrollButton({
     const hasDiscount = originalPrice !== null && originalPrice > coursePrice && coursePrice > 0;
     const discountPercent = hasDiscount ? Math.round(((safeOriginal - coursePrice) / safeOriginal) * 100) : 0;
 
-    if (hasDiscount) {
-      return (
-        <div className="flex items-center gap-3 flex-wrap mb-2">
-          <span className="text-3xl font-bold">₹{coursePrice.toLocaleString("en-IN")}</span>
-          <span className="text-lg line-through text-muted-foreground">₹{safeOriginal.toLocaleString("en-IN")}</span>
-          <span className="bg-emerald-100 text-emerald-700 text-sm font-bold px-2 py-1 rounded-full">{discountPercent}% OFF</span>
-        </div>
-      );
-    }
-
     return (
-      <div className="mb-2">
-        <span className="text-3xl font-bold">₹{coursePrice.toLocaleString("en-IN")}</span>
+      <div className="space-y-2 mb-3">
+        <div className="flex justify-between items-center text-slate-400 text-xs">
+          <span>Subtotal</span>
+          <span className={hasDiscount ? "line-through" : "text-white font-semibold"}>₹{coursePrice.toLocaleString("en-IN")}</span>
+        </div>
+        {hasDiscount && (
+          <div className="flex justify-between items-center text-xs">
+            <span>Special Course Discount</span>
+            <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+              ₹{(safeOriginal - coursePrice).toLocaleString("en-IN")} Off ({discountPercent}%)
+            </span>
+          </div>
+        )}
+        {couponDiscount > 0 && (
+          <div className="flex justify-between items-center text-xs text-emerald-400">
+            <span>Discount Coupon</span>
+            <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
+          </div>
+        )}
+        <div className="flex justify-between items-center text-sm font-bold text-white pt-2 border-t border-white/5">
+          <span>Payable Total</span>
+          <span className="text-xl text-violet-400 font-mono">₹{finalPayablePrice.toLocaleString("en-IN")}</span>
+        </div>
+        <div className="text-[10px] text-emerald-400 font-semibold">
+          ✓ Tax included
+        </div>
       </div>
     );
   };
@@ -265,7 +332,7 @@ export function EnrollButton({
         <button
           onClick={handlePaidEnroll}
           disabled={enrollLoading}
-          className="w-full h-12 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+          className="w-full h-12 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all animate-none"
         >
           {enrollLoading ? (
             <>
@@ -302,7 +369,7 @@ export function EnrollButton({
       <button
         onClick={handlePaidEnroll}
         disabled={enrollLoading}
-        className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+        className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all animate-none"
       >
         {enrollLoading ? (
           <>
@@ -310,7 +377,7 @@ export function EnrollButton({
           </>
         ) : (
           <>
-            <Lock className="w-4 h-4" /> Buy Now — ₹{coursePrice}
+            <Lock className="w-4 h-4" /> Buy Now — ₹{finalPayablePrice}
           </>
         )}
       </button>
@@ -318,8 +385,49 @@ export function EnrollButton({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-2 w-full text-slate-100 bg-[#090d20]/30 border border-white/5 p-4 rounded-2xl backdrop-blur-md">
       {renderPricingBlock()}
+      
+      {/* Coupon input expander */}
+      {!isCurrentlyEnrolled && !isFree && (
+        <div className="py-2.5 border-t border-white/5">
+          {!showCouponInput && !appliedCoupon ? (
+            <button
+              onClick={() => setShowCouponInput(true)}
+              className="text-[11px] font-semibold text-violet-400 hover:text-violet-300 transition"
+            >
+              Have a Coupon? [Apply Coupon]
+            </button>
+          ) : (
+            <div className="space-y-2">
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-2.5 text-xs">
+                  <span>Code: {appliedCoupon.code}</span>
+                  <button onClick={handleRemoveCoupon} className="text-emerald-400 hover:text-emerald-300 font-semibold">
+                    [Remove]
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Coupon Code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())}
+                    className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  />
+                  <button onClick={handleApplyCoupon} className="px-3 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-xs h-7">
+                    Apply
+                  </button>
+                </div>
+              )}
+              {couponSuccessMsg && <p className="text-[10px] text-emerald-400 font-medium">{couponSuccessMsg}</p>}
+              {couponError && <p className="text-[10px] text-rose-500 font-medium">{couponError}</p>}
+            </div>
+          )}
+        </div>
+      )}
+
       {renderEnrollmentButton()}
     </div>
   );

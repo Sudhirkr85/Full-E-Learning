@@ -405,7 +405,7 @@ export default function MobileCartPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex flex-col text-slate-100 select-none">
+    <div className="h-[100dvh] bg-[#0a0a0f] flex flex-col text-slate-100 select-none overflow-hidden">
       {/* Top bar */}
       <div className="sticky top-0 z-10 bg-[#0d1117]/95 backdrop-blur-md border-b border-white/10 px-4 py-4 flex items-center gap-3">
         <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-white/5 transition-colors" aria-label="Go back">
@@ -431,9 +431,9 @@ export default function MobileCartPage() {
         </div>
       ) : (
         /* Cart Form */
-        <form onSubmit={handleCheckout} className="flex-1 flex flex-col justify-between overflow-hidden">
+        <form onSubmit={handleCheckout} className="flex-1 overflow-y-auto overscroll-contain flex flex-col justify-start pb-6">
           {/* Scrollable Items area */}
-          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-6">
+          <div className="px-4 py-3 space-y-4">
             {cart.map((item) => (
               <div key={item.productId} className="bg-white/5 border border-white/10 rounded-xl p-3 flex gap-3 items-center">
                 <img
@@ -487,7 +487,7 @@ export default function MobileCartPage() {
             ))}
 
             {/* Contact & Delivery Details (Card Style) */}
-            <div className="space-y-4 pt-4 border-t border-white/10">
+            <div className="space-y-2.5 pt-3 border-t border-white/10">
               <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">
                 {hasPhysicalOrShippingNeed ? "Delivery Information" : "Contact Information"}
               </h3>
@@ -532,58 +532,57 @@ export default function MobileCartPage() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Coupon section */}
-          <div className="px-4 py-3 border-t border-white/10 bg-[#0a0a0f] space-y-3">
-            {!showCouponInput && !appliedCoupon ? (
-              <button
-                type="button"
-                onClick={() => setShowCouponInput(true)}
-                className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition"
-              >
-                Have a Coupon? [Apply Coupon]
-              </button>
-            ) : (
-              <div className="space-y-3">
-                <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Discount Coupon</h3>
-                {appliedCoupon ? (
-                  <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
-                    <div className="flex items-center gap-1.5 font-medium">
-                      <Ticket className="h-4 w-4 text-emerald-400" />
-                      <span>Code: {appliedCoupon.code}</span>
+            {/* Coupon section */}
+            <div className="space-y-2 pt-3 border-t border-white/10">
+              {!showCouponInput && !appliedCoupon ? (
+                <button
+                  type="button"
+                  onClick={() => setShowCouponInput(true)}
+                  className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition"
+                >
+                  Have a Coupon? [Apply Coupon]
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Discount Coupon</h3>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <Ticket className="h-4 w-4 text-emerald-400" />
+                        <span>Code: {appliedCoupon.code}</span>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={handleRemoveCoupon} 
+                        className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors px-2 py-1 hover:bg-emerald-500/10 rounded-lg"
+                      >
+                        [Remove]
+                      </button>
                     </div>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      onClick={handleRemoveCoupon} 
-                      className="h-6 w-6 p-0 text-emerald-400 hover:bg-emerald-500/10 rounded-full"
-                    >
-                      [Remove Coupon]
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Coupon Code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                    <Button type="button" onClick={handleApplyCoupon} size="sm" className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
-                      Apply
-                    </Button>
-                  </div>
-                )}
-                {couponSuccessMsg && <p className="text-xs text-emerald-400 font-medium">{couponSuccessMsg}</p>}
-                {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
-              </div>
-            )}
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Coupon Code"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())}
+                        className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <Button type="button" onClick={handleApplyCoupon} size="sm" className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
+                        Apply
+                      </Button>
+                    </div>
+                  )}
+                  {couponSuccessMsg && <p className="text-xs text-emerald-400 font-medium">{couponSuccessMsg}</p>}
+                  {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Sticky bottom bar */}
-          <div className="sticky bottom-0 bg-[#0d1117] border-t border-white/10 px-4 py-4 space-y-2.5">
+          {/* Pricing & Checkout Summary Card */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4 mt-2 mx-4 space-y-2.5">
             <div className="flex justify-between text-slate-400 text-sm">
               <span>Subtotal</span>
               <span>₹{(subtotalCents / 100).toLocaleString("en-IN")}</span>

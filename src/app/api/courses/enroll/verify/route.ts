@@ -71,6 +71,34 @@ export async function POST(req: Request) {
       }
     });
 
+    // Write CouponUsage and increment Coupon redeemedCount for course enrollments
+    const enrollMeta = existingEnrollment.metadata as any || {};
+    if (enrollMeta.couponCode) {
+      try {
+        const coupon = await prisma.coupon.findUnique({
+          where: { code: enrollMeta.couponCode.toUpperCase() }
+        });
+        if (coupon) {
+          await prisma.couponUsage.create({
+            data: {
+              couponId: coupon.id,
+              userId: existingEnrollment.userId,
+              enrollmentId: enrollment.id,
+              discountCents: enrollMeta.discountCents || 0,
+            }
+          });
+          await prisma.coupon.update({
+            where: { id: coupon.id },
+            data: {
+              redeemedCount: { increment: 1 }
+            }
+          });
+        }
+      } catch (couponErr) {
+        console.error("Failed to log course enrollment coupon usage in verify route:", couponErr);
+      }
+    }
+
     // Create progress tracking if missing
     if (!existingEnrollment.progress) {
       try {

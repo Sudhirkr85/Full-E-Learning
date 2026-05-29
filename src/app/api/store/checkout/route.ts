@@ -36,20 +36,57 @@ export async function POST(req: Request) {
     let discountCents = 0;
 
     if (couponCode) {
-      const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
-      if (!coupon || !coupon.isActive) {
-        return NextResponse.json({ message: "This coupon code is invalid or has expired." }, { status: 400 });
-      }
-      // Check if already used
-      const alreadyUsed = await prisma.couponUsage.findFirst({
-        where: { couponId: coupon.id, userId: session.user.id }
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode.toUpperCase() },
+        include: {
+          usages: {
+            where: { userId: session.user.id }
+          }
+        }
       });
-      if (alreadyUsed) {
+      if (!coupon || !coupon.isActive) {
+        return NextResponse.json({ message: "This coupon is invalid or expired." }, { status: 400 });
+      }
+
+      const now = new Date();
+      if (coupon.startsAt && now < new Date(coupon.startsAt)) {
+        return NextResponse.json({ message: "This coupon is not active yet." }, { status: 400 });
+      }
+      if (coupon.endsAt && now > new Date(coupon.endsAt)) {
+        return NextResponse.json({ message: "This coupon is invalid or expired." }, { status: 400 });
+      }
+
+      if (coupon.maxRedemptions !== null && coupon.redeemedCount >= coupon.maxRedemptions) {
+        return NextResponse.json({ message: "This coupon is invalid or expired." }, { status: 400 });
+      }
+
+      const userLimit = coupon.perUserLimit ?? 1;
+      if (coupon.usages.length >= userLimit) {
         return NextResponse.json({ message: "You have already used this coupon." }, { status: 400 });
       }
-      discountCents = coupon.couponType === 'PERCENTAGE'
-        ? Math.floor(subtotalCents * coupon.discountValue / 100)
-        : coupon.discountValue; // Fixed amount in cents
+
+      if (coupon.minimumOrderAmountCents !== null && subtotalCents < coupon.minimumOrderAmountCents) {
+        return NextResponse.json({ message: `Minimum order amount of ₹${(coupon.minimumOrderAmountCents / 100).toFixed(0)} is required.` }, { status: 400 });
+      }
+
+      // Check Scope (ALL, STORE, SPECIFIC_PRODUCTS)
+      if (coupon.appliesTo === "COURSES" || coupon.appliesTo === "SPECIFIC_COURSES") {
+        return NextResponse.json({ message: "This coupon is not applicable to store products." }, { status: 400 });
+      }
+      if (coupon.appliesTo === "SPECIFIC_PRODUCTS") {
+        const itemIds = validItems.map(i => i.product.id);
+        const matches = itemIds.some(id => (coupon.appliesToIds || []).includes(id));
+        if (!matches) {
+          return NextResponse.json({ message: "This coupon is not applicable to the products in your cart." }, { status: 400 });
+        }
+      }
+
+      if (coupon.couponType === 'PERCENTAGE') {
+        const calc = Math.floor(subtotalCents * coupon.discountValue / 100);
+        discountCents = coupon.maxDiscountCents !== null ? Math.min(calc, coupon.maxDiscountCents) : calc;
+      } else {
+        discountCents = coupon.discountValue; 
+      }
     }
 
     const totalCents = Math.max(subtotalCents - discountCents, 0);

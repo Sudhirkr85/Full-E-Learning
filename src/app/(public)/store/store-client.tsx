@@ -55,6 +55,15 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   const clearCart = useCartStore((state) => state.clearCart);
   const initializeCart = useCartStore((state) => state.initializeCart);
   const closeDrawer = useCartStore((state) => state.closeDrawer);
+  const openDrawer = useCartStore((state) => state.openDrawer);
+
+  const handleGoToCart = () => {
+    if (window.innerWidth < 768) {
+      router.push('/cart');
+    } else {
+      openDrawer();
+    }
+  };
 
   useEffect(() => {
     initializeCart();
@@ -554,13 +563,24 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                         >
                           <Link href={`/store/${product.slug}`}>Details</Link>
                         </Button>
-                        <Button 
-                          onClick={() => addToCart(product)}
-                          size="sm"
-                          className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-1.5 animate-none"
-                        >
-                          Add to Cart
-                        </Button>
+                        {cart.some(item => item.productId === product.id) ? (
+                          <Button 
+                            onClick={handleGoToCart}
+                            size="sm"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 animate-none"
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                            Go to Cart
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => addToCart(product)}
+                            size="sm"
+                            className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-1.5 animate-none"
+                          >
+                            Add to Cart
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

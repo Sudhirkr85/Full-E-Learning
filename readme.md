@@ -638,3 +638,16 @@ The platform includes enhanced credential security controls for both administrat
 *   **Dedicated Full-Screen Mobile Cart Route**: Designed a full-screen mobile-only shopping cart and checkout page (`src/app/(public)/cart/page.tsx`) with a back-header bar, styled cart items list, discount coupon managers, and a sticky bottom price checkout block.
 *   **iOS Tap Scale & Input Font-Size Fixes**: Added responsive CSS parameters (`globals.css`) fixing `font-size: 16px` on inputs/textareas/selects to bypass forced iOS browser auto-zooming, alongside `-webkit-tap-highlight-color: transparent` resets.
 *   **Zero Scroll Bleed Guard**: Appended `overflow-x-hidden` directly onto the root layout's `body` tag to guarantee zero horizontal scroll bleed.
+
+### 12. Full-Fidelity End-to-End LMS Store Purchase Flow
+The entire transactional journey from catalog display through successful execution is fully secured, responsive, and animated:
+*   **Store Page Grid & Product Details**: Integrated premium dark glassmorphism (`bg-[#0a0a0f]`) across the public store page and catalog product detail interfaces. Highlights bold white typography, ₹ INR-only pricing structures, and responsive 3-column / 1-column layouts with floating Emerald `% OFF` coupons.
+*   **Centralized Zustand Cart Controller**: Cart actions automatically trigger responsive UI updates:
+    *   **Stale Item Auto-Cleanup**: Scans product availability in the database on load/drawer-open and automatically prunes deleted or unavailable items. Shows a warnings toast without blocking the checkout flow for other valid items.
+    *   **Desktop Glassmorphic Cart Drawer**: Triggers a slide-in drawer on viewports `> 768px` featuring uniform quantity micro-buttons, body scroll-locks, and sticky action buttons.
+    *   **Mobile Full-Page Cart Page**: Redirects viewports `< 768px` to a standalone `/cart` page optimizing single-tap checkout triggers and thumbnail clarity.
+*   **Secure Checkout & Live Pre-filling**: Fetches standard profile credentials (name, email, and mobile) to prefill Indian localized placeholders (e.g. Lajpat Nagar, New Delhi). Allows double-entry primary and backup phone registers to ensure secure shipping.
+*   **Razorpay Integration Overlay**: Integrates the Razorpay checkout overlay pre-configured with theme matches (`#7c3aed`) and live transaction response bindings.
+*   **Cryptographic Verification Webhook API**: The Next.js API route `/api/razorpay/verify` validates server callbacks using secure SHA-256 HMAC signature handshakes. Validated transactions mark orders as `PAID`, trigger Brevo receipt emails, and label physical shipments as `PROCESSING` inside nested item JSON arrays to avoid schema compilations errors.
+*   **Order Confirmation Dashboard**: The Dynamic `order-confirmation/[orderId]` screen queries recent transaction databases and renders high-end success cards or retry triggers based on checkout status.
+

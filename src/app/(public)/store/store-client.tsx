@@ -5,15 +5,28 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
   ShoppingCart, Search, X, Plus, Minus, Trash2, 
-  Ticket, ArrowRight, Lock, HelpCircle, Package, GraduationCap, Archive
+  Ticket, ArrowRight, Lock, Package, GraduationCap, Archive
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import { Product, ProductType } from "@prisma/client";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
+import { toast } from "sonner";
+
+const ERROR_MESSAGES = {
+  PRODUCT_NOT_FOUND: "One or more items are no longer available and have been removed from your cart.",
+  ALL_ITEMS_INVALID: "Your cart is empty. The items you added are no longer available.",
+  NETWORK_ERROR: "We couldn't verify your cart. Please check your connection and try again.",
+  PAYMENT_FAILED: "Payment could not be processed. Please try again or use a different method.",
+  COUPON_INVALID: "This coupon code is invalid or has expired.",
+  COUPON_USED: "You have already used this coupon.",
+  OUT_OF_STOCK: (name: string) => `'${name}' is out of stock and has been removed from your cart.`,
+  SERVER_ERROR: "Something went wrong. Please refresh and try again.",
+};
 
 interface StoreClientProps {
   products: Product[];
@@ -24,34 +37,27 @@ interface StoreClientProps {
   } | null;
 }
 
-interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
 export function StoreClient({ products, profileUser }: StoreClientProps) {
   const router = useRouter();
   
-  // State
+  // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("ALL");
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  
-  // Custom Toast State
-  const [toast, setToast] = useState<{ message: string; type: "amber" | "green" | "neutral" | "red" } | null>(null);
 
-  const showToast = (message: string, type: "amber" | "green" | "neutral" | "red" = "neutral") => {
-    setToast({ message, type });
-  };
+  // Zustand Store Integration
+  const isCartOpen = useCartStore((state) => state.isDrawerOpen);
+  const cart = useCartStore((state) => state.cartItems);
+  const addToCart = useCartStore((state) => state.addToCart);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const initializeCart = useCartStore((state) => state.initializeCart);
+  const closeDrawer = useCartStore((state) => state.closeDrawer);
 
   useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
+    initializeCart();
+  }, [initializeCart]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 768px)");
@@ -61,80 +67,67 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     return () => media.removeEventListener("change", handler);
   }, []);
 
-  // Silently validate all cart item IDs
-  const validateCartItems = async (currentCart: CartItem[]): Promise<CartItem[]> => {
-    if (currentCart.length === 0) return [];
-    
-    let validItems: CartItem[] = [];
-    let removedNames: string[] = [];
-    let hasChanges = false;
-    
-    for (const item of currentCart) {
-      try {
-        const res = await fetch(`/api/store/products/${item.product.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          // Update product object just in case price or stock changed
-          validItems.push({
-            product: data.product,
-            quantity: Math.min(item.quantity, data.product.inventoryCount ?? item.quantity)
-          });
-          if (item.quantity !== Math.min(item.quantity, data.product.inventoryCount ?? item.quantity)) {
-            hasChanges = true;
-          }
-        } else {
-          removedNames.push(item.product.title || "An item");
-          hasChanges = true;
-        }
-      } catch (e) {
-        console.error("Failed to validate item", item.product.id, e);
-        // Fallback: keep item in cart if validation endpoint fails due to network/timeout
-        validItems.push(item);
-      }
-    }
-    
-    if (hasChanges) {
-      saveCart(validItems);
-      if (removedNames.length > 0) {
-        showToast("One or more items in your cart are no longer available and have been removed.", "amber");
-      }
-    }
-    return validItems;
-  };
+  // Listen for open-cart event from HeaderCartButton
+  useEffect(() => {
+    const handleOpenCart = () => useCartStore.getState().openDrawer();
+    window.addEventListener("open-cart", handleOpenCart);
+    return () => window.removeEventListener("open-cart", handleOpenCart);
+  }, []);
 
-  // Run validation on cart open
+  // Body scroll lock when drawer is open
   useEffect(() => {
     if (isCartOpen) {
-      validateCartItems(cart);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isCartOpen]);
 
-  // Run validation on initial load
-  useEffect(() => {
-    const storedCart = localStorage.getItem("el_store_cart");
-    if (storedCart) {
+  // Stale item auto-cleanup on cart open
+  const validateCartItems = async () => {
+    const removedNames = [];
+    for (const item of cart) {
       try {
-        const parsed = JSON.parse(storedCart);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          validateCartItems(parsed);
+        const res = await fetch(`/api/store/products/${item.productId}`);
+        if (!res.ok) {
+          removeFromCart(item.productId);
+          removedNames.push(item.product?.title || "An item");
         }
-      } catch (e) {
-        console.error("Error parsing cart in initial load validation", e);
+      } catch {
+        removeFromCart(item.productId);
       }
     }
-  }, []);
+    if (removedNames.length > 0) {
+      removedNames.forEach(name => 
+        toast.warning(`'${name}' is no longer available and was removed from your cart.`, { duration: 4000 })
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (cart.length > 0) {
+      validateCartItems();
+    }
+  }, [isCartOpen]);
 
   const handleCartTrigger = () => {
     if (isMobile) {
       router.push("/cart");
     } else {
-      setIsCartOpen(true);
+      useCartStore.getState().openDrawer();
     }
   };
+
+  // Coupon state
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
+
+  // Billing and shipping details
   const [billingEmail, setBillingEmail] = useState(profileUser?.email || "");
   const [billingPhone, setBillingPhone] = useState(profileUser?.phone || "");
   const [fullName, setFullName] = useState(profileUser?.name || "");
@@ -150,87 +143,6 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
-  // Load cart from localStorage
-  useEffect(() => {
-    try {
-      const storedCart = localStorage.getItem("el_store_cart");
-      if (storedCart) {
-        setCart(JSON.parse(storedCart));
-      }
-    } catch (e) {
-      console.error("Failed to load cart from localStorage", e);
-    }
-  }, []);
-
-  // Sync cart to localStorage
-  const saveCart = (newCart: CartItem[]) => {
-    setCart(newCart);
-    try {
-      localStorage.setItem("el_store_cart", JSON.stringify(newCart));
-      window.dispatchEvent(new Event("cart-updated"));
-    } catch (e) {
-      console.error("Failed to save cart", e);
-    }
-  };
-
-  // Add to cart
-  const addToCart = (product: Product) => {
-    const existingIndex = cart.findIndex(item => item.product.id === product.id);
-    let newCart = [...cart];
-    if (existingIndex > -1) {
-      newCart[existingIndex].quantity += 1;
-    } else {
-      newCart.push({ product, quantity: 1 });
-    }
-    saveCart(newCart);
-    showToast("Item added to cart.", "green");
-    
-    if (isMobile) {
-      router.push("/cart");
-    } else {
-      setIsCartOpen(true);
-    }
-  };
-
-  // Remove from cart
-  const removeFromCart = (productId: string) => {
-    const item = cart.find(item => item.product.id === productId);
-    const newCart = cart.filter(item => item.product.id !== productId);
-    saveCart(newCart);
-    showToast("Item removed from cart.", "neutral");
-    if (newCart.length === 0) {
-      handleRemoveCoupon();
-    }
-  };
-
-  // Update quantity
-  const updateQuantity = (productId: string, delta: number) => {
-    const existingIndex = cart.findIndex(item => item.product.id === productId);
-    if (existingIndex > -1) {
-      const newCart = [...cart];
-      const newQty = newCart[existingIndex].quantity + delta;
-      
-      // Stock check if applicable
-      const product = newCart[existingIndex].product;
-      if (product.inventoryCount !== null && delta > 0 && product.inventoryCount < newQty) {
-        showToast(`'${product.title}' is currently out of stock and has been removed from your cart.`, "amber");
-        return;
-      }
-
-      if (newQty <= 0) {
-        newCart.splice(existingIndex, 1);
-        showToast("Item removed from cart.", "neutral");
-      } else {
-        newCart[existingIndex].quantity = newQty;
-      }
-      saveCart(newCart);
-      
-      if (newCart.length === 0) {
-        handleRemoveCoupon();
-      }
-    }
-  };
-
   // Subtotal in cents
   const subtotalCents = cart.reduce((acc, item) => acc + (item.product.priceCents * item.quantity), 0);
 
@@ -240,20 +152,24 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     setCouponError("");
     if (!couponCode) return;
 
-    const res = await validateCouponAction(couponCode, subtotalCents);
-    if (res.success && res.coupon && res.discountCents !== undefined) {
-      setAppliedCoupon(res.coupon);
-      setCouponDiscount(res.discountCents);
-      showToast(`Coupon applied! You saved ₹${(res.discountCents / 100).toFixed(0)}.`, "green");
-    } else {
-      let friendlyCouponError = "This coupon code is invalid or has expired. Please try a different code.";
-      if (res.error?.includes("already used") || res.error?.includes("once")) {
-        friendlyCouponError = "You have already used this coupon. Each coupon can only be used once.";
+    try {
+      const res = await validateCouponAction(couponCode, subtotalCents);
+      if (res.success && res.coupon && res.discountCents !== undefined) {
+        setAppliedCoupon(res.coupon);
+        setCouponDiscount(res.discountCents);
+        toast.success(`Coupon applied! You saved ₹${(res.discountCents / 100).toFixed(0)}.`, { duration: 3000 });
+      } else {
+        let friendlyCouponError = ERROR_MESSAGES.COUPON_INVALID;
+        if (res.error?.includes("already used") || res.error?.includes("once")) {
+          friendlyCouponError = ERROR_MESSAGES.COUPON_USED;
+        }
+        setCouponError(friendlyCouponError);
+        toast.error(friendlyCouponError);
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
       }
-      setCouponError(friendlyCouponError);
-      showToast(friendlyCouponError, "red");
-      setAppliedCoupon(null);
-      setCouponDiscount(0);
+    } catch {
+      toast.error(ERROR_MESSAGES.NETWORK_ERROR);
     }
   };
 
@@ -264,7 +180,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     setCouponError("");
   };
 
-  // Recalculate coupon discount when subtotal changes
+  // Recalculate discount when subtotal changes
   useEffect(() => {
     if (appliedCoupon) {
       let discount = 0;
@@ -277,49 +193,45 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     }
   }, [subtotalCents, appliedCoupon]);
 
-  // Check if cart contains physical product / shipping need
   const hasPhysicalOrShippingNeed = cart.some(
     item => item.product.shippingRequired === true || item.product.productType === ProductType.PHYSICAL
   );
 
-  // Free shipping above ₹500 (50000 cents), otherwise shipping is ₹50 (5000 cents)
   const shippingChargeCents = hasPhysicalOrShippingNeed 
     ? (subtotalCents > 50000 ? 0 : 5000) 
     : 0;
 
   const totalCents = Math.max(0, subtotalCents - couponDiscount + shippingChargeCents);
 
-  // Checkout submission
+  // Submit checkout
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setCheckoutError("");
     
-    // 1. Silent pre-validation before submission
-    const verifiedCart = await validateCartItems(cart);
-    if (verifiedCart.length === 0) {
-      const emptyError = "Your cart is empty. The items you added are no longer available in the store.";
+    await validateCartItems();
+    if (cart.length === 0) {
+      const emptyError = ERROR_MESSAGES.ALL_ITEMS_INVALID;
       setCheckoutError(emptyError);
-      showToast(emptyError, "red");
+      toast.error(emptyError);
       return;
     }
 
     if (!billingEmail) {
       const emailError = "Please enter your billing email address.";
       setCheckoutError(emailError);
-      showToast(emailError, "red");
+      toast.error(emailError);
       return;
     }
 
     if (hasPhysicalOrShippingNeed && (!fullName || !addressLine1 || !city || !postalCode || !shippingState || !shippingPhone1)) {
-      const shippingError = "Please fill out all required shipping fields for products in your cart.";
+      const shippingError = "Please fill out all required shipping fields.";
       setCheckoutError(shippingError);
-      showToast(shippingError, "red");
+      toast.error(shippingError);
       return;
     }
 
     setIsSubmitting(true);
 
-    // Build shipping metadata if applicable
     const shippingDetails = hasPhysicalOrShippingNeed ? {
       fullName,
       addressLine1,
@@ -332,53 +244,55 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       secondaryPhone: shippingPhone2,
     } : null;
 
-    const res = await createOrderAction({
-      billingEmail,
-      cartItems: verifiedCart.map(item => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-      })),
-      couponCode: appliedCoupon?.code,
-      notes,
-      metadata: {
-        billingPhone,
-        shippingAddress: shippingDetails,
-        shippingStatus: hasPhysicalOrShippingNeed ? "PROCESSING" : "NOT_APPLICABLE",
+    try {
+      const res = await createOrderAction({
+        billingEmail,
+        cartItems: cart.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        couponCode: appliedCoupon?.code,
+        notes,
+        metadata: {
+          billingPhone,
+          shippingAddress: shippingDetails,
+          shippingStatus: hasPhysicalOrShippingNeed ? "PROCESSING" : "NOT_APPLICABLE",
+        }
+      });
+
+      setIsSubmitting(false);
+
+      if (res.success && res.order) {
+        clearCart();
+        handleRemoveCoupon();
+        closeDrawer();
+        router.push(`/checkout/${res.order.id}`);
+      } else {
+        let friendlyError = ERROR_MESSAGES.SERVER_ERROR;
+        const rawError = res.error || "";
+        
+        if (rawError.includes("no longer available") || rawError.includes("not available")) {
+          friendlyError = ERROR_MESSAGES.PRODUCT_NOT_FOUND;
+          await validateCartItems();
+        } else if (rawError.includes("Insufficient stock") || rawError.includes("stock")) {
+          friendlyError = ERROR_MESSAGES.SERVER_ERROR;
+          await validateCartItems();
+        } else if (rawError.includes("Coupon") || rawError.includes("coupon")) {
+          friendlyError = ERROR_MESSAGES.COUPON_INVALID;
+        } else if (rawError.includes("network") || rawError.includes("fetch")) {
+          friendlyError = ERROR_MESSAGES.NETWORK_ERROR;
+        }
+
+        setCheckoutError(friendlyError);
+        toast.error(friendlyError);
       }
-    });
-
-    setIsSubmitting(false);
-
-    if (res.success && res.order) {
-      // Clear cart
-      saveCart([]);
-      handleRemoveCoupon();
-      setIsCartOpen(false);
-      // Redirect to secure payment gateway route
-      router.push(`/checkout/${res.order.id}`);
-    } else {
-      // technical to friendly error mapping
-      let friendlyError = "Something went wrong. Please refresh the page and try again.";
-      const rawError = res.error || "";
-      
-      if (rawError.includes("no longer available") || rawError.includes("not available")) {
-        friendlyError = "One or more items in your cart are no longer available and have been removed.";
-        validateCartItems(verifiedCart); // Reclean just in case
-      } else if (rawError.includes("Insufficient stock") || rawError.includes("stock")) {
-        friendlyError = "An item in your cart is currently out of stock and has been adjusted or removed.";
-        validateCartItems(verifiedCart); // Reclean to sync with stock limits
-      } else if (rawError.includes("Coupon") || rawError.includes("coupon")) {
-        friendlyError = "This coupon code is invalid or has expired. Please try a different code.";
-      } else if (rawError.includes("network") || rawError.includes("fetch")) {
-        friendlyError = "We couldn't verify your cart items. Please check your connection and try again.";
-      }
-
-      setCheckoutError(friendlyError);
-      showToast(friendlyError, "red");
+    } catch {
+      setIsSubmitting(false);
+      setCheckoutError(ERROR_MESSAGES.SERVER_ERROR);
+      toast.error(ERROR_MESSAGES.SERVER_ERROR);
     }
   };
 
-  // Filter products
   const filteredProducts = products.filter((product) => {
     const matchesSearch = 
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -411,7 +325,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
         >
           <ShoppingCart className="h-6 w-6" />
           {cart.length > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground font-bold text-xs h-6 w-6 rounded-full flex items-center justify-center border-2 border-background animate-pulse">
+            <span className="absolute -top-1.5 -right-1.5 bg-violet-600 text-white font-bold text-xs h-6 w-6 rounded-full flex items-center justify-center border-2 border-background animate-pulse">
               {cart.reduce((sum, item) => sum + item.quantity, 0)}
             </span>
           )}
@@ -467,7 +381,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                 placeholder="Search resources..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="w-full pl-9 pr-4 py-2 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-white bg-slate-950/40"
               />
             </div>
           </div>
@@ -550,7 +464,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                         <Button 
                           onClick={() => addToCart(product)}
                           size="sm"
-                          className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-1.5"
+                          className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-1.5 animate-none"
                         >
                           Add to Cart
                         </Button>
@@ -564,19 +478,19 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
         )}
       </Container>
 
-      {/* Animated Slide-out Cart & Checkout Drawer (Desktop/Tablet Only) */}
+      {/* Cart Drawer */}
       {isCartOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
           {/* Backdrop */}
           <div 
-            onClick={() => setIsCartOpen(false)}
-            className="absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity" 
+            onClick={closeDrawer}
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" 
           />
 
           {/* Drawer Body */}
-          <div className="relative w-[420px] max-w-full bg-[#0d0d18] border-l border-white/10 h-full shadow-2xl flex flex-col z-10 transition-transform duration-300">
-            {/* Drawer Header */}
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          <div className="fixed inset-y-0 right-0 z-50 flex flex-col w-full sm:w-[420px] max-w-full bg-[#0d1117] border-l border-white/10 shadow-2xl">
+            {/* Header Sticky */}
+            <div className="sticky top-0 z-10 bg-[#0d1117] border-b border-white/10 px-4 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5 text-violet-400" />
                 <h2 className="text-lg font-semibold text-white">Your Shopping Cart</h2>
@@ -584,7 +498,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={() => setIsCartOpen(false)}
+                onClick={closeDrawer}
                 className="h-8 w-8 rounded-full text-white hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
@@ -593,17 +507,20 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
 
             {/* Scrollable Drawer Content */}
             <form onSubmit={handleCheckout} className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-contain">
+              <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-6">
                 {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-20">
-                    <ShoppingCart className="h-12 w-12 text-violet-400/40" />
-                    <h3 className="font-semibold text-lg text-white">Your cart is empty</h3>
-                    <p className="text-sm text-slate-400 max-w-[250px]">
-                      Browse our items catalog and add playbooks or access vouchers to get started.
-                    </p>
-                    <Button onClick={() => setIsCartOpen(false)} size="sm" className="w-full h-11 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors">
-                      Back to shopping
-                    </Button>
+                  /* Fix 2: Empty Cart State Styling */
+                  <div className="flex flex-col items-center justify-center flex-1 px-6 py-12 gap-4 h-full">
+                    <ShoppingCart className="w-16 h-16 text-violet-400/40" />
+                    <h3 className="text-white font-bold text-lg">Your cart is empty</h3>
+                    <p className="text-slate-400 text-sm text-center">Browse our catalog and add playbooks or access vouchers.</p>
+                    <button 
+                      type="button" 
+                      onClick={closeDrawer} 
+                      className="w-full h-11 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors"
+                    >
+                      Back to Shopping
+                    </button>
                   </div>
                 ) : (
                   <>
@@ -612,38 +529,39 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                       <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Cart Items ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h3>
                       <div className="space-y-3">
                         {cart.map((item) => (
-                          <div key={item.product.id} className="p-4 flex gap-4 items-center bg-white/5 border border-white/10 rounded-xl">
+                          <div key={item.productId} className="p-4 flex gap-4 items-center bg-white/5 border border-white/10 rounded-xl">
                             <img
-                              src={item.product.coverImageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
-                              alt={item.product.title}
+                              src={item.product?.coverImageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
+                              alt={item.product?.title}
                               className="w-12 h-12 object-cover rounded-lg bg-muted flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm text-white truncate">{item.product.title}</h4>
+                              <h4 className="font-semibold text-sm text-white truncate">{item.product?.title}</h4>
                               <p className="text-sm text-violet-400 font-semibold mt-0.5">
-                                ₹{((item.product.priceCents * item.quantity) / 100).toLocaleString("en-IN")}
+                                ₹{((item.product?.priceCents * item.quantity) / 100).toLocaleString("en-IN")}
                               </p>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
                               <button
                                 type="button"
-                                onClick={() => updateQuantity(item.product.id, -1)}
-                                className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white text-xs transition duration-200"
+                                onClick={() => updateQuantity(item.productId, -1)}
+                                className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center hover:bg-white/10 text-white text-xs transition duration-200"
                               >
                                 <Minus className="h-3 w-3" />
                               </button>
                               <span className="text-sm font-semibold w-5 text-center text-white">{item.quantity}</span>
                               <button
                                 type="button"
-                                onClick={() => updateQuantity(item.product.id, 1)}
-                                className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center bg-white/5 hover:bg-white/10 text-white text-xs transition duration-200"
+                                onClick={() => updateQuantity(item.productId, 1)}
+                                className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center hover:bg-white/10 text-white text-xs transition duration-200"
                               >
                                 <Plus className="h-3 w-3" />
                               </button>
                               <Button 
+                                type="button"
                                 variant="ghost" 
                                 size="icon" 
-                                onClick={() => removeFromCart(item.product.id)}
+                                onClick={() => removeFromCart(item.productId)}
                                 className="h-8 w-8 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg ml-1"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -689,36 +607,33 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                       {couponError && <p className="text-xs text-destructive">{couponError}</p>}
                     </div>
 
-                    {/* Billing & Checkout Details */}
+                    {/* Billing Details */}
                     <div className="space-y-4 pt-4 border-t border-white/10">
                       <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Billing Details</h3>
-                      
                       <div className="space-y-3">
-                        <div className="grid grid-cols-1 gap-3">
-                          <div>
-                            <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Email *</label>
-                            <input
-                              type="email"
-                              required
-                              placeholder="sudhir.kumar@gmail.com"
-                              value={billingEmail}
-                              onChange={(e) => setBillingEmail(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Phone / Mobile (Editable)</label>
-                            <input
-                              type="tel"
-                              placeholder="+91 99999 88888"
-                              value={billingPhone}
-                              onChange={(e) => setBillingPhone(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-                            />
-                          </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Email *</label>
+                          <input
+                            type="email"
+                            required
+                            placeholder="sudhir.kumar@gmail.com"
+                            value={billingEmail}
+                            onChange={(e) => setBillingEmail(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Phone / Mobile</label>
+                          <input
+                            type="tel"
+                            placeholder="+91 99999 88888"
+                            value={billingPhone}
+                            onChange={(e) => setBillingPhone(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          />
                         </div>
 
-                        {/* Render physical shipping address if needed */}
+                        {/* Physical shipping fields */}
                         {hasPhysicalOrShippingNeed && (
                           <div className="space-y-3 p-4 border border-white/10 bg-white/5 rounded-2xl">
                             <div className="flex items-center gap-1.5 text-violet-400 font-semibold text-xs mb-1 uppercase tracking-wide">
@@ -727,7 +642,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                             </div>
                             
                             <div>
-                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Recipient Full Name *</label>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Recipient Name *</label>
                               <input
                                 type="text"
                                 required
@@ -739,24 +654,13 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                             </div>
 
                             <div>
-                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 1 *</label>
+                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address *</label>
                               <input
                                 type="text"
                                 required
-                                placeholder="A-12, Ring Road, Lajpat Nagar IV"
+                                placeholder="A-12, Ring Road"
                                 value={addressLine1}
                                 onChange={(e) => setAddressLine1(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Address Line 2 (Optional)</label>
-                              <input
-                                type="text"
-                                placeholder="Near Metro Station"
-                                value={addressLine2}
-                                onChange={(e) => setAddressLine2(e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                               />
                             </div>
@@ -799,20 +703,6 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                                 />
                               </div>
                               <div>
-                                <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Country *</label>
-                                <input
-                                  type="text"
-                                  required
-                                  placeholder="India"
-                                  value={country}
-                                  onChange={(e) => setCountry(e.target.value)}
-                                  className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
                                 <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Primary Phone *</label>
                                 <input
                                   type="tel"
@@ -823,16 +713,6 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                                   className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                                 />
                               </div>
-                              <div>
-                                <label className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Secondary Phone</label>
-                                <input
-                                  type="tel"
-                                  placeholder="+91 88888 77777"
-                                  value={shippingPhone2}
-                                  onChange={(e) => setShippingPhone2(e.target.value)}
-                                  className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
-                                />
-                              </div>
                             </div>
                           </div>
                         )}
@@ -840,7 +720,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                         <div>
                           <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Order Notes</label>
                           <textarea
-                            placeholder="Any special instructions for this order..."
+                            placeholder="Special instructions..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={2}
@@ -853,65 +733,44 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                 )}
               </div>
 
-              {/* STICKY FOOTER CHECKOUT BLOCK (Strictly fixed at bottom of drawer viewport) */}
+              {/* Sticky Footer */}
               {cart.length > 0 && (
-                <div className="p-6 border-t border-white/10 bg-[#0d0d18] sticky bottom-0 z-20 space-y-4">
-                  {checkoutError && <p className="text-xs text-destructive font-medium">{checkoutError}</p>}
-
-                  <div className="space-y-1.5 text-sm">
-                    <div className="flex justify-between text-slate-300">
-                      <span>Cart Subtotal</span>
+                <div className="p-4 border-t border-white/10 bg-[#0d1117] sticky bottom-0 z-10 space-y-3">
+                  {checkoutError && <p className="text-xs text-rose-500 font-medium">{checkoutError}</p>}
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Subtotal</span>
                       <span>₹{(subtotalCents / 100).toLocaleString("en-IN")}</span>
                     </div>
                     {couponDiscount > 0 && (
-                      <div className="flex justify-between text-emerald-400 font-medium">
+                      <div className="flex justify-between text-emerald-400">
                         <span>Discount Applied</span>
                         <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
                       </div>
                     )}
                     {hasPhysicalOrShippingNeed && (
-                      <div className="flex justify-between text-slate-300">
-                        <span>Shipping Charges</span>
-                        <span>
-                          {shippingChargeCents === 0 ? (
-                            <span className="text-emerald-400 font-medium">FREE</span>
-                          ) : (
-                            `₹${(shippingChargeCents / 100).toLocaleString("en-IN")}`
-                          )}
-                        </span>
+                      <div className="flex justify-between text-slate-400">
+                        <span>Shipping</span>
+                        <span>{shippingChargeCents === 0 ? "FREE" : `₹${shippingChargeCents / 100}`}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-lg font-extrabold text-white pt-2 border-t border-dashed border-white/10">
-                      <span>Total Price</span>
+                    <div className="flex justify-between text-sm font-bold text-white pt-1.5 border-t border-white/10">
+                      <span>Total</span>
                       <span>₹{(totalCents / 100).toLocaleString("en-IN")}</span>
                     </div>
                   </div>
-
-                  <Button 
+                  <button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full h-11 bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm flex items-center justify-center gap-1.5 rounded-xl transition duration-200"
+                    className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors flex items-center justify-center gap-2"
                   >
-                    <Lock className="h-4 w-4" />
-                    {isSubmitting ? "Generating secure order..." : "Secure Checkout Payment"}
-                    <ArrowRight className="h-4 w-4 shrink-0" />
-                  </Button>
+                    <Lock className="w-4 h-4" />
+                    {isSubmitting ? "Processing..." : "Secure Checkout"}
+                  </button>
                 </div>
               )}
             </form>
           </div>
-        </div>
-      )}
-      {/* Custom Toast Notification System */}
-      {toast && (
-        <div className={cn(
-          "fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-2xl text-xs font-bold shadow-2xl border backdrop-blur-md transition-all duration-300",
-          toast.type === "amber" && "bg-amber-500/20 border-amber-500/30 text-amber-300 shadow-amber-500/10",
-          toast.type === "green" && "bg-emerald-500/20 border-emerald-500/30 text-emerald-300 shadow-emerald-500/10",
-          toast.type === "red" && "bg-rose-500/20 border-rose-500/30 text-rose-300 shadow-rose-500/10",
-          toast.type === "neutral" && "bg-slate-900/90 border-white/10 text-white shadow-black/40"
-        )}>
-          {toast.message}
         </div>
       )}
     </div>

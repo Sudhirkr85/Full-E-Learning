@@ -10,3 +10,4 @@ export {
   renderPasswordResetEmail,
   renderCombinedWelcomePaymentEmail
 } from "./templates";
+export { sendOrderConfirmationEmail } from "./brevo";

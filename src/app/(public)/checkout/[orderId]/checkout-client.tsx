@@ -10,6 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Container } from "@/components/ui/container";
 import { simulatePaymentSuccessAction } from "@/lib/store/actions";
 
+import { useCartStore } from "@/store/cart-store";
+import { toast } from "sonner";
+
 interface CheckoutClientProps {
   order: any;
 }
@@ -21,17 +24,19 @@ export function CheckoutClient({ order }: CheckoutClientProps) {
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationSuccess, setSimulationSuccess] = useState("");
 
-  const formattedSubtotal = (order.subtotalCents / 100).toLocaleString("en-US", {
+  const clearCart = useCartStore((state) => state.clearCart);
+
+  const formattedSubtotal = (order.subtotalCents / 100).toLocaleString("en-IN", {
     style: "currency",
     currency: order.currency
   });
 
-  const formattedDiscount = (order.discountCents / 100).toLocaleString("en-US", {
+  const formattedDiscount = (order.discountCents / 100).toLocaleString("en-IN", {
     style: "currency",
     currency: order.currency
   });
 
-  const formattedTotal = (order.totalCents / 100).toLocaleString("en-US", {
+  const formattedTotal = (order.totalCents / 100).toLocaleString("en-IN", {
     style: "currency",
     currency: order.currency
   });
@@ -68,44 +73,68 @@ export function CheckoutClient({ order }: CheckoutClientProps) {
         });
       }
 
-      // 3. Configure Razorpay Sandbox options
+      const itemCount = order.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+      const total = (order.totalCents / 100).toFixed(0);
+      const userName = order.metadata?.shippingAddress?.fullName || "";
+      const userEmail = order.billingEmail;
+      const userPhone = order.metadata?.shippingAddress?.primaryPhone || order.metadata?.billingPhone || "";
+
+      // 3. Configure Razorpay options according to Step 6
       const options = {
-        key: data.keyId,
+        key: data.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: data.amount,
-        currency: data.currency,
-        name: "E-Learning Academy",
-        description: `Receipt: ${data.receipt}`,
-        image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80",
+        currency: "INR",
+        name: "E-Learning Platform",
+        description: `${itemCount} item(s) — ₹${total}`,
         order_id: data.orderId,
-        handler: function (response: any) {
-          console.log("[RAZORPAY_CLIENT_SUCCESS_CALLBACK]", response);
-          alert("Payment processed by sandbox gateway. Waiting for webhook sync...");
-          // Redirect to student order log to track activation
-          router.push("/student/courses");
+        prefill: { name: userName, email: userEmail, contact: userPhone },
+        theme: { color: "#7c3aed" },
+        modal: {
+          ondismiss: () => {
+            toast.warning("Payment cancelled.");
+            setIsPaying(false);
+          }
         },
-        prefill: {
-          email: order.billingEmail,
-        },
-        notes: {
-          orderId: order.id,
-        },
-        theme: {
-          color: "#f59e0b", // Gold theme
-        },
+        handler: async (response: any) => {
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                orderId: order.id
+              })
+            });
+
+            if (verifyRes.ok) {
+              clearCart(); // clear both localStorage AND server-side cart
+              toast.success("Order placed successfully!");
+              router.push(`/order-confirmation/${order.id}`);
+            } else {
+              toast.error("Payment could not be processed. Please try again.");
+              setIsPaying(false);
+            }
+          } catch (err) {
+            toast.error("Payment could not be processed. Please try again.");
+            setIsPaying(false);
+          }
+        }
       };
 
       const rzp = new (window as any).Razorpay(options);
       
       rzp.on("payment.failed", function (response: any) {
         console.error("[RAZORPAY_CLIENT_PAYMENT_FAILURE]", response.error);
-        setErrorMessage(`Payment failed: ${response.error.description}`);
+        toast.error("Payment could not be processed. Please try again.");
         setIsPaying(false);
       });
 
       rzp.open();
     } catch (err: any) {
       console.error("[PAYMENT_GATEWAY_ERROR]", err);
-      setErrorMessage(err.message ?? "Could not connect to payment gateway.");
+      toast.error("Payment could not be processed. Please try again.");
       setIsPaying(false);
     }
   };

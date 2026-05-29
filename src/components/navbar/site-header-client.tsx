@@ -9,6 +9,7 @@ import { Container } from "@/components/ui/container";
 import { AvatarDropdown } from "./avatar-dropdown";
 import { MobileDrawer } from "./mobile-drawer";
 import { LogoutModal } from "./logout-modal";
+import { HeaderCartButton } from "./header-cart-button";
 import { cn } from "@/lib/utils";
 
 interface SiteHeaderClientProps {
@@ -125,7 +126,7 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
 
           {/* Right Section: Actions */}
           <div className="flex items-center gap-4">
-
+            <HeaderCartButton />
 
             {user ? (
               /* Logged In View (Desktop) */

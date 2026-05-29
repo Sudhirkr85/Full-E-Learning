@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
-import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Ticket, Lock, X } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Ticket, Lock, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import { ProductType } from "@prisma/client";
@@ -33,6 +33,7 @@ export default function MobileCartPage() {
 
   // Billing states
   const [billingEmail, setBillingEmail] = useState("");
+  const [billingPhone, setBillingPhone] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -102,8 +103,13 @@ export default function MobileCartPage() {
     e.preventDefault();
     if (cart.length === 0) return;
 
-    if (!billingEmail) {
-      toast.error("Please enter your billing email address.");
+    if (!billingEmail || !billingEmail.includes('@')) {
+      toast.error("Please enter a valid billing email address.");
+      return;
+    }
+
+    if (!billingPhone || billingPhone.length < 10) {
+      toast.error("Please enter a valid phone number (at least 10 digits).");
       return;
     }
 
@@ -115,30 +121,101 @@ export default function MobileCartPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await createOrderAction({
-        billingEmail,
-        cartItems: cart.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-        couponCode: appliedCoupon?.code,
-        metadata: {
-          shippingStatus: "NOT_APPLICABLE",
-        }
+      const res = await fetch('/api/store/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+          billingEmail,
+          billingPhone,
+          couponCode: appliedCoupon?.code || null,
+          orderNotes: null,
+          shippingAddress: null,
+        })
       });
 
-      setIsSubmitting(false);
+      const data = await res.json();
 
-      if (res.success && res.order) {
-        clearCart();
-        handleRemoveCoupon();
-        router.push(`/checkout/${res.order.id}`);
-      } else {
-        toast.error("Something went wrong. Please refresh and try again.");
+      if (!res.ok) {
+        toast.error(data.message || "Something went wrong. Please try again.");
+        setIsSubmitting(false);
+        return;
       }
-    } catch {
-      setIsSubmitting(false);
+
+      const { razorpayOrderId, internalOrderId, amount } = data;
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_51I2V3X4Y5Z6A7B",
+        amount: amount,
+        currency: "INR",
+        name: "E-Learning Platform",
+        description: `${cart.length} item(s)`,
+        order_id: razorpayOrderId,
+        prefill: {
+          name: "",
+          email: billingEmail,
+          contact: billingPhone,
+        },
+        theme: { color: "#7c3aed" },
+        modal: {
+          ondismiss: async () => {
+            await fetch('/api/razorpay/fail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId: internalOrderId })
+            });
+            toast.warning("Payment cancelled.");
+            setIsSubmitting(false);
+          }
+        },
+        handler: async (response: any) => {
+          const verifyRes = await fetch('/api/razorpay/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: internalOrderId,
+            })
+          });
+
+          if (verifyRes.ok) {
+            clearCart();
+            handleRemoveCoupon();
+            toast.success("Order placed successfully!");
+            router.push(`/order-confirmation/${internalOrderId}`);
+          } else {
+            toast.error("Payment verification failed. If amount was deducted, contact support.");
+            setIsSubmitting(false);
+          }
+        }
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+
+      razorpay.on('payment.failed', async (response: any) => {
+        await fetch('/api/razorpay/fail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: internalOrderId,
+            errorCode: response.error.code,
+            errorDescription: response.error.description,
+          })
+        });
+        toast.error("Payment failed. Please try again or use a different payment method.");
+        setIsSubmitting(false);
+      });
+
+      razorpay.open();
+
+    } catch (err) {
       toast.error("Something went wrong. Please refresh and try again.");
+      setIsSubmitting(false);
     }
   };
 
@@ -225,17 +302,30 @@ export default function MobileCartPage() {
               </div>
             ))}
 
-            {/* Email input field */}
-            <div className="pt-4 space-y-1.5">
-              <label className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Billing Email Address *</label>
-              <input
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={billingEmail}
-                onChange={(e) => setBillingEmail(e.target.value)}
-                className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
-              />
+            {/* Email & Phone input fields */}
+            <div className="pt-4 space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Billing Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={billingEmail}
+                  onChange={(e) => setBillingEmail(e.target.value)}
+                  className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Billing Phone / Mobile *</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="+91 98765 43210"
+                  value={billingPhone}
+                  onChange={(e) => setBillingPhone(e.target.value)}
+                  className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50 transition-colors"
+                />
+              </div>
             </div>
             {hasPhysicalOrShippingNeed && (
               <p className="text-xs text-amber-400/90 font-medium bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
@@ -302,10 +392,19 @@ export default function MobileCartPage() {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold mt-2 flex items-center justify-center gap-2 transition-colors active:scale-[0.98]"
+              className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold mt-2 flex items-center justify-center gap-2 transition-colors active:scale-[0.98]"
             >
-              <Lock className="w-4 h-4" />
-              {isSubmitting ? "Processing..." : "Secure Checkout"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  Secure Checkout
+                </>
+              )}
             </button>
           </div>
         </form>

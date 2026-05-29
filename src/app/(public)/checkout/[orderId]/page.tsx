@@ -23,24 +23,8 @@ export async function generateMetadata({ params }: CheckoutPageProps): Promise<M
   });
 }
 
-export default async function CheckoutPage({ params }: CheckoutPageProps) {
-  const { orderId } = await params;
+import { redirect } from "next/navigation";
 
-  // Fetch the order from the database
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-  });
-
-  if (!order) {
-    notFound();
-  }
-
-  return <CheckoutClient order={order} />;
+export default function CheckoutPage() {
+  redirect("/store");
 }

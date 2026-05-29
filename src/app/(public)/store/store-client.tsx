@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
   ShoppingCart, Search, X, Plus, Minus, Trash2, 
-  Ticket, ArrowRight, Lock, Package, GraduationCap, Archive
+  Ticket, ArrowRight, Lock, Package, GraduationCap, Archive,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -216,10 +217,17 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       return;
     }
 
-    if (!billingEmail) {
-      const emailError = "Please enter your billing email address.";
+    if (!billingEmail || !billingEmail.includes('@')) {
+      const emailError = "Please enter a valid billing email address.";
       setCheckoutError(emailError);
       toast.error(emailError);
+      return;
+    }
+
+    if (!billingPhone || billingPhone.length < 10) {
+      const phoneError = "Please enter a valid phone number (at least 10 digits).";
+      setCheckoutError(phoneError);
+      toast.error(phoneError);
       return;
     }
 
@@ -245,51 +253,102 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     } : null;
 
     try {
-      const res = await createOrderAction({
-        billingEmail,
-        cartItems: cart.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-        couponCode: appliedCoupon?.code,
-        notes,
-        metadata: {
+      const res = await fetch('/api/store/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+          billingEmail,
           billingPhone,
+          couponCode: appliedCoupon?.code || null,
+          orderNotes: notes || null,
           shippingAddress: shippingDetails,
-          shippingStatus: hasPhysicalOrShippingNeed ? "PROCESSING" : "NOT_APPLICABLE",
-        }
+        })
       });
 
-      setIsSubmitting(false);
+      const data = await res.json();
 
-      if (res.success && res.order) {
-        clearCart();
-        handleRemoveCoupon();
-        closeDrawer();
-        router.push(`/checkout/${res.order.id}`);
-      } else {
-        let friendlyError = ERROR_MESSAGES.SERVER_ERROR;
-        const rawError = res.error || "";
-        
-        if (rawError.includes("no longer available") || rawError.includes("not available")) {
-          friendlyError = ERROR_MESSAGES.PRODUCT_NOT_FOUND;
-          await validateCartItems();
-        } else if (rawError.includes("Insufficient stock") || rawError.includes("stock")) {
-          friendlyError = ERROR_MESSAGES.SERVER_ERROR;
-          await validateCartItems();
-        } else if (rawError.includes("Coupon") || rawError.includes("coupon")) {
-          friendlyError = ERROR_MESSAGES.COUPON_INVALID;
-        } else if (rawError.includes("network") || rawError.includes("fetch")) {
-          friendlyError = ERROR_MESSAGES.NETWORK_ERROR;
-        }
-
-        setCheckoutError(friendlyError);
-        toast.error(friendlyError);
+      if (!res.ok) {
+        toast.error(data.message || "Something went wrong. Please try again.");
+        setIsSubmitting(false);
+        return;
       }
-    } catch {
+
+      const { razorpayOrderId, internalOrderId, amount } = data;
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_51I2V3X4Y5Z6A7B",
+        amount: amount,
+        currency: "INR",
+        name: "E-Learning Platform",
+        description: `${cart.length} item(s)`,
+        order_id: razorpayOrderId,
+        prefill: {
+          name: fullName || profileUser?.name || "",
+          email: billingEmail,
+          contact: billingPhone,
+        },
+        theme: { color: "#7c3aed" },
+        modal: {
+          ondismiss: async () => {
+            await fetch('/api/razorpay/fail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId: internalOrderId })
+            });
+            toast.warning("Payment cancelled.");
+            setIsSubmitting(false);
+          }
+        },
+        handler: async (response: any) => {
+          const verifyRes = await fetch('/api/razorpay/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: internalOrderId,
+            })
+          });
+
+          if (verifyRes.ok) {
+            clearCart();
+            handleRemoveCoupon();
+            closeDrawer();
+            toast.success("Order placed successfully!");
+            router.push(`/order-confirmation/${internalOrderId}`);
+          } else {
+            toast.error("Payment verification failed. If amount was deducted, contact support.");
+            setIsSubmitting(false);
+          }
+        }
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+
+      razorpay.on('payment.failed', async (response: any) => {
+        await fetch('/api/razorpay/fail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: internalOrderId,
+            errorCode: response.error.code,
+            errorDescription: response.error.description,
+          })
+        });
+        toast.error("Payment failed. Please try again or use a different payment method.");
+        setIsSubmitting(false);
+      });
+
+      razorpay.open();
+
+    } catch (err) {
+      toast.error("Something went wrong. Please refresh and try again.");
       setIsSubmitting(false);
-      setCheckoutError(ERROR_MESSAGES.SERVER_ERROR);
-      toast.error(ERROR_MESSAGES.SERVER_ERROR);
     }
   };
 
@@ -623,13 +682,14 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Phone / Mobile</label>
+                          <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Billing Phone / Mobile *</label>
                           <input
                             type="tel"
-                            placeholder="+91 99999 88888"
                             value={billingPhone}
                             onChange={(e) => setBillingPhone(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                            placeholder="+91 98765 43210"
+                            required
+                            className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50"
                           />
                         </div>
 
@@ -759,13 +819,22 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                       <span>₹{(totalCents / 100).toLocaleString("en-IN")}</span>
                     </div>
                   </div>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                    className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
-                    <Lock className="w-4 h-4" />
-                    {isSubmitting ? "Processing..." : "Secure Checkout"}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4" />
+                        Secure Checkout
+                      </>
+                    )}
                   </button>
                 </div>
               )}

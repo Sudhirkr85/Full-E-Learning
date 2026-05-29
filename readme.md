@@ -651,3 +651,22 @@ The entire transactional journey from catalog display through successful executi
 *   **Cryptographic Verification Webhook API**: The Next.js API route `/api/razorpay/verify` validates server callbacks using secure SHA-256 HMAC signature handshakes. Validated transactions mark orders as `PAID`, trigger Brevo receipt emails, and label physical shipments as `PROCESSING` inside nested item JSON arrays to avoid schema compilations errors.
 *   **Order Confirmation Dashboard**: The Dynamic `order-confirmation/[orderId]` screen queries recent transaction databases and renders high-end success cards or retry triggers based on checkout status.
 
+### 13. Direct Razorpay Checkout Integration & Webhook Safety Net
+To elevate the user checkout journey, the intermediate checkout routes have been completely bypassed. Payments now proceed directly from the shopping cart interface (desktop drawer or mobile `/cart` route) to the secure Razorpay payment modal, and automatically transition successful customers to the dynamic order confirmation screen.
+*   **Direct Checkout Triggers**: Both the slide-in cart drawer and full-screen mobile cart page capture billing email and phone parameters before triggering the standard Razorpay modal securely. It prefectly overlays brand theme colors (`#7c3aed`) and handles prefills natively.
+*   **Failed & Dismissed Action Tracking**: Dismissing or encountering card authorization drops automatically posts callbacks to `/api/razorpay/fail` to safely register cancellation telemetry and mark the internal database Order status as `CANCELLED` (avoiding stranded transactions).
+*   **Safety Webhook Receiver**: Created `/api/razorpay/webhook` to handle callbacks like `payment.captured` or `payment.failed` asynchronously (resolving cases where users close tabs post-payment). Uses cryptographic signature checks to secure database actions.
+*   **Webhook Dashboard Registration**:
+    To synchronize live environments, set up a webhook in the Razorpay Dashboard → Settings → Webhooks:
+    - **URL**: `https://yourdomain.com/api/razorpay/webhook`
+    - **Secret**: Configure to match the local `RAZORPAY_WEBHOOK_SECRET` variable in `.env`.
+    - **Events**: Subscribe to `payment.captured` and `payment.failed`.
+*   **New Environment Variables**:
+    ```ini
+    RAZORPAY_KEY_ID=your_key_id
+    RAZORPAY_KEY_SECRET=your_key_secret
+    RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+    NEXT_PUBLIC_RAZORPAY_KEY_ID=your_key_id
+    ```
+
+

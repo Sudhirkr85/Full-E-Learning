@@ -490,6 +490,15 @@ model Order {
   user          User?       @relation(fields: [userId], references: [id])
   payments      Payment[]
 
+  failureReason  String?
+  failedAt       DateTime?
+  emailSentAt    DateTime?
+  paidAt         DateTime?
+  billingPhone   String?
+  orderNotes     String?
+  discount       Int       @default(0)
+  subtotal       Int       @default(0)
+
   @@index([userId])
   @@index([couponId])
   @@index([status])

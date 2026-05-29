@@ -36,6 +36,11 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Auto-close mobile drawer on route transition
+  useEffect(() => {
+    setIsDrawerOpen(false);
+  }, [pathname]);
+
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(href);

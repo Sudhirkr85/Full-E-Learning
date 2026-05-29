@@ -625,8 +625,13 @@ The platform includes enhanced credential security controls for both administrat
 *   **Skills You'll Master Accordion**: Displays a checklist of 3 high-impact engineering milestones emphasized with emerald green icons.
 *   **Outcome Stat Chips**: Embeds 3 dark stat chips ("Full Stack", "AI Ready", "Job Ready") featuring micro-scale translation transforms on mouse hover.
 
-
-
-
-
-
+### 11. Database User Refinements & Complete Native-App Mobile Responsiveness Fixes
+*   **Database `phone` Field & Typings**: Added a `phone` string field directly under `email` in the `User` model (`prisma/schema.prisma`), regenerated the Prisma Client (`npx prisma generate`), and updated the Auth.js session user, `User`, and `JWT` token interface typings in `src/types/next-auth.d.ts` for strict type-safety.
+*   **Single Unified Left-Aligned Mobile Navigation Sidebar**: Rewrote the mobile navigation sidebar in `mobile-drawer.tsx` to slide smoothly from the **left** (`left-0`, `-translate-x-full` to `translate-x-0` using hardware-accelerated transitions) exactly like a native application sidebar, featuring a premium user profile card at the absolute top (Avatar + Name + Email + Role Badge) and pinning the Logout button at the absolute bottom (`mt-auto`).
+*   **Escape Key & Body Scroll Locks**: Integrated full background body scroll-locks (`overflow: hidden`) and Escape key listeners that automatically clean up when drawers close.
+*   **Responsive Cart Page Routing (Desktop Drawer + Mobile Full Page)**: 
+    *   **Desktop/Tablet**: Shows a premium `w-[420px]` side drawer with standardised quantity button controls (`w-8 h-8 rounded-lg`) and a sticky footer bottom container to ensure pricing totals and "Secure Checkout" buttons are always visible.
+    *   **Mobile Redirect**: Integrated active media queries (`useMediaQuery`) to bypass side-drawers and direct mobile users straight to a new dedicated route `/cart`.
+*   **Dedicated Full-Screen Mobile Cart Route**: Designed a full-screen mobile-only shopping cart and checkout page (`src/app/(public)/cart/page.tsx`) with a back-header bar, styled cart items list, discount coupon managers, and a sticky bottom price checkout block.
+*   **iOS Tap Scale & Input Font-Size Fixes**: Added responsive CSS parameters (`globals.css`) fixing `font-size: 16px` on inputs/textareas/selects to bypass forced iOS browser auto-zooming, alongside `-webkit-tap-highlight-color: transparent` resets.
+*   **Zero Scroll Bleed Guard**: Appended `overflow-x-hidden` directly onto the root layout's `body` tag to guarantee zero horizontal scroll bleed.

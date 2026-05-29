@@ -570,3 +570,11 @@ The platform includes enhanced credential security controls for both administrat
     *   **Hover-Lift Animation**: Standardized groups with dynamic `hover:-translate-y-1.5 hover:shadow-lg` for highly engaging micro-interactions.
     *   **Responsive Grid System**: Grid structure spanning 1, 2, 3, or 4 columns seamlessly across standard viewports.
 *   **Custom Centered Confirmation Modals**: Replaced native browser `confirm()` alerts on the admin course management dashboard with beautiful custom glassmorphic modals, perfectly centered on the screen and optimized for both desktop and mobile viewports.
+
+### 4. Admin Profile Settings & Unified Avatar Dropdown
+*   **Admin Profile Page**: Created a highly secure, premium view/edit profile management page at `/admin/profile` scoped strictly to `ADMIN` users. It provides seamless inline view/edit toggle transitions, client-side input validation, secure uploader updates to Cloudflare R2 via the `/api/profile/avatar` endpoint, and Zod-validated server-side database writes.
+*   **Unified Avatar Dropdown**: Completely updated the header navbar profile dropdown (`src/components/navbar/avatar-dropdown.tsx`) to match the dashboard sidebar links exactly for each role, visually separated with low-opacity glass dividers. It features:
+    *   **ADMIN**: Identity header with an `ADMIN ACCOUNT` badge, `My Profile` linking to `/admin/profile`, administrative operation panels, platform configurations, and a logout button.
+    *   **STUDENT**: Identity header with a `STUDENT ACCOUNT` badge, `My Profile` linking to `/profile`, student-specific links matching their sidebar exactly, and logout.
+    *   **TEACHER**: Identity header with a `TEACHER ACCOUNT` badge, `My Profile` linking to `/profile`, teacher-specific courses/categories links matching their sidebar exactly, and logout.
+

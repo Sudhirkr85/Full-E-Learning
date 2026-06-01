@@ -13,9 +13,13 @@ import {
   History, 
   Settings, 
   Users, 
-  FileText, 
   MessageSquare,
-  Zap
+  Zap,
+  GraduationCap,
+  FolderOpen,
+  ShoppingBag,
+  Tag,
+  Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -121,11 +125,14 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
       case "ADMIN":
         return [
           { label: "Admin Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-          { label: "Manage Users", href: "/admin/users", icon: Users },
-          { label: "Manage Orders", href: "/admin/orders", icon: History },
-          { label: "Support Desk", href: "/admin/support", icon: MessageSquare },
-          { label: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
-          { label: "Settings", href: "/profile", icon: Settings },
+          { label: "Users", href: "/admin/users", icon: Users },
+          { label: "Enrollments", href: "/admin/enrollments", icon: GraduationCap },
+          { label: "Courses (admin)", href: "/admin/courses", icon: BookOpen },
+          { label: "Categories", href: "/admin/categories", icon: FolderOpen },
+          { label: "Store (admin)", href: "/admin/store", icon: ShoppingBag },
+          { label: "Store Orders", href: "/admin/store/orders", icon: ShoppingBag },
+          { label: "Coupons", href: "/admin/coupons", icon: Tag },
+          { label: "Change Password", href: "/admin/settings/change-password", icon: Lock },
         ];
       default:
         return [];

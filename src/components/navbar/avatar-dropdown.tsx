@@ -12,7 +12,6 @@ import {
   ShoppingBag, 
   ShieldQuestion, 
   Lock, 
-  Sliders, 
   LogOut,
   GraduationCap
 } from "lucide-react";
@@ -169,21 +168,15 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                   Store
                 </Link>
                 <Link
-                  href="/admin/support"
+                  href="/admin/store/orders"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
                 >
-                  <ShieldQuestion className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
-                  Support Tickets
+                  <ShoppingBag className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
+                  Store Orders
                 </Link>
-                <Link
-                  href="/admin/audit-logs"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
-                >
-                  <Users className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
-                  Audit Logs
-                </Link>
+
+
 
                 <hr className="my-1.5 border-white/5" />
 
@@ -196,14 +189,7 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                   <Lock className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Change Password
                 </Link>
-                <Link
-                  href="/admin/settings/platform"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
-                >
-                  <Sliders className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
-                  Platform Config
-                </Link>
+
               </>
             )}
 
@@ -218,14 +204,6 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                   Overview
                 </Link>
                 <Link
-                  href="/student/courses"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
-                >
-                  <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
-                  My Courses
-                </Link>
-                <Link
                   href="/student/orders"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
@@ -234,13 +212,14 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                   My Orders
                 </Link>
                 <Link
-                  href="/student/support"
+                  href="/student/courses"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
                 >
-                  <ShieldQuestion className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
-                  Support Tickets
+                  <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
+                  My Courses
                 </Link>
+
               </>
             )}
 

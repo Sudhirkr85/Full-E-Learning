@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AssetProvider, AuditAction, CourseStatus, EnrollmentStatus, UserRole } from "@prisma/client";
+import { AssetProvider, CourseStatus, EnrollmentStatus, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { reserveUniqueSlug, slugify } from "./slug";
@@ -728,28 +728,7 @@ export async function toggleCourseStatusAction(formData: FormData) {
     }
   });
 
-  // Log auditing
-  let auditAction: AuditAction = AuditAction.UPDATE;
-  if (data.status === CourseStatus.PUBLISHED) {
-    auditAction = AuditAction.PUBLISH;
-  } else if (data.status === CourseStatus.ARCHIVED) {
-    auditAction = AuditAction.ARCHIVE;
-  }
 
-  await prisma.auditLog.create({
-    data: {
-      userId: teacher.id,
-      action: auditAction,
-      entityType: "Course",
-      entityId: currentCourse.id,
-      beforeState,
-      afterState: { status: data.status },
-      metadata: {
-        reason: "Manual course status update by teacher",
-        title: currentCourse.title
-      }
-    }
-  });
 
   await invalidateCourse(currentCourse.slug, currentCourse.id);
   redirect(`/teacher/courses/${currentCourse.id}?status=updated`);
@@ -765,19 +744,7 @@ export async function deleteCourseAction(formData: FormData) {
 
   const data = parsed.data!;
   const currentCourse = await assertCourseAccess(data.courseId, teacher.id);
-  // Log auditing
-  await prisma.auditLog.create({
-    data: {
-      userId: teacher.id,
-      action: AuditAction.DELETE,
-      entityType: "Course",
-      entityId: currentCourse.id,
-      beforeState: { title: currentCourse.title, slug: currentCourse.slug, status: currentCourse.status },
-      metadata: {
-        reason: "Course deleted by teacher"
-      }
-    }
-  });
+
 
   await prisma.course.delete({ where: { id: currentCourse.id } });
   revalidateCoursePaths(currentCourse.slug, currentCourse.id);

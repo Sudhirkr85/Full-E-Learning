@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +18,18 @@ type StoreClientProps = {
 export function StoreClient({ initialProducts }: StoreClientProps) {
   const router = useRouter();
   const [products, setProducts] = useState<any[]>(initialProducts);
+  const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>("ALL");
   const [loadingProductId, setLoadingProductId] = useState<string | null>(null);
+
+  // Debounced search trigger
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(inputValue);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [inputValue]);
 
   // Sync products state if initialProducts changes
   if (JSON.stringify(products.map(p => p.id + p.status)) !== JSON.stringify(initialProducts.map(p => p.id + p.status))) {
@@ -139,8 +148,8 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" />
           <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             placeholder="Search by product name..."
             className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 pl-10 text-xs rounded-xl"
           />

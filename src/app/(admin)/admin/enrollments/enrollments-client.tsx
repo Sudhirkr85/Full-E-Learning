@@ -15,7 +15,8 @@ import {
   FileText, 
   ShoppingBag, 
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Truck
 } from "lucide-react";
 import Link from "next/link";
 
@@ -71,6 +72,7 @@ type OrderItemData = {
   user: User | null;
   items: OrderItem[];
   payments: Payment[];
+  metadata?: any;
 };
 
 type EnrollmentsClientProps = {
@@ -91,8 +93,10 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
   const [search, setSearch] = useState("");
   const [enrollmentFilter, setEnrollmentFilter] = useState("all"); // all, active, completed
   const [orderFilter, setOrderFilter] = useState("all"); // all, succeeded, pending, failed
+  
+  // Shipping Desk Modal States and Handlers removed (moved to dedicated /admin/store/orders page)
 
-  // Formats paise (from Razorpay) to INR Rupees currency representation
+  // Formats paise (from Razorpay) to INR Rupees representation
   const formatINR = (paise: number) => {
     return "₹" + (paise / 100).toLocaleString("en-IN");
   };
@@ -407,6 +411,21 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
         {/* Content Tab 2: Orders */}
         {activeTab === "orders" && (
           <div className="space-y-4">
+            {/* Info Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3.5 text-xs text-indigo-300">
+              <div className="flex items-center gap-2">
+                <Truck className="h-4.5 w-4.5 text-indigo-400 shrink-0" />
+                <span>
+                  Physical order shipping is now managed in the dedicated <strong>Store Orders</strong> desk.
+                </span>
+              </div>
+              <Link 
+                href="/admin/store/orders"
+                className="font-bold underline hover:text-indigo-200 transition shrink-0 flex items-center gap-0.5"
+              >
+                Go to Store Orders →
+              </Link>
+            </div>
             {/* Order Filter Pills */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 px-1">Filter payment:</span>
@@ -492,12 +511,25 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                             })}
                           </td>
                           <td className="p-4 text-center">
-                            <Link href="/admin/store">
-                              <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-bold border-cyan-500/20 text-cyan-400 hover:text-white bg-cyan-500/5 hover:bg-cyan-500/10 uppercase tracking-wider gap-1">
-                                Details
-                                <ExternalLink className="h-3 w-3" />
-                              </Button>
-                            </Link>
+                            <div className="flex items-center justify-center gap-2">
+                              {rawType === "PHYSICAL" && status === "SUCCEEDED" && (
+                                <Link href="/admin/store/orders">
+                                  <Button
+                                    size="sm"
+                                    className="h-8 rounded-lg text-[10px] font-bold border-amber-500/20 text-amber-400 hover:text-white bg-amber-500/5 hover:bg-amber-500/10 uppercase tracking-wider gap-1"
+                                  >
+                                    <Truck className="h-3.5 w-3.5" />
+                                    Manage Shipping
+                                  </Button>
+                                </Link>
+                              )}
+                              <Link href={`/student/orders/${o.id}`}>
+                                <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-bold border-cyan-500/20 text-cyan-400 hover:text-white bg-cyan-500/5 hover:bg-cyan-500/10 uppercase tracking-wider gap-1">
+                                  Details
+                                  <ExternalLink className="h-3 w-3" />
+                                </Button>
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -517,6 +549,8 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
           </div>
         )}
       </div>
+
+      {/* Modal removed (moved to dedicated /admin/store/orders shipping desk) */}
     </div>
   );
 }

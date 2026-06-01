@@ -124,7 +124,6 @@ type TeacherDashboardClientProps = {
     recentEnrollments: Enrollment[];
     recentSubmissions: Attempt[];
     recentCompletions: LessonProgressItem[];
-    recentTickets: SupportTicket[];
   };
   charts: {
     enrollmentTrend: { month: string; enrollments: number }[];
@@ -140,7 +139,7 @@ export function TeacherDashboardClient({
   recentActivity,
   charts
 }: TeacherDashboardClientProps) {
-  const [activeActivityTab, setActiveActivityTab] = useState<"enrollments" | "submissions" | "completions" | "tickets">("enrollments");
+  const [activeActivityTab, setActiveActivityTab] = useState<"enrollments" | "submissions" | "completions">("enrollments");
 
   // Custom tooltips to match glassmorphism dark UI
   const renderCustomTooltipArea = ({ active, payload }: any) => {
@@ -374,8 +373,7 @@ export function TeacherDashboardClient({
               {[
                 { id: "enrollments", label: "Enrollments" },
                 { id: "submissions", label: "Quizzes" },
-                { id: "completions", label: "Lessons" },
-                { id: "tickets", label: "Tickets" }
+                { id: "completions", label: "Lessons" }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -475,35 +473,6 @@ export function TeacherDashboardClient({
               </div>
             )}
 
-            {/* Tickets Tab */}
-            {activeActivityTab === "tickets" && (
-              <div className="divide-y divide-white/5">
-                {recentActivity.recentTickets.length > 0 ? (
-                  recentActivity.recentTickets.map((item) => (
-                    <div key={item.id} className="py-3 flex items-center justify-between gap-3 text-xs">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8.5 w-8.5 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-center font-bold shrink-0">
-                          <MessageSquare className="h-4 w-4 text-cyan-400" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-white">{item.reporter.name || "Student"}</p>
-                          <p className="text-[10px] text-slate-300 truncate max-w-sm font-medium">{item.subject}</p>
-                        </div>
-                      </div>
-                      <Badge className={`text-[8px] font-bold uppercase tracking-widest shrink-0 border ${
-                        item.status === "OPEN"
-                          ? "bg-rose-500/10 text-rose-300 border-rose-500/20"
-                          : "bg-slate-500/10 text-slate-400 border-slate-500/20"
-                      }`}>
-                        {item.status}
-                      </Badge>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-center py-10 text-slate-500 italic text-xs">No support requests assigned.</p>
-                )}
-              </div>
-            )}
           </div>
         </div>
 

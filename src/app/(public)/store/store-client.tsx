@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { 
   ShoppingCart, Search, X, Plus, Minus, Trash2, 
   Ticket, ArrowRight, Lock, Package, GraduationCap, Archive,
@@ -40,11 +40,37 @@ interface StoreClientProps {
 
 export function StoreClient({ products, profileUser }: StoreClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   // Search and filter states
+  const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("ALL");
   const [isMobile, setIsMobile] = useState(false);
+
+  // Sync state from query params on mount/change
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    setInputValue(q);
+    setSearchQuery(q);
+  }, [searchParams]);
+
+  // Debounced URL updates & filtering
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(inputValue);
+      
+      const params = new URLSearchParams(window.location.search);
+      if (inputValue) {
+        params.set("q", inputValue);
+      } else {
+        params.delete("q");
+      }
+      router.push(`/store?${params.toString()}`, { scroll: false });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [inputValue, router]);
 
   // Zustand Store Integration
   const isCartOpen = useCartStore((state) => state.isDrawerOpen);
@@ -186,6 +212,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   const [shippingPhone2, setShippingPhone2] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const [checkoutError, setCheckoutError] = useState("");
 
   // Subtotal in cents
@@ -370,6 +397,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   // Submit checkout
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting || submittingRef.current) return;
     setCheckoutError("");
     
     await validateCartItems();
@@ -410,6 +438,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     }
 
     setIsSubmitting(true);
+    submittingRef.current = true;
 
     const shippingDetails = hasPhysicalOrShippingNeed ? {
       fullName,
@@ -445,6 +474,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       if (!res.ok) {
         toast.error(data.message || "Something went wrong. Please try again.");
         setIsSubmitting(false);
+        submittingRef.current = false;
         return;
       }
 
@@ -472,6 +502,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
             });
             toast.warning("Payment cancelled.");
             setIsSubmitting(false);
+            submittingRef.current = false;
           }
         },
         handler: async (response: any) => {
@@ -495,6 +526,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
           } else {
             toast.error("Payment verification failed. If amount was deducted, contact support.");
             setIsSubmitting(false);
+            submittingRef.current = false;
           }
         }
       };
@@ -513,6 +545,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
         });
         toast.error("Payment failed. Please try again or use a different payment method.");
         setIsSubmitting(false);
+        submittingRef.current = false;
       });
 
       razorpay.open();
@@ -520,13 +553,17 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     } catch (err) {
       toast.error("Something went wrong. Please refresh and try again.");
       setIsSubmitting(false);
+      submittingRef.current = false;
     }
   };
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = 
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query || 
+      product.title.toLowerCase().includes(query) ||
+      (product.description && product.description.toLowerCase().includes(query)) ||
+      (product.productType === "DIGITAL_RESOURCE" && "pdf book digital resource ebook".includes(query)) ||
+      (product.productType === "PHYSICAL" && "physical product merchandise".includes(query));
     
     if (selectedType === "ALL") return matchesSearch;
     return product.productType === selectedType && matchesSearch;
@@ -581,21 +618,50 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
             </p>
           </div>
 
-          {/* Interactive Filters Bar */}
-          <div className="mt-10 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
-            <div className="flex flex-wrap gap-2">
+          {/* Interactive Search Bar & Filters Bar */}
+          <div className="mt-10 flex flex-col items-center gap-6 w-full max-w-xl mx-auto">
+            {/* Search Input Container */}
+            <div className="relative w-full">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                <Search className="h-5 w-5" />
+              </span>
+              <input
+                type="search"
+                inputMode="search"
+                placeholder="Search products..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="w-full h-12 pl-12 pr-10 text-base bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-white placeholder-slate-400 backdrop-blur-md transition-all duration-200"
+              />
+              {inputValue && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputValue("");
+                    setSearchQuery("");
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex overflow-x-auto w-full md:w-auto scrollbar-none whitespace-nowrap gap-2 justify-start md:justify-center md:flex-wrap px-4 py-1 shrink-0">
               {[
-                { label: "All Items", val: "ALL" },
+                { label: "All Products", val: "ALL" },
                 { label: "PDF Books", val: ProductType.DIGITAL_RESOURCE },
                 { label: "Physical Products", val: ProductType.PHYSICAL },
               ].map((item) => (
                 <button
                   key={item.val}
+                  type="button"
                   onClick={() => setSelectedType(item.val)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide border transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wide border transition-all duration-200 shrink-0 ${
                     selectedType === item.val
-                      ? "bg-amber-500 text-slate-950 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
-                      : "bg-transparent text-slate-300 border-slate-700 hover:text-white hover:bg-white/5"
+                      ? "bg-indigo-600 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.25)]"
+                      : "bg-white/5 text-slate-300 border-white/10 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {item.label}
@@ -603,17 +669,10 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
               ))}
             </div>
 
-            {/* Search Box */}
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search resources..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-white bg-slate-950/40"
-              />
-            </div>
+            {/* Showing X of Y products */}
+            <p className="text-xs text-slate-400 font-medium">
+              Showing {filteredProducts.length} of {products.length} products
+            </p>
           </div>
         </Container>
       </div>
@@ -621,12 +680,22 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
       {/* Catalog Grid */}
       <Container className="mt-12">
         {filteredProducts.length === 0 ? (
-          <div className="py-20 text-center border border-dashed border-border rounded-3xl max-w-lg mx-auto px-6">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto opacity-40 mb-4" />
-            <h3 className="text-lg font-semibold">No products found</h3>
-            <p className="text-sm text-muted-foreground mt-2">
-              We couldn't find any active store products matching your filters. Try checking other categories or adjusting search keywords.
+          <div className="py-20 text-center border border-dashed border-white/10 rounded-3xl max-w-lg mx-auto px-6 bg-white/[0.02] backdrop-blur-md">
+            <Package className="h-12 w-12 text-slate-500 mx-auto opacity-40 mb-4" />
+            <h3 className="text-lg font-bold text-white">No products found</h3>
+            <p className="text-sm text-slate-400 mt-2">
+              We couldn't find any products matching "{inputValue || selectedType}".
             </p>
+            <Button
+              onClick={() => {
+                setInputValue("");
+                setSearchQuery("");
+                setSelectedType("ALL");
+              }}
+              className="mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl"
+            >
+              Clear Search & Reset Filters
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -27,7 +27,6 @@ model User {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   attempts            Attempt[]
-  auditLogs           AuditLog[]
   teachingAssignments CourseTeacher[]
   enrollments         Enrollment[]
   notifications       Notification[]
@@ -638,26 +637,6 @@ model Certificate {
   @@map("certificates")
 }
 
-model AuditLog {
-  id          String      @id @default(uuid()) @db.Uuid
-  userId      String?     @db.Uuid
-  action      AuditAction
-  entityType  String
-  entityId    String
-  beforeState Json?
-  afterState  Json?
-  ipAddress   String?
-  userAgent   String?
-  metadata    Json?
-  createdAt   DateTime    @default(now())
-  user        User?       @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([entityType, entityId])
-  @@index([action])
-  @@map("audit_logs")
-}
-
 enum UserRole {
   STUDENT
   TEACHER
@@ -800,26 +779,6 @@ enum TicketPriority {
   MEDIUM
   HIGH
   URGENT
-}
-
-enum AuditAction {
-  CREATE
-  UPDATE
-  DELETE
-  LOGIN
-  LOGOUT
-  PUBLISH
-  ARCHIVE
-}
-
-model PlatformConfig {
-  id           String   @id @default("singleton")
-  siteName     String   @default("E-Learning Academy")
-  supportEmail String   @default("support@yourapp.com")
-  maintenance  Boolean  @default(false)
-  updatedAt    DateTime @updatedAt
-
-  @@map("platform_configs")
 }
 
 model CartItem {

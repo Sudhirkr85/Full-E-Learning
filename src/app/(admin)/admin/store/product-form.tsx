@@ -211,9 +211,10 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-[1fr_280px]">
-        {/* Main fields card */}
-        <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-[1fr_280px] items-start">
+          {/* Main fields card */}
+          <div className="space-y-6">
           <Card className="bg-[#090d20]/60 border-white/5 backdrop-blur-xl relative overflow-hidden">
             <div className="absolute right-0 top-0 -z-10 h-32 w-32 rounded-full bg-indigo-500/5 blur-2xl"></div>
             <CardHeader>
@@ -412,40 +413,6 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                 </div>
               )}
 
-              {/* Status and Action Buttons */}
-              <div className="border-t border-white/5 pt-6 mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Status:
-                  </label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as ProductStatus)}
-                    className="h-10 rounded-xl border border-white/10 bg-[#0a0f24] px-4 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="PUBLISHED">Published / Active</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)] h-11 px-8 min-w-[160px]"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : isEdit ? (
-                    "Save Product"
-                  ) : (
-                    "Create Product"
-                  )}
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -511,6 +478,44 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
             </CardContent>
           </Card>
         </div>
+      </div>
+        
+      {/* Status and Action Buttons at the very bottom */}
+      <Card className="bg-[#090d20]/60 border-white/5 backdrop-blur-xl p-5 rounded-2xl shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              Status:
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as ProductStatus)}
+              className="h-10 rounded-xl border border-white/10 bg-[#0a0f24] px-4 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published / Active</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.25)] h-11 px-8 min-w-[160px]"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : isEdit ? (
+              "Save Product"
+            ) : (
+              "Create Product"
+            )}
+          </Button>
+        </div>
+      </Card>
       </form>
     </div>
   );

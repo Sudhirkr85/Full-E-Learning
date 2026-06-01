@@ -263,3 +263,215 @@ export async function sendCourseEnrollmentEmail({
     textContent
   });
 }
+
+interface SendShippingDispatchedEmailParams {
+  order: any;
+  user: any;
+  courierName: string;
+  trackingId: string;
+  dispatchDate: string;
+}
+
+export async function sendShippingDispatchedEmail({
+  order,
+  user,
+  courierName,
+  trackingId,
+  dispatchDate
+}: SendShippingDispatchedEmailParams) {
+  const firstName = user?.name ? user.name.split(" ")[0] : "Student";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+
+  const productNames = order.items.map((item: any) => item.productName).join(", ");
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Your order has been shipped!</title>
+    </head>
+    <body style="background-color: #0a0a0f; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 40px 0;">
+      <div style="max-w: 600px; margin: 0 auto; background-color: #0d1117; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+        
+        <!-- Header -->
+        <div style="background-color: #0d1117; padding: 32px; text-align: center; border-bottom: 1px solid #1e293b;">
+          <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">
+            🚚 E-LEARNING<span style="color: #7c3aed;">.IN</span>
+          </h1>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 40px 32px; background-color: #0d1117;">
+          <h2 style="font-size: 22px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 16px;">
+            Great news, ${firstName}!
+          </h2>
+          <p style="font-size: 15px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px;">
+            Your package has been dispatched from our warehouse and is on its way to you!
+          </p>
+
+          <div style="background-color: #0a0a0f; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+            <p style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 0; margin-bottom: 8px; letter-spacing: 1px;">
+              Shipment Information
+            </p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 0 0 6px 0;">
+              <strong>Order Number:</strong> ${order.orderNumber}
+            </p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 0 0 6px 0;">
+              <strong>Courier Partner:</strong> ${courierName}
+            </p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 0 0 6px 0;">
+              <strong>Tracking ID:</strong> <span style="font-family: monospace; font-weight: bold; color: #a78bfa;">${trackingId}</span>
+            </p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 0;">
+              <strong>Dispatch Date:</strong> ${dispatchDate}
+            </p>
+          </div>
+
+          <div style="background-color: #0a0a0f; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; margin-top: 30px;">
+            <h3 style="font-size: 14px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+              Items Shipped
+            </h3>
+            <p style="font-size: 13px; color: #94a3b8; line-height: 1.5; margin: 0;">
+              ${productNames}
+            </p>
+          </div>
+
+          <!-- Tracking Access CTA -->
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${appUrl}/student/orders" style="background-color: #7c3aed; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);">
+              Track My Order
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #0a0a0f; padding: 32px; text-align: center; border-top: 1px solid #1e293b; font-size: 12px; color: #64748b;">
+          <p style="margin: 0 0 8px 0;">
+            Need help? Contact our support desk at <a href="mailto:${supportEmail}" style="color: #7c3aed; text-decoration: none;">${supportEmail}</a>
+          </p>
+          <p style="margin: 0;">
+            © ${new Date().getFullYear()} E-Learning Platform. All rights reserved.
+          </p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textContent = `
+    Hi ${firstName},
+
+    Your order has been shipped!
+    Order ID: ${order.orderNumber}
+    Courier Name: ${courierName}
+    Tracking ID: ${trackingId}
+    Dispatch Date: ${dispatchDate}
+
+    Track your order on the dashboard: ${appUrl}/student/orders.
+
+    Support contact: ${supportEmail}
+  `;
+
+  return await sendEmail({
+    toEmail: order.billingEmail,
+    toName: user?.name || "Student",
+    subject: "Your order has been shipped! 🚚",
+    htmlContent,
+    textContent
+  });
+}
+
+export async function sendOrderDeliveredEmail(
+  to: string,
+  studentName: string,
+  orderId: string,
+  productName: string
+) {
+  const firstName = studentName ? studentName.split(" ")[0] : "Student";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Your order has been delivered!</title>
+    </head>
+    <body style="background-color: #0a0a0f; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 40px 0;">
+      <div style="max-w: 600px; margin: 0 auto; background-color: #0d1117; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+        
+        <!-- Header -->
+        <div style="background-color: #0d1117; padding: 32px; text-align: center; border-bottom: 1px solid #1e293b;">
+          <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">
+            🎉 E-LEARNING<span style="color: #7c3aed;">.IN</span>
+          </h1>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 40px 32px; background-color: #0d1117;">
+          <h2 style="font-size: 22px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 16px;">
+            Your order has arrived!
+          </h2>
+          <p style="font-size: 15px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px;">
+            Hi ${firstName}, your package has been successfully delivered. We hope you absolutely love it!
+          </p>
+
+          <div style="background-color: #0a0a0f; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+            <p style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 0; margin-bottom: 8px; letter-spacing: 1px;">
+              Delivery Details
+            </p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 0 0 6px 0;">
+              <strong>Order ID:</strong> #${orderId.slice(-8)}
+            </p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 0;">
+              <strong>Product:</strong> ${productName}
+            </p>
+          </div>
+
+          <!-- Review CTA -->
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${appUrl}/student/orders" style="background-color: #7c3aed; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);">
+              Leave a Review
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #0a0a0f; padding: 32px; text-align: center; border-top: 1px solid #1e293b; font-size: 12px; color: #64748b;">
+          <p style="margin: 0 0 8px 0;">
+            Need help? Contact our support desk at <a href="mailto:${supportEmail}" style="color: #7c3aed; text-decoration: none;">${supportEmail}</a>
+          </p>
+          <p style="margin: 0;">
+            © ${new Date().getFullYear()} E-Learning Platform. All rights reserved.
+          </p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textContent = `
+    Hi ${firstName},
+
+    Your order has arrived!
+    Order ID: ${orderId}
+    Product: ${productName}
+
+    We hope you love it! Leave a review on your dashboard: ${appUrl}/student/orders.
+
+    Support contact: ${supportEmail}
+  `;
+
+  return await sendEmail({
+    toEmail: to,
+    toName: studentName || "Student",
+    subject: "Your order has been delivered! 🎉",
+    htmlContent,
+    textContent
+  });
+}

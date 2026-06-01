@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AttemptStatus, AuditAction, QuestionType, TestType, UserRole } from "@prisma/client";
+import { AttemptStatus, QuestionType, TestType, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { testSettingsSchema } from "./schemas";
 import { slugify } from "@/lib/courses/slug";
-import { writeAuditLog } from "@/lib/audit/actions";
 
 function redirectWithError(path: string, error: string) {
   redirect(`${path}?error=${error}`);
@@ -80,14 +79,7 @@ export async function createTestAction(formData: FormData) {
     },
   });
 
-  // Log auditing
-  await writeAuditLog({
-    userId: teacher.id,
-    action: AuditAction.CREATE,
-    entityType: "Test",
-    entityId: test.id,
-    afterState: test,
-  });
+
 
   revalidatePath(`/teacher/courses/${courseId}/sections`);
   revalidatePath(`/teacher/courses/${courseId}/tests`);
@@ -144,16 +136,7 @@ export async function updateTestSettingsAction(testId: string, data: any) {
     },
   });
 
-  // Log auditing
-  const isPublishAction = payload.isPublished && !test.isPublished;
-  await writeAuditLog({
-    userId: teacher.id,
-    action: isPublishAction ? AuditAction.PUBLISH : AuditAction.UPDATE,
-    entityType: "Test",
-    entityId: test.id,
-    beforeState: test,
-    afterState: updatedTest,
-  });
+
 
   revalidatePath(`/teacher/courses/${test.courseId}/tests/${test.id}`);
   revalidatePath(`/teacher/courses/${test.courseId}/sections`);
@@ -169,14 +152,7 @@ export async function deleteTestAction(formData: FormData) {
 
   await assertTeacherCourseAccess(test!.courseId, teacher.id);
 
-  // Log auditing
-  await writeAuditLog({
-    userId: teacher.id,
-    action: AuditAction.DELETE,
-    entityType: "Test",
-    entityId: testId,
-    beforeState: test,
-  });
+
 
   await prisma.test.delete({ where: { id: testId } });
 

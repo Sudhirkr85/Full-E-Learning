@@ -15,8 +15,12 @@ import {
   CheckCircle2, 
   AlertCircle,
   XCircle,
-  Truck
+  Truck,
+  BookOpen,
+  ExternalLink
 } from "lucide-react";
+import { CopyButton } from "@/components/ui/copy-button";
+import { OrderStatusPoller } from "./order-status-poller";
 
 export const metadata: Metadata = makeMetadata({
   title: "My Orders | Dashboard",
@@ -27,6 +31,27 @@ export const metadata: Metadata = makeMetadata({
 
 export default async function StudentOrdersPage() {
   const student = await requireRole(["STUDENT"]);
+
+  // Auto-cancel pending orders older than 30 minutes
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+  try {
+    await prisma.order.updateMany({
+      where: {
+        userId: student.id,
+        status: "PENDING",
+        placedAt: {
+          lt: thirtyMinutesAgo,
+        },
+      },
+      data: {
+        status: "CANCELLED",
+        failureReason: "Payment window expired (30 minutes timeout)",
+        failedAt: new Date(),
+      },
+    });
+  } catch (err) {
+    console.error("Failed to auto-cancel expired pending orders:", err);
+  }
 
   // Fetch all orders for this student
   const orders = await prisma.order.findMany({
@@ -154,7 +179,7 @@ export default async function StudentOrdersPage() {
               const formattedTotal = (order.totalCents / 100).toLocaleString("en-IN", {
                 style: "currency",
                 currency: "INR",
-                minimumFractionDigits: 2
+                minimumFractionDigits: 0
               });
 
               const dateStr = new Date(order.placedAt).toLocaleDateString("en-IN", {
@@ -163,62 +188,207 @@ export default async function StudentOrdersPage() {
                 year: "numeric",
               });
 
+              const meta: any = order.metadata || {};
+              const shippingStatus = meta.shippingStatus || "PROCESSING";
+              const courierName = meta.courierName || "";
+              const trackingId = meta.trackingId || "";
+              const trackingUrl = meta.trackingUrl || "";
+              
+              const hasPhysical = order.items.some(item => item.productType === "PHYSICAL");
+              
+              const getCourierDeepLink = (courier: string, trId: string) => {
+                const c = courier.toLowerCase();
+                if (c.includes("delhivery")) return `https://www.delhivery.com/track/package/${trId}`;
+                if (c.includes("bluedart") || c.includes("blue dart")) return `https://www.bluedart.com/tracking?trackid=${trId}`;
+                if (c.includes("india post") || c.includes("speed post")) return `https://www.indiapost.gov.in/`;
+                return null;
+              };
+
+              const activeTrackingUrl = trackingUrl || (trackingId ? getCourierDeepLink(courierName, trackingId) : null);
+
               return (
                 <div 
                   key={order.id} 
-                  className="group relative overflow-hidden rounded-2xl bg-slate-900/30 border border-white/5 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.12)] p-5 md:p-6 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-6"
+                  className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.12)] p-5 md:p-6 backdrop-blur-md flex flex-col gap-6"
                 >
-                  {/* Left Column: Reference & Product Details */}
-                  <div className="space-y-3.5 flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="font-mono text-xs font-bold text-slate-200 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                        {order.orderNumber}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                        <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                        {dateStr}
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap items-center gap-2">
-                      {getPaymentStatusBadge(order.status)}
-                      {getShippingStatusBadge(order)}
-                    </div>
-
-                    <div className="flex items-start gap-2 text-sm text-slate-300 min-w-0">
-                      <Tag className="h-4 w-4 text-indigo-400 mt-0.5 shrink-0" />
-                      <p className="font-semibold truncate max-w-xl">
-                        {order.items.map(item => item.productName).join(", ")}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Pricing & Quick Actions */}
-                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-white/5 shrink-0">
-                    <div className="text-left md:text-right">
-                      <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold block mb-1">Total Paid</span>
-                      <span className="text-2xl font-black text-white tracking-tight">{formattedTotal}</span>
+                  {/* Top Row: Ref, Date, Status Badges */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="font-mono text-xs font-bold text-slate-200 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                          Order Reference: #{order.orderNumber.slice(-8)}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                          <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                          {dateStr}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-2">
+                        {getPaymentStatusBadge(order.status)}
+                        {order.status === "PENDING" && (
+                          <OrderStatusPoller orderId={order.id} initialStatus={order.status} />
+                        )}
+                        {getShippingStatusBadge(order)}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      {order.status === "PENDING" && (
+                    <div className="flex items-center justify-between md:justify-end gap-6 shrink-0">
+                      <div className="text-left md:text-right">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold block mb-1">Total Paid</span>
+                        <span className="text-2xl font-black text-white tracking-tight">{formattedTotal}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {order.status === "PENDING" && (
+                          <Link 
+                            href={`/checkout/${order.id}`}
+                            className="h-10 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-1.5 transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)] hover:scale-[1.02]"
+                          >
+                            <CreditCard className="h-3.5 w-3.5" />
+                            Pay Now
+                          </Link>
+                        )}
                         <Link 
-                          href={`/checkout/${order.id}`}
-                          className="h-10 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-1.5 transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)] hover:scale-[1.02]"
+                          href={`/student/orders/${order.id}`}
+                          className="h-10 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-white border border-white/10 flex items-center justify-center gap-1.5 transition-all"
                         >
-                          <CreditCard className="h-3.5 w-3.5" />
-                          Pay Now
+                          Details
+                          <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                         </Link>
-                      )}
-                      <Link 
-                        href={`/student/orders/${order.id}`}
-                        className="h-10 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-white border border-white/10 flex items-center justify-center gap-1.5 transition-all"
-                      >
-                        Details
-                        <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-                      </Link>
+                      </div>
                     </div>
                   </div>
+
+                  {/* List of items in the order */}
+                  <div className="pt-3 border-t border-white/5 space-y-3">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Purchased Items</p>
+                    {order.items.map((item) => {
+                      const isPdf = item.productType === "DIGITAL_RESOURCE";
+                      const price = (item.totalPriceCents / 100).toLocaleString("en-IN", {
+                        style: "currency",
+                        currency: "INR",
+                        minimumFractionDigits: 0
+                      });
+                      return (
+                        <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                              {isPdf ? <BookOpen className="h-4 w-4" /> : <Package className="h-4 w-4" />}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-white truncate">{item.productName}</p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                Type: {isPdf ? "PDF Book" : "Physical Product"} • Qty: {item.quantity}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between sm:justify-end gap-4">
+                            <span className="text-xs font-bold text-slate-300 font-mono">{price}</span>
+                            {order.status === "PAID" && isPdf && (
+                              <Link
+                                href={`/student/orders/${order.id}/pdf-viewer?productId=${item.productId}`}
+                                className="h-8 px-3 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1 transition"
+                              >
+                                <BookOpen className="h-3 w-3" />
+                                Read Now
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Shipping tracking timeline card for physical items */}
+                  {order.status === "PAID" && hasPhysical && (
+                    <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4">
+                      <div className="flex items-center gap-2 text-xs font-bold text-white">
+                        <Truck className="h-4 w-4 text-indigo-400" />
+                        <span>Shipping Status</span>
+                      </div>
+                      
+                      {/* Shipping Timeline: horizontal on desktop, vertical on mobile */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
+                        {/* Step 1: Processing */}
+                        <div className="flex items-center gap-2.5">
+                          <span className={`h-6 w-6 rounded-full flex items-center justify-center border-2 text-[10px] font-bold ${
+                            shippingStatus === "PROCESSING" || shippingStatus === "SHIPPED" || shippingStatus === "DELIVERED"
+                              ? "bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                              : "bg-transparent border-white/10 text-slate-500"
+                          }`}>
+                            1
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold text-white">Processing</p>
+                            <p className="text-[10px] text-slate-400">Items being packed</p>
+                          </div>
+                        </div>
+
+                        {/* Arrow/Line divider between 1 & 2 */}
+                        <div className="hidden sm:block flex-1 h-[2px] bg-white/10 mx-2" />
+
+                        {/* Step 2: Shipped */}
+                        <div className="flex items-center gap-2.5">
+                          <span className={`h-6 w-6 rounded-full flex items-center justify-center border-2 text-[10px] font-bold ${
+                            shippingStatus === "SHIPPED" || shippingStatus === "DELIVERED"
+                              ? "bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                              : "bg-transparent border-white/10 text-slate-500"
+                          }`}>
+                            2
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold text-white">Shipped</p>
+                            <p className="text-[10px] text-slate-400">Dispatched from hub</p>
+                          </div>
+                        </div>
+
+                        {/* Arrow/Line divider between 2 & 3 */}
+                        <div className="hidden sm:block flex-1 h-[2px] bg-white/10 mx-2" />
+
+                        {/* Step 3: Delivered */}
+                        <div className="flex items-center gap-2.5">
+                          <span className={`h-6 w-6 rounded-full flex items-center justify-center border-2 text-[10px] font-bold ${
+                            shippingStatus === "DELIVERED"
+                              ? "bg-emerald-600 border-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                              : "bg-transparent border-white/10 text-slate-500"
+                          }`}>
+                            3
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold text-white">Delivered</p>
+                            <p className="text-[10px] text-slate-400">Arrived at destination</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Extra tracking information if dispatched */}
+                      {(shippingStatus === "SHIPPED" || shippingStatus === "DELIVERED") && trackingId && (
+                        <div className="pt-3 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                          <div className="space-y-1">
+                            <p className="text-slate-400">
+                              Courier: <span className="font-semibold text-white">{courierName || "Standard Delivery"}</span>
+                            </p>
+                            <p className="text-slate-400 flex items-center flex-wrap gap-1">
+                              Tracking ID: <CopyButton text={trackingId} />
+                            </p>
+                          </div>
+                          
+                          {activeTrackingUrl && (
+                            <a
+                              href={activeTrackingUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-9 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wide flex items-center justify-center gap-1 transition self-start sm:self-center"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              Track on Courier Site
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

@@ -332,20 +332,7 @@ export async function createOrderAction(params: {
         },
       });
 
-      // 6. Write Audit Log in transaction
-      await tx.auditLog.create({
-        data: {
-          userId: userId || null,
-          action: "CREATE",
-          entityType: "Order",
-          entityId: order.id,
-          afterState: JSON.parse(JSON.stringify(order)),
-          metadata: {
-            reason: "Checkout order creation",
-            couponCode: couponCode || null,
-          },
-        },
-      });
+
 
       return order;
     });
@@ -533,20 +520,7 @@ export async function simulatePaymentSuccessAction(orderId: string) {
         }
       }
 
-      // 5. Write audit log
-      await tx.auditLog.create({
-        data: {
-          userId: studentUserId,
-          action: "UPDATE",
-          entityType: "Order",
-          entityId: order.id,
-          afterState: { status: "PAID", simulation: true, simPaymentId },
-          metadata: {
-            reason: "Sandbox Offline Checkout simulation success",
-            orderNumber: order.orderNumber,
-          },
-        },
-      });
+
     });
 
     // Post-commit background email dispatching

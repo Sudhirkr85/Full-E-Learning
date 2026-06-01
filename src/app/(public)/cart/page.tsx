@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
 import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Ticket, Lock, X, Loader2, Package } from "lucide-react";
@@ -74,6 +74,7 @@ export default function MobileCartPage() {
   const [showCouponInput, setShowCouponInput] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   // Address Modal States
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -267,6 +268,7 @@ export default function MobileCartPage() {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting || submittingRef.current) return;
     if (cart.length === 0) return;
 
     if (!billingEmail || !billingEmail.includes('@')) {
@@ -291,6 +293,7 @@ export default function MobileCartPage() {
     }
 
     setIsSubmitting(true);
+    submittingRef.current = true;
     const shippingDetails = hasPhysicalOrShippingNeed ? {
       fullName,
       addressLine1,
@@ -325,6 +328,7 @@ export default function MobileCartPage() {
       if (!res.ok) {
         toast.error(data.message || "Something went wrong. Please try again.");
         setIsSubmitting(false);
+        submittingRef.current = false;
         return;
       }
 
@@ -352,6 +356,7 @@ export default function MobileCartPage() {
             });
             toast.warning("Payment cancelled.");
             setIsSubmitting(false);
+            submittingRef.current = false;
           }
         },
         handler: async (response: any) => {
@@ -374,6 +379,7 @@ export default function MobileCartPage() {
           } else {
             toast.error("Payment verification failed. If amount was deducted, contact support.");
             setIsSubmitting(false);
+            submittingRef.current = false;
           }
         }
       };
@@ -392,6 +398,7 @@ export default function MobileCartPage() {
         });
         toast.error("Payment failed. Please try again or use a different payment method.");
         setIsSubmitting(false);
+        submittingRef.current = false;
       });
 
       razorpay.open();
@@ -399,6 +406,7 @@ export default function MobileCartPage() {
     } catch (err) {
       toast.error("Something went wrong. Please refresh and try again.");
       setIsSubmitting(false);
+      submittingRef.current = false;
     }
   };
 
@@ -434,6 +442,19 @@ export default function MobileCartPage() {
         <form onSubmit={handleCheckout} className="flex-1 overflow-y-auto overscroll-contain flex flex-col justify-start pb-6">
           {/* Scrollable Items area */}
           <div className="px-4 py-3 space-y-4">
+            {/* Beautiful Cart Banner */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-950/30 via-slate-900/40 to-indigo-950/30 border border-white/5 p-5 backdrop-blur-md">
+              <div className="absolute top-0 right-0 w-[150px] h-[150px] bg-violet-500/10 rounded-full filter blur-[40px] pointer-events-none" />
+              <div className="relative z-10 space-y-1">
+                <span className="inline-flex items-center gap-1.5 bg-violet-500/10 text-violet-300 border border-violet-500/20 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">
+                  <ShoppingCart className="h-3 w-3 text-violet-400" />
+                  Secure Checkout
+                </span>
+                <h2 className="text-xl font-extrabold text-white mt-1">Review Your Cart</h2>
+                <p className="text-[10px] text-slate-400">Review your learning seats, digital materials, and complete enrollment.</p>
+              </div>
+            </div>
+
             {cart.map((item) => (
               <div key={item.productId} className="bg-white/5 border border-white/10 rounded-xl p-3 flex gap-3 items-center">
                 <img
@@ -458,29 +479,29 @@ export default function MobileCartPage() {
                 </div>
 
                 {/* Quantity + Remove */}
-                <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.productId, -1)}
-                    className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center hover:bg-white/10 text-white transition-colors"
+                    className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center hover:bg-white/10 text-white transition-colors active:scale-90"
                   >
-                    <Minus className="w-3.5 h-3.5" />
+                    <Minus className="w-4 h-4" />
                   </button>
-                  <span className="text-sm font-semibold w-4 text-center">{item.quantity}</span>
+                  <span className="text-sm font-semibold w-5 text-center">{item.quantity}</span>
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.productId, 1)}
-                    className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center hover:bg-white/10 text-white transition-colors"
+                    className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center hover:bg-white/10 text-white transition-colors active:scale-90"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => removeFromCart(item.productId)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors ml-0.5"
+                    className="w-10 h-10 p-2 rounded-xl flex items-center justify-center text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors ml-0.5 active:scale-90"
                     aria-label="Remove item"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4.5 h-4.5" />
                   </button>
                 </div>
               </div>

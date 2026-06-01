@@ -23,8 +23,7 @@ export const studentNav = [
   { label: "Overview", href: "/student/dashboard" },
   { label: "My Profile", href: "/student/profile" },
   { label: "My Courses", href: "/student/courses" },
-  { label: "My Orders", href: "/student/orders" },
-  { label: "Support Tickets", href: "/student/support" }
+  { label: "My Orders", href: "/student/orders" }
 ];
 
 export const teacherNav = [
@@ -42,7 +41,6 @@ export const adminNav = [
   { label: "Courses", href: "/admin/courses" },
   { label: "Categories", href: "/admin/categories" },
   { label: "Store", href: "/admin/store" },
-  { label: "Support Tickets", href: "/admin/support" },
   { label: "Audit Logs", href: "/admin/audit-logs" },
   { label: "Change Password", href: "/admin/settings/change-password" },
   { label: "Platform Config", href: "/admin/settings/platform" }

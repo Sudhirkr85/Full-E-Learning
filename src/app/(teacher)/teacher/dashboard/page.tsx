@@ -106,18 +106,7 @@ export default async function TeacherDashboardPage() {
         take: 5
       })
     ),
-    withRetry(() =>
-      prisma.supportTicket.findMany({
-        where: {
-          assignedToId: user.id
-        },
-        include: {
-          reporter: true
-        },
-        orderBy: { createdAt: "desc" },
-        take: 5
-      })
-    )
+    Promise.resolve([]) as Promise<any[]>
   ]);
 
   // Aggregate Metrics Server-side
@@ -206,8 +195,7 @@ export default async function TeacherDashboardPage() {
       recentActivity={{
         recentEnrollments,
         recentSubmissions,
-        recentCompletions,
-        recentTickets
+        recentCompletions
       }}
       charts={{
         enrollmentTrend,

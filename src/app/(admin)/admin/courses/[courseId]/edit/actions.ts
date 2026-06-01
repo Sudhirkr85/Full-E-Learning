@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { CourseStatus, AuditAction, CourseLevel } from "@prisma/client";
+import { CourseStatus, CourseLevel } from "@prisma/client";
 import { courseCoreSchema } from "@/lib/courses/schemas";
 
 export async function adminUpdateCourseAction(formData: FormData) {
@@ -116,26 +116,7 @@ export async function adminToggleCourseStatusAction(formData: FormData) {
     }
   });
 
-  // Log auditing
-  let auditAction: AuditAction = AuditAction.UPDATE;
-  if (status === CourseStatus.PUBLISHED) {
-    auditAction = AuditAction.PUBLISH;
-  } else if (status === CourseStatus.ARCHIVED) {
-    auditAction = AuditAction.ARCHIVE;
-  }
 
-  await prisma.auditLog.create({
-    data: {
-      userId: admin.id,
-      action: auditAction,
-      entityType: "Course",
-      entityId: courseId,
-      beforeState: { status: currentCourse.status },
-      metadata: {
-        reason: "Course status toggled by admin"
-      }
-    }
-  });
 
   revalidatePath(`/admin/courses/${courseId}`);
   revalidatePath(`/admin/courses/${courseId}/edit`);
@@ -285,18 +266,7 @@ export async function adminDeleteCourseAction(formData: FormData) {
     throw new Error("Course not found.");
   }
 
-  await prisma.auditLog.create({
-    data: {
-      userId: admin.id,
-      action: AuditAction.DELETE,
-      entityType: "Course",
-      entityId: courseId,
-      beforeState: { title: currentCourse.title, slug: currentCourse.slug, status: currentCourse.status },
-      metadata: {
-        reason: "Course deleted by admin"
-      }
-    }
-  });
+
 
   await prisma.course.delete({ where: { id: courseId } });
   revalidatePath("/admin/courses");

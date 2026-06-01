@@ -73,21 +73,7 @@ export async function updateShippingAction(params: {
       });
     }
 
-    // 5. Log audit trail
-    await prisma.auditLog.create({
-      data: {
-        userId: actor.id,
-        action: "UPDATE",
-        entityType: "Order",
-        entityId: order.id,
-        beforeState: JSON.parse(JSON.stringify(order.metadata || {})),
-        afterState: JSON.parse(JSON.stringify(updatedMetadata)),
-        metadata: {
-          reason: "Manual order shipping update by staff",
-          actorName: actor.name || actor.email,
-        },
-      },
-    });
+
 
     return {
       success: true,

@@ -107,19 +107,7 @@ export async function issueCertificateAction(enrollmentId: string) {
       },
     });
 
-    // Write audit log
-    await prisma.auditLog.create({
-      data: {
-        userId: enrollment.userId,
-        action: "CREATE",
-        entityType: "Certificate",
-        entityId: certificate.id,
-        afterState: JSON.parse(JSON.stringify(certificate)),
-        metadata: {
-          reason: "Automated course completion certificate issuance",
-        },
-      },
-    });
+
 
     // Non-blocking background email dispatch
     const { sendCertificateEmail, dispatchEmailBackground } = await import("@/lib/email");

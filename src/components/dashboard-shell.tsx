@@ -20,9 +20,7 @@ import {
   Users,
   FolderOpen,
   ShoppingBag,
-  ClipboardList,
   Lock,
-  Sliders,
   BookOpen,
   GraduationCap
 } from "lucide-react";
@@ -63,9 +61,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
     if (l.includes("category")) return <FolderOpen className="h-4 w-4 shrink-0" />;
     if (l.includes("store") || l.includes("order")) return <ShoppingBag className="h-4 w-4 shrink-0" />;
     if (l.includes("ticket") || l.includes("support")) return <ShieldQuestion className="h-4 w-4 shrink-0" />;
-    if (l.includes("audit")) return <ClipboardList className="h-4 w-4 shrink-0" />;
     if (l.includes("password")) return <Lock className="h-4 w-4 shrink-0" />;
-    if (l.includes("config") || l.includes("platform")) return <Sliders className="h-4 w-4 shrink-0" />;
     return <LayoutDashboard className="h-4 w-4 shrink-0" />;
   };
 
@@ -109,13 +105,11 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         { label: "Courses", href: "/admin/courses" },
         { label: "Categories", href: "/admin/categories" },
         { label: "Store", href: "/admin/store" },
-        { label: "Coupons", href: "/admin/coupons" },
-        { label: "Support Tickets", href: "/admin/support" },
-        { label: "Audit Logs", href: "/admin/audit-logs" }
+        { label: "Store Orders", href: "/admin/store/orders" },
+        { label: "Coupons", href: "/admin/coupons" }
       ];
       const settingsLinks = [
-        { label: "Change Password", href: "/admin/settings/change-password" },
-        { label: "Platform Config", href: "/admin/settings/platform" }
+        { label: "Change Password", href: "/admin/settings/change-password" }
       ];
 
       return (
@@ -126,6 +120,21 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
           <hr className="my-1.5 border-white/5" />
           <p className="px-3.5 py-1 text-[9px] font-bold uppercase tracking-widest text-indigo-400/80">Settings</p>
           {settingsLinks.map(renderLink)}
+        </div>
+      );
+    }
+
+    if (role === "STUDENT") {
+      const studentLinks = [
+        { label: "Overview", href: "/student/dashboard" },
+        { label: "My Profile", href: "/student/profile" },
+        { label: "My Courses", href: "/student/courses" },
+        { label: "My Library", href: "/student/library" },
+        { label: "My Orders", href: "/student/orders" }
+      ];
+      return (
+        <div className="flex flex-col gap-1.5">
+          {studentLinks.map(renderLink)}
         </div>
       );
     }
@@ -165,18 +174,18 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           {/* LEFT: Premium Glass Sidebar */}
-          <aside className="hidden rounded-2xl border border-white/5 bg-[#090d20]/50 p-5 shadow-[0_15px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl lg:sticky lg:top-24 lg:block lg:h-fit">
-            <div>
+          <aside className="hidden rounded-2xl border border-white/5 bg-[#090d20]/50 p-5 shadow-[0_15px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl lg:sticky lg:top-24 lg:flex lg:flex-col lg:h-[calc(100vh-120px)] overflow-hidden">
+            <div className="flex-shrink-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-400">{labelText}</p>
               <h1 className="mt-2 font-display text-xl font-extrabold text-white tracking-tight leading-tight">{title}</h1>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{description}</p>
             </div>
 
-            <nav className="mt-6 flex flex-col gap-1.5">
+            <nav className="mt-6 flex-1 overflow-y-auto sidebar-nav pr-1 flex flex-col gap-1.5">
               {renderSidebarLinks()}
+            </nav>
 
-              <hr className="my-2 border-white/5" />
-
+            <div className="flex-shrink-0 mt-auto pt-4 border-t border-white/5">
               <button
                 onClick={() => setIsLogoutModalOpen(true)}
                 className="w-full rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300 flex items-center justify-between border bg-transparent text-rose-400 border-transparent hover:border-rose-500/10 hover:bg-rose-500/5 hover:text-rose-300"
@@ -187,11 +196,11 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
                 </span>
                 <ChevronRight className="h-3 w-3 opacity-60" />
               </button>
-            </nav>
+            </div>
           </aside>
 
           {/* RIGHT: Main Translucent Workplace Area */}
-          <main className="rounded-2xl border border-white/5 bg-[#090d20]/45 p-6 md:p-8 shadow-[0_15px_30px_rgba(0,0,0,0.3)] backdrop-blur-lg">
+          <main className="rounded-2xl border border-white/5 bg-[#090d20]/45 p-4 md:p-8 shadow-[0_15px_30px_rgba(0,0,0,0.3)] backdrop-blur-lg min-w-0 w-full">
             {children}
           </main>
         </div>
@@ -203,8 +212,8 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
               className="absolute inset-0 bg-[#020617]/80 backdrop-blur-sm"
               aria-label="Close dashboard menu"
             />
-            <aside className="absolute left-4 right-4 top-6 rounded-2xl border border-white/5 bg-[#090d20] p-5 shadow-[0_15px_30px_rgba(0,0,0,0.5)]">
-              <div className="mb-3 flex items-center justify-end">
+            <aside className="absolute left-4 right-4 top-6 bottom-6 rounded-2xl border border-white/5 bg-[#090d20] p-5 shadow-[0_15px_30px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden max-h-[calc(100vh-48px)]">
+              <div className="mb-3 flex items-center justify-end flex-shrink-0">
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-300"
@@ -213,14 +222,15 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
                   Close
                 </button>
               </div>
-              <div>
+              <div className="flex-shrink-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-400">{labelText}</p>
                 <h1 className="mt-2 font-display text-xl font-extrabold text-white tracking-tight leading-tight">{title}</h1>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{description}</p>
               </div>
-              <nav className="mt-6 flex flex-col gap-1.5">
+              <nav className="mt-6 flex-1 overflow-y-auto sidebar-nav pr-1 flex flex-col gap-1.5">
                 {renderSidebarLinks(() => setIsMobileMenuOpen(false))}
-                <hr className="my-2 border-white/5" />
+              </nav>
+              <div className="flex-shrink-0 mt-auto pt-4 border-t border-white/5">
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
@@ -234,7 +244,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
                   </span>
                   <ChevronRight className="h-3 w-3 opacity-60" />
                 </button>
-              </nav>
+              </div>
             </aside>
           </div>
         ) : null}

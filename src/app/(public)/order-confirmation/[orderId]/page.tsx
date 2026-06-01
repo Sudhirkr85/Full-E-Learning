@@ -2,11 +2,12 @@ import React from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, XCircle, ArrowRight, ShieldCheck, Mail, ArrowLeft } from "lucide-react";
+import { CheckCircle, XCircle, ArrowRight, ShieldCheck, Mail, ArrowLeft, ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { makeMetadata } from "@/lib/site";
 import { OrderStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { getCurrentUser } from "@/lib/auth";
 
 type OrderConfirmationPageProps = {
   params: Promise<{
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: OrderConfirmationPageProps): 
 
 export default async function OrderConfirmationPage({ params }: OrderConfirmationPageProps) {
   const { orderId } = await params;
+  const user = await getCurrentUser();
 
   // Fetch the order from the database
   const order = await prisma.order.findUnique({
@@ -91,6 +93,34 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
               ))}
             </div>
 
+            {/* Price breakdown if we have a shipping charge or discount */}
+            {(() => {
+              const shippingFeeCents = Math.max(0, order.totalCents - (order.subtotalCents - order.discountCents));
+              if (order.discountCents > 0 || shippingFeeCents > 0) {
+                return (
+                  <div className="space-y-1.5 pt-2 text-xs text-slate-400 border-t border-white/5">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span>₹{(order.subtotalCents / 100).toLocaleString("en-IN")}</span>
+                    </div>
+                    {order.discountCents > 0 && (
+                      <div className="flex justify-between text-emerald-400">
+                        <span>Discount</span>
+                        <span>-₹{(order.discountCents / 100).toLocaleString("en-IN")}</span>
+                      </div>
+                    )}
+                    {shippingFeeCents > 0 && (
+                      <div className="flex justify-between">
+                        <span>Shipping Fee</span>
+                        <span>₹{(shippingFeeCents / 100).toLocaleString("en-IN")}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             <div className="flex justify-between items-center pt-3 border-t border-dashed border-white/10 text-sm font-bold">
               <span className="text-slate-400">Total Paid</span>
               <span className="text-emerald-400 text-lg">
@@ -103,19 +133,28 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
           <div className="flex flex-col gap-3">
             {hasPdf && pdfProductId && (
               <Button asChild className="h-11 rounded-xl font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors">
-                <Link href={`/store/read/${pdfProductId}`}>Access your PDF</Link>
+                <Link href={`/student/orders/${order.id}/pdf-viewer?productId=${pdfProductId}`}>Access your PDF</Link>
               </Button>
             )}
             
             {hasPhysical && (
               <Button asChild className="h-11 rounded-xl font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors">
-                <Link href="/profile/orders">Track your order</Link>
+                <Link href="/student/orders">Track your order</Link>
               </Button>
             )}
 
             {!hasPdf && !hasPhysical && (
               <Button asChild className="h-11 rounded-xl font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors">
                 <Link href="/student/dashboard">Go to Dashboard</Link>
+              </Button>
+            )}
+
+            {user && (
+              <Button asChild variant="ghost" className="h-11 rounded-xl font-semibold border border-white/10 text-slate-300 hover:bg-white/5 hover:text-white transition-colors w-full">
+                <Link href="/student/orders">
+                  <ShoppingBag className="w-4 h-4 mr-2 inline-block text-slate-400" />
+                  View My Orders
+                </Link>
               </Button>
             )}
 
@@ -144,9 +183,6 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
           <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
             <Button asChild className="w-full h-11 rounded-xl font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors">
               <Link href="/store">Try Again</Link>
-            </Button>
-            <Button asChild variant="ghost" className="w-full h-11 rounded-xl font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
-              <Link href="/support">Contact Support</Link>
             </Button>
           </div>
         </div>

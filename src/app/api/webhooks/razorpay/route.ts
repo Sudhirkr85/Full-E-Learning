@@ -235,21 +235,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Write Audit Log
-        await tx.auditLog.create({
-          data: {
-            userId: studentUserId,
-            action: "UPDATE",
-            entityType: "Order",
-            entityId: order.id,
-            afterState: { status: "PAID", rzpPaymentId },
-            metadata: {
-              reason: "Razorpay Webhook payment capture",
-              orderNumber: order.orderNumber,
-              amountPaidCents: order.totalCents,
-            },
-          },
-        });
+
       });
 
       // Post-commit background email dispatching

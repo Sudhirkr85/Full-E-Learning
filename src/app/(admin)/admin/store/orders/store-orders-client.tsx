@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,11 @@ type StoreOrdersClientProps = {
 
 export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
   const [orders, setOrders] = useState<OrderData[]>(initialOrders);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<"All" | "Processing" | "Shipped" | "Delivered" | "PDF Orders" | "Cancelled">("All");
@@ -598,9 +604,9 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
       )}
 
       {/* STEP 5 - Add/Update Tracking Modal / Bottom Sheet */}
-      {selectedOrder && (
+      {selectedOrder && mounted && createPortal(
         <div 
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-[#06060a]/90 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => setSelectedOrder(null)}
         >
           {/* Faux Wrapper / Modal content */}
@@ -635,6 +641,7 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
                 <label className="text-[10px] text-slate-400 uppercase font-semibold block mb-1">Courier Name *</label>
                 <select
                   required
+                  autoFocus
                   value={courierName}
                   onChange={(e) => setCourierName(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 h-11 text-base text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40"
@@ -741,7 +748,8 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

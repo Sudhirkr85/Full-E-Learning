@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, HelpCircle } from "lucide-react";
 
@@ -14,6 +15,7 @@ type CustomPopupProps = {
   confirmText?: string;
   cancelText?: string;
   isError?: boolean;
+  position?: "center" | "top" | "bottom";
 };
 
 export function CustomPopup({
@@ -25,22 +27,42 @@ export function CustomPopup({
   onCancel,
   confirmText = "OK",
   cancelText = "Cancel",
-  isError = false
+  isError = false,
+  position = "center"
 }: CustomPopupProps) {
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && mounted) {
       setTimeout(() => {
-        confirmButtonRef.current?.focus();
+        const target = (type === "confirm" && cancelButtonRef.current) 
+          ? cancelButtonRef.current 
+          : confirmButtonRef.current;
+        
+        if (target) {
+          target.focus();
+          target.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+        }
       }, 50);
     }
-  }, [isOpen]);
+  }, [isOpen, type, mounted]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  const positionClasses = {
+    center: "items-center justify-center",
+    top: "items-start justify-center pt-24 md:pt-32",
+    bottom: "items-end justify-center pb-24 md:pb-32"
+  };
+
+  return createPortal(
+    <div className={`fixed inset-0 z-[100] flex p-4 ${positionClasses[position]}`}>
       {/* Semi-transparent backdrop blur */}
       <div 
         className="absolute inset-0 bg-[#06060a]/80 backdrop-blur-md" 
@@ -79,6 +101,7 @@ export function CustomPopup({
         <div className="flex gap-2 justify-center pt-2">
           {type === "confirm" && onCancel && (
             <Button 
+              ref={cancelButtonRef}
               type="button" 
               variant="outline" 
               className="text-xs h-9 rounded-xl border-white/5 bg-white/5 text-slate-300 hover:text-white px-4 shrink-0"
@@ -100,8 +123,8 @@ export function CustomPopup({
             {confirmText}
           </Button>
         </div>
-
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

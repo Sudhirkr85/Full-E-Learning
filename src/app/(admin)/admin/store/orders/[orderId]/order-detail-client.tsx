@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -97,6 +98,11 @@ function CopyChip({ value }: { value: string }) {
 
 export function OrderDetailClient({ order }: OrderDetailClientProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Tracking Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -543,9 +549,9 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
       </Card>
 
       {/* TRACKING MODAL */}
-      {isModalOpen && (
+      {isModalOpen && mounted && createPortal(
         <div 
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-[#06060a]/90 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => setIsModalOpen(false)}
         >
           <div
@@ -577,6 +583,7 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
                 <label className="text-[10px] text-slate-400 uppercase font-semibold block mb-1">Courier Name *</label>
                 <select
                   required
+                  autoFocus
                   value={courierName}
                   onChange={(e) => setCourierName(e.target.value)}
                   className="w-full bg-[#0d0d14] border border-white/10 rounded-xl px-4 h-11 text-sm text-white focus:outline-none focus:border-indigo-500"
@@ -677,7 +684,8 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

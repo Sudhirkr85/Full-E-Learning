@@ -33,3 +33,21 @@ export function getYoutubeEmbedUrl(url: string | null | undefined): string {
 
   return trimmed;
 }
+
+export function getYoutubeVideoId(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  
+  const watchRegExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = trimmed.match(watchRegExp);
+  
+  if (match && match[1]) {
+    return match[1];
+  }
+  
+  if (trimmed.length === 11 && /^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  
+  return null;
+}

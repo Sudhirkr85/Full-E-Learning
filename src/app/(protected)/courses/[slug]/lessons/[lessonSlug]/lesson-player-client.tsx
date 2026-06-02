@@ -27,7 +27,8 @@ import {
   Menu
 } from "lucide-react";
 import { toggleLessonCompletionAction } from "@/lib/courses/actions";
-import { cn, getYoutubeEmbedUrl } from "@/lib/utils";
+import { cn, getYoutubeEmbedUrl, getYoutubeVideoId } from "@/lib/utils";
+import { CustomYoutubePlayer } from "@/components/custom-youtube-player";
 
 type LessonPlayerClientProps = {
   slug: string;
@@ -271,16 +272,11 @@ export function LessonPlayerClient({
 
             {/* Media Player Container */}
             <div className="relative z-10">
-              {bundle.lesson.youtubeUrl ? (
-                <div className="overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-[0_0_30px_rgba(99,102,241,0.1)] relative">
-                  <iframe
-                    className="aspect-video w-full"
-                    src={getYoutubeEmbedUrl(bundle.lesson.youtubeUrl)}
-                    title={bundle.lesson.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                </div>
+              {bundle.lesson.youtubeUrl && getYoutubeVideoId(bundle.lesson.youtubeUrl) ? (
+                <CustomYoutubePlayer 
+                  videoId={getYoutubeVideoId(bundle.lesson.youtubeUrl)!} 
+                  title={bundle.lesson.title} 
+                />
               ) : (
                 <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.01] p-10 text-center flex flex-col items-center justify-center min-h-[300px]">
                   <div className="h-12 w-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mb-4 shadow-[0_0_15px_rgba(255,255,255,0.02)]">

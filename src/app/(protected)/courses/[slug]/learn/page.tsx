@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import { toggleLessonCompletionAction } from "@/lib/courses/actions";
 import { revalidatePath } from "next/cache";
-import { getYoutubeEmbedUrl } from "@/lib/utils";
+import { getYoutubeEmbedUrl, getYoutubeVideoId } from "@/lib/utils";
+import { CustomYoutubePlayer } from "@/components/custom-youtube-player";
 import ClassroomQuizPortal from "./classroom-quiz-portal";
 
 export const dynamic = "force-dynamic";
@@ -347,13 +348,10 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
               )
             ) : (
               <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl">
-                {activeLesson.youtubeUrl ? (
-                  <iframe
-                    className="w-full h-full"
-                    src={getYoutubeEmbedUrl(activeLesson.youtubeUrl)}
-                    title={activeLesson.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
+                {activeLesson.youtubeUrl && getYoutubeVideoId(activeLesson.youtubeUrl) ? (
+                  <CustomYoutubePlayer 
+                    videoId={getYoutubeVideoId(activeLesson.youtubeUrl)!} 
+                    title={activeLesson.title} 
                   />
                 ) : activeLesson.r2AssetUrl ? (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">

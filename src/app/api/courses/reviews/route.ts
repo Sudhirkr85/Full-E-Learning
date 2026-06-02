@@ -81,3 +81,86 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: err.message || "Something went wrong." }, { status: 500 });
   }
 }
+
+export async function PUT(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { courseId, rating, comment } = await req.json();
+
+    if (!courseId || !rating || rating < 1 || rating > 5) {
+      return NextResponse.json({ error: "Invalid or missing fields" }, { status: 400 });
+    }
+
+    // Verify user is enrolled in this course
+    const enrollment = await prisma.enrollment.findFirst({
+      where: {
+        userId: session.user.id,
+        courseId: courseId
+      }
+    });
+
+    if (!enrollment) {
+      return NextResponse.json(
+        { error: "You must enroll in this course before editing your review." },
+        { status: 403 }
+      );
+    }
+
+    // Find existing review
+    const existingReview = await prisma.courseReview.findFirst({
+      where: {
+        enrollmentId: enrollment.id
+      }
+    });
+
+    if (!existingReview) {
+      return NextResponse.json(
+        { error: "You have not reviewed this course yet." },
+        { status: 404 }
+      );
+    }
+
+    // Update course review in DB
+    const updatedReview = await prisma.courseReview.update({
+      where: {
+        id: existingReview.id
+      },
+      data: {
+        rating: Number(rating),
+        body: comment || null
+      },
+      include: {
+        enrollment: {
+          include: {
+            user: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Map the returned review to match ReviewWithUser shape in frontend
+    const formattedReview = {
+      id: updatedReview.id,
+      rating: updatedReview.rating,
+      comment: updatedReview.body,
+      createdAt: updatedReview.createdAt,
+      user: {
+        name: updatedReview.enrollment.user?.name || "Verified Student"
+      }
+    };
+
+    return NextResponse.json({ success: true, review: formattedReview });
+  } catch (err: any) {
+    console.error("[COURSE_REVIEW_UPDATE_ERROR]", err);
+    return NextResponse.json({ error: err.message || "Something went wrong." }, { status: 500 });
+  }
+}
+

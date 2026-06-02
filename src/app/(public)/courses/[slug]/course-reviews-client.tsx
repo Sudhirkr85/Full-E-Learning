@@ -25,6 +25,7 @@ interface CourseReviewsClientProps {
   isEnrolled: boolean;
   hasReviewed: boolean;
   totalReviewsCount: number;
+  initialUserReview?: { rating: number; comment: string | null } | null;
 }
 
 export function CourseReviewsClient({
@@ -35,16 +36,18 @@ export function CourseReviewsClient({
   isEnrolled,
   hasReviewed,
   totalReviewsCount,
+  initialUserReview,
 }: CourseReviewsClientProps) {
   const router = useRouter();
   const [reviews, setReviews] = useState<ReviewWithUser[]>(initialReviews);
   const [totalCount, setTotalCount] = useState(totalReviewsCount);
   const [showForm, setShowForm] = useState(false);
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState(initialUserReview?.rating ?? 5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialUserReview?.comment ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userReviewed, setUserReviewed] = useState(hasReviewed);
+  const [isEditing, setIsEditing] = useState(false);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -85,8 +88,9 @@ export function CourseReviewsClient({
 
     setIsSubmitting(true);
     try {
+      const method = userReviewed ? "PUT" : "POST";
       const res = await fetch("/api/courses/reviews", {
-        method: "POST",
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseId, rating, comment }),
       });
@@ -94,16 +98,23 @@ export function CourseReviewsClient({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to submit review.");
+        throw new Error(data.error || "Failed to save review.");
       }
 
-      toast.success("Thank you for your feedback! Course review published.");
-      setReviews([data.review, ...reviews]);
-      setTotalCount(prev => prev + 1);
-      setUserReviewed(true);
+      if (userReviewed) {
+        toast.success("Thank you! Your course review has been updated.");
+        // Replace existing review in the local state list
+        setReviews((prev) =>
+          prev.map((r) => (r.user?.name === data.review.user?.name ? data.review : r))
+        );
+      } else {
+        toast.success("Thank you for your feedback! Course review published.");
+        setReviews([data.review, ...reviews]);
+        setTotalCount((prev) => prev + 1);
+        setUserReviewed(true);
+      }
       setShowForm(false);
-      setComment("");
-      setRating(5);
+      setIsEditing(false);
       router.refresh();
     } catch (err: any) {
       toast.error(err.message || "Something went wrong.");
@@ -158,16 +169,33 @@ export function CourseReviewsClient({
           )}
         </div>
 
-        {/* Write a Review Button */}
-        {isLoggedIn && isEnrolled && !userReviewed && !showForm && (
-          <Button
-            onClick={() => setShowForm(true)}
-            variant="outline"
-            className="bg-indigo-600/10 border-indigo-500/30 text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-xl h-11 text-xs px-5 font-bold uppercase tracking-wider transition-all duration-200"
-          >
-            <MessageSquarePlus className="mr-2 h-4 w-4" />
-            Write a Review
-          </Button>
+        {/* Write / Edit Review Button */}
+        {isLoggedIn && isEnrolled && !showForm && (
+          userReviewed ? (
+            <Button
+              onClick={() => {
+                setShowForm(true);
+                setIsEditing(true);
+              }}
+              variant="outline"
+              className="bg-indigo-600/10 border-indigo-500/30 text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-xl h-11 text-xs px-5 font-bold uppercase tracking-wider transition-all duration-200 animate-pulse"
+            >
+              <MessageSquarePlus className="mr-2 h-4 w-4" />
+              Edit Your Review
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                setShowForm(true);
+                setIsEditing(false);
+              }}
+              variant="outline"
+              className="bg-indigo-600/10 border-indigo-500/30 text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-xl h-11 text-xs px-5 font-bold uppercase tracking-wider transition-all duration-200"
+            >
+              <MessageSquarePlus className="mr-2 h-4 w-4" />
+              Write a Review
+            </Button>
+          )
         )}
       </div>
 

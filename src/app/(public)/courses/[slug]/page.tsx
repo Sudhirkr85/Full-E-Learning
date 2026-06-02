@@ -132,11 +132,18 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
   const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED"));
 
   let hasReviewed = false;
+  let userReviewData = null;
   if (enrollment) {
     const existingReview = await prisma.courseReview.findFirst({
       where: { enrollmentId: enrollment.id }
     });
     hasReviewed = !!existingReview;
+    if (existingReview) {
+      userReviewData = {
+        rating: existingReview.rating,
+        comment: existingReview.body
+      };
+    }
   }
 
   // --- SECTION 3: COURSE REVIEWS DATA ---
@@ -274,6 +281,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
               isEnrolled={isEnrolled}
               hasReviewed={hasReviewed}
               totalReviewsCount={reviewsCount}
+              initialUserReview={userReviewData}
             />
           </div>
 

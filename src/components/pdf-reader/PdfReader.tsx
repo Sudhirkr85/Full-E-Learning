@@ -52,6 +52,7 @@ interface ThumbnailPageProps {
 function ThumbnailPage({ pdfDoc, pageNumber, isActive, onClick }: ThumbnailPageProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [loading, setLoading] = useState(true);
+  const activeRenderTaskRef = useRef<any>(null);
 
   useEffect(() => {
     if (!pdfDoc) return;
@@ -60,6 +61,13 @@ function ThumbnailPage({ pdfDoc, pageNumber, isActive, onClick }: ThumbnailPageP
     const renderThumbnail = async () => {
       try {
         setLoading(true);
+        if (activeRenderTaskRef.current) {
+          try {
+            activeRenderTaskRef.current.cancel();
+          } catch (_) {}
+          activeRenderTaskRef.current = null;
+        }
+
         const page = await pdfDoc.getPage(pageNumber);
         if (!active || !canvasRef.current) return;
 
@@ -74,18 +82,24 @@ function ThumbnailPage({ pdfDoc, pageNumber, isActive, onClick }: ThumbnailPageP
           canvas.height = viewport.height;
           canvas.width = viewport.width;
 
-          const renderContext = {
+          const renderTask = page.render({
             canvasContext: context,
             viewport: viewport,
-          };
+          });
 
-          await page.render(renderContext).promise;
+          activeRenderTaskRef.current = renderTask;
+
+          await renderTask.promise;
+          
+          if (active) {
+            activeRenderTaskRef.current = null;
+            setLoading(false);
+          }
         }
-        if (active) {
-          setLoading(false);
+      } catch (err: any) {
+        if (err.name !== "RenderingCancelledException") {
+          console.error("Thumbnail render failed for page", pageNumber, err);
         }
-      } catch (err) {
-        console.error("Thumbnail render failed for page", pageNumber, err);
       }
     };
 
@@ -93,6 +107,11 @@ function ThumbnailPage({ pdfDoc, pageNumber, isActive, onClick }: ThumbnailPageP
 
     return () => {
       active = false;
+      if (activeRenderTaskRef.current) {
+        try {
+          activeRenderTaskRef.current.cancel();
+        } catch (_) {}
+      }
     };
   }, [pdfDoc, pageNumber]);
 
@@ -163,6 +182,7 @@ export function PdfReader({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
+  const activeRenderTaskRef = useRef<any>(null);
 
   // Load PDF.js Script from CDN dynamically to bypass React 19 and Turbopack SSR worker build crashes
   useEffect(() => {
@@ -244,6 +264,13 @@ export function PdfReader({
 
     const renderPage = async () => {
       try {
+        if (activeRenderTaskRef.current) {
+          try {
+            activeRenderTaskRef.current.cancel();
+          } catch (_) {}
+          activeRenderTaskRef.current = null;
+        }
+
         const page = await pdfDoc.getPage(pageNum);
         if (!active || !canvasRef.current) return;
 
@@ -255,15 +282,23 @@ export function PdfReader({
           canvas.height = viewport.height;
           canvas.width = viewport.width;
 
-          const renderContext = {
+          const renderTask = page.render({
             canvasContext: context,
             viewport: viewport,
-          };
+          });
 
-          await page.render(renderContext).promise;
+          activeRenderTaskRef.current = renderTask;
+
+          await renderTask.promise;
+          
+          if (active) {
+            activeRenderTaskRef.current = null;
+          }
         }
-      } catch (e) {
-        console.error("Page rendering failed:", e);
+      } catch (e: any) {
+        if (e.name !== "RenderingCancelledException") {
+          console.error("Page rendering failed:", e);
+        }
       }
     };
 
@@ -271,6 +306,11 @@ export function PdfReader({
 
     return () => {
       active = false;
+      if (activeRenderTaskRef.current) {
+        try {
+          activeRenderTaskRef.current.cancel();
+        } catch (_) {}
+      }
     };
   }, [pdfDoc, pageNum, scale]);
 

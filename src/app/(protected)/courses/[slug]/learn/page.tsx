@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toggleLessonCompletionAction } from "@/lib/courses/actions";
 import { revalidatePath } from "next/cache";
+import { getYoutubeEmbedUrl } from "@/lib/utils";
 import ClassroomQuizPortal from "./classroom-quiz-portal";
 
 export const dynamic = "force-dynamic";
@@ -349,7 +350,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                 {activeLesson.youtubeUrl ? (
                   <iframe
                     className="w-full h-full"
-                    src={activeLesson.youtubeUrl}
+                    src={getYoutubeEmbedUrl(activeLesson.youtubeUrl)}
                     title={activeLesson.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen

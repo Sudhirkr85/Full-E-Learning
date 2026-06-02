@@ -18,6 +18,7 @@ interface EnrollButtonProps {
   userName?: string;
   isLoggedIn: boolean;
   originalPrice?: number | null;
+  variant?: "card" | "detail";
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -33,7 +34,8 @@ export function EnrollButton({
   userEmail = "",
   userName = "",
   isLoggedIn,
-  originalPrice = null
+  originalPrice = null,
+  variant = "detail"
 }: EnrollButtonProps) {
   const [enrollLoading, setEnrollLoading] = useState(false);
   const router = useRouter();
@@ -45,7 +47,7 @@ export function EnrollButton({
   );
 
   const status = enrollmentStatus?.status || null;
-  const isCurrentlyEnrolled = enrollmentStatus ? (enrollmentStatus.status === "ACTIVE") : initialIsEnrolled;
+  const isCurrentlyEnrolled = enrollmentStatus ? (enrollmentStatus.status === "ACTIVE" || enrollmentStatus.status === "COMPLETED") : initialIsEnrolled;
 
   // Free Enrollment Handler
   const handleFreeEnroll = async () => {
@@ -66,7 +68,7 @@ export function EnrollButton({
 
       toast.success("Enrolled successfully! Welcome to the course.");
       await mutate();
-      router.push(`/student/courses/${courseId}`);
+      router.push(`/courses/${courseSlug}/learn`);
     } catch {
       toast.error("Something went wrong. Please refresh and try again.");
     } finally {
@@ -78,7 +80,6 @@ export function EnrollButton({
   const handlePaidEnroll = async () => {
     setEnrollLoading(true);
     try {
-      // 1. Create a brand new enrollment + new Razorpay order (Retry Policy)
       const res = await fetch('/api/courses/enroll/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,7 +99,6 @@ export function EnrollButton({
 
       const { razorpayOrderId, enrollmentId, amount } = data;
 
-      // 2. Razorpay Script Safety Check before initialization
       if (typeof window === 'undefined' || !(window as any).Razorpay) {
         toast.error("Payment system failed to load. Please refresh and try again.");
         setEnrollLoading(false);
@@ -156,7 +156,7 @@ export function EnrollButton({
             if (verifyRes.ok) {
               toast.success("Payment successful! Welcome to the course.");
               await mutate();
-              router.push(`/student/courses/${courseId}`);
+              router.push(`/courses/${courseSlug}/learn`);
             } else {
               toast.error(verifyData.message || "Payment verification failed. If amount was deducted, contact support.");
             }
@@ -196,7 +196,7 @@ export function EnrollButton({
     }
   };
 
-  // Coupon apply/remove states
+  // Coupon states
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -246,13 +246,14 @@ export function EnrollButton({
 
   const finalPayablePrice = Math.max(coursePrice - (couponDiscount / 100), 0);
 
-  // Price and Badge Display Block
   const renderPricingBlock = () => {
+    if (variant === "card") return null;
+
     if (isCurrentlyEnrolled) {
       return (
         <div className="flex items-center gap-2 mb-2">
-          <span className="bg-emerald-500/15 text-emerald-500 text-sm font-bold px-3 py-1.5 rounded-full border border-emerald-500/25">
-            Enrolled
+          <span className="bg-emerald-500/15 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-500/25">
+            ✓ Enrolled
           </span>
         </div>
       );
@@ -261,7 +262,7 @@ export function EnrollButton({
     if (isFree || coursePrice === 0) {
       return (
         <div className="mb-2">
-          <span className="text-3xl font-bold text-emerald-600">Free</span>
+          <span className="text-3xl font-bold text-emerald-500">Free</span>
         </div>
       );
     }
@@ -302,14 +303,21 @@ export function EnrollButton({
   };
 
   const renderEnrollmentButton = () => {
+    const btnClass = variant === "card"
+      ? "w-full h-11 rounded-xl font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-1 transition shadow-md bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/10 border border-transparent"
+      : "w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-all animate-none";
+
     // 1. Not logged in
     if (!isLoggedIn) {
       return (
         <button
-          onClick={() => router.push('/login')}
-          className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+          onClick={() => {
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : `/courses/${courseSlug}`;
+            router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
+          }}
+          className={btnClass}
         >
-          Login to Enroll
+          Enroll
         </button>
       );
     }
@@ -318,10 +326,10 @@ export function EnrollButton({
     if (isCurrentlyEnrolled) {
       return (
         <button
-          onClick={() => router.push(`/student/courses/${courseId}`)}
-          className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+          onClick={() => router.push(`/courses/${courseSlug}/learn`)}
+          className={btnClass}
         >
-          <PlayCircle className="w-4 h-4" /> Continue Learning
+          <PlayCircle className="w-3.5 h-3.5" /> {variant === "card" ? "Resume" : "Start Learning"}
         </button>
       );
     }
@@ -332,14 +340,14 @@ export function EnrollButton({
         <button
           onClick={handlePaidEnroll}
           disabled={enrollLoading}
-          className="w-full h-12 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all animate-none"
+          className={`${btnClass} bg-amber-600 hover:bg-amber-500 text-white`}
         >
           {enrollLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...
             </>
           ) : (
-            "Complete Payment"
+            "Pay Pending"
           )}
         </button>
       );
@@ -351,14 +359,14 @@ export function EnrollButton({
         <button
           onClick={handleFreeEnroll}
           disabled={enrollLoading}
-          className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all"
+          className={btnClass}
         >
           {enrollLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Enrolling...
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Enrolling...
             </>
           ) : (
-            "Enroll Free"
+            "Enroll"
           )}
         </button>
       );
@@ -369,27 +377,31 @@ export function EnrollButton({
       <button
         onClick={handlePaidEnroll}
         disabled={enrollLoading}
-        className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-all animate-none"
+        className={btnClass}
       >
         {enrollLoading ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...
           </>
         ) : (
           <>
-            <Lock className="w-4 h-4" /> Buy Now — ₹{finalPayablePrice}
+            <Lock className="w-3.5 h-3.5" /> {variant === "card" ? "Enroll" : `Buy Now — ₹${finalPayablePrice}`}
           </>
         )}
       </button>
     );
   };
 
+  const containerClass = variant === "card"
+    ? "w-full"
+    : "flex flex-col gap-2 w-full text-slate-100 bg-[#090d20]/30 border border-white/5 p-4 rounded-2xl backdrop-blur-md";
+
   return (
-    <div className="flex flex-col gap-2 w-full text-slate-100 bg-[#090d20]/30 border border-white/5 p-4 rounded-2xl backdrop-blur-md">
+    <div className={containerClass}>
       {renderPricingBlock()}
       
       {/* Coupon input expander */}
-      {!isCurrentlyEnrolled && !isFree && (
+      {variant === "detail" && !isCurrentlyEnrolled && !isFree && (
         <div className="py-2.5 border-t border-white/5">
           {!showCouponInput && !appliedCoupon ? (
             <button

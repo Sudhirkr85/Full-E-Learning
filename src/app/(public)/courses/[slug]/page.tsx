@@ -129,7 +129,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
       })
     : null;
 
-  const isEnrolled = Boolean(enrollment);
+  const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED"));
 
   let hasReviewed = false;
   if (enrollment) {

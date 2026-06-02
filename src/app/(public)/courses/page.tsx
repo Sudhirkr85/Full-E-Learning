@@ -7,6 +7,7 @@ import { makeMetadata } from "@/lib/site";
 import { getCourseCategories, getPublishedCourses } from "@/lib/courses/queries";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { EnrollButton } from "./[slug]/enroll-button";
 
 export const metadata: Metadata = makeMetadata({
   title: "Courses - Learning Paths",
@@ -44,12 +45,22 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
     session?.user
       ? prisma.enrollment
           .findMany({
-            where: { userId: session.user.id, status: "ACTIVE" },
+            where: { 
+              userId: session.user.id, 
+              status: { in: ["ACTIVE", "COMPLETED"] } 
+            },
             select: { courseId: true }
           })
           .then((e) => e.map((x) => x.courseId))
       : Promise.resolve([] as string[])
   ]);
+
+  const dbUser = session?.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { phone: true, email: true, name: true }
+      })
+    : null;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white relative overflow-hidden bg-grid-cyber">
@@ -181,20 +192,28 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                         )}
                       </div>
 
-                      {/* CTA Action Button */}
-                      {isEnrolled ? (
-                        <Link href={`/courses/${course.slug}`} className="block w-full">
-                          <Button className="w-full h-9.5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/10 transition text-xs uppercase tracking-wider">
-                            Continue Learning
-                          </Button>
-                        </Link>
-                      ) : (
-                        <Link href={`/courses/${course.slug}`} className="block w-full">
-                          <Button variant="outline" className="w-full h-9.5 rounded-xl font-bold border-white/10 hover:border-indigo-500/40 text-slate-300 hover:text-white bg-slate-950/60 hover:bg-indigo-500/5 transition text-xs uppercase tracking-wider">
+                      {/* CTA Action Buttons side-by-side */}
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <Link href={`/courses/${course.slug}`} className="w-full">
+                          <button className="w-full h-11 rounded-xl font-extrabold border border-white/10 hover:border-white/20 text-slate-200 hover:text-white bg-white/5 hover:bg-white/10 transition text-xs uppercase tracking-normal flex items-center justify-center">
                             View Details
-                          </Button>
+                          </button>
                         </Link>
-                      )}
+                        <EnrollButton
+                          variant="card"
+                          courseId={course.id}
+                          coursePrice={price}
+                          courseName={course.title}
+                          courseSlug={course.slug}
+                          isEnrolled={isEnrolled}
+                          isFree={price === 0}
+                          userPhone={dbUser?.phone || ""}
+                          userEmail={dbUser?.email || session?.user?.email || ""}
+                          userName={dbUser?.name || session?.user?.name || ""}
+                          isLoggedIn={Boolean(session?.user)}
+                          originalPrice={originalPrice}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

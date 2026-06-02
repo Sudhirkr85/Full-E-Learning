@@ -46,34 +46,30 @@ export function DetailClient({ product }: DetailClientProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mt-8">
       {isInCart ? (
-        <Button 
+        <button 
           onClick={handleGoToCart}
-          size="lg"
-          className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+          className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-2 shadow-md shadow-emerald-600/10 border border-transparent"
         >
-          <ShoppingCart className="h-5 w-5" />
+          <ShoppingCart className="h-4.5 w-4.5" />
           Go to Cart
-        </Button>
+        </button>
       ) : (
-        <Button 
+        <button 
           onClick={() => handleAddToCart(false)}
-          variant="ghost" 
-          size="lg"
-          className="flex-1 h-12 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+          className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-slate-200 hover:text-white hover:bg-white/10 transition font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-2"
         >
-          <ShoppingCart className="h-5 w-5" />
+          <ShoppingCart className="h-4.5 w-4.5" />
           Add to Cart
-        </Button>
+        </button>
       )}
-      <Button 
+      <button 
         onClick={handleBuyNow}
-        size="lg"
-        className="flex-1 h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+        className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-2 shadow-md shadow-indigo-600/10 border border-transparent"
       >
-        <Lock className="h-4 w-4" />
+        <Lock className="h-3.5 w-3.5" />
         Buy Now
         <ArrowRight className="h-4 w-4" />
-      </Button>
+      </button>
     </div>
   );
 }

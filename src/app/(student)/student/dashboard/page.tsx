@@ -18,21 +18,28 @@ import {
   Bookmark
 } from "lucide-react";
 
-function getLessonHref(enrollment: Awaited<ReturnType<typeof getStudentCourseEnrollments>>[number]) {
-  const lastLesson = enrollment.progress?.lastLesson;
+function getLessonHref(enrollment: any) {
+  const lessons = enrollment.course.sections.flatMap((s: any) => s.lessons);
+  const completedIds = new Set(
+    enrollment.lessonProgresses
+      ?.filter((lp: any) => lp.isCompleted)
+      ?.map((lp: any) => lp.lessonId) || []
+  );
 
-  if (lastLesson?.section?.course?.slug === enrollment.course.slug) {
-    return `/courses/${enrollment.course.slug}/lessons/${lastLesson.slug}`;
+  // Find the first lesson that is not completed
+  const firstIncompleteLesson = lessons.find((l: any) => !completedIds.has(l.id));
+
+  if (firstIncompleteLesson) {
+    return `/courses/${enrollment.course.slug}/learn?lesson=${firstIncompleteLesson.slug}`;
   }
 
-  for (const section of enrollment.course.sections) {
-    const firstLesson = section.lessons[0];
-    if (firstLesson) {
-      return `/courses/${enrollment.course.slug}/lessons/${firstLesson.slug}`;
-    }
+  // If all completed, open first lesson or learning root
+  const firstLesson = lessons[0];
+  if (firstLesson) {
+    return `/courses/${enrollment.course.slug}/learn?lesson=${firstLesson.slug}`;
   }
 
-  return `/courses/${enrollment.course.slug}`;
+  return `/courses/${enrollment.course.slug}/learn`;
 }
 
 export const metadata: Metadata = makeMetadata({

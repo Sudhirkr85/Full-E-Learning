@@ -736,7 +736,8 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                       </p>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <div className="mt-6 pt-4 border-t border-white/10 flex flex-col gap-4">
+                      {/* Price Row */}
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-2xl font-bold text-white">
                           <span className="text-violet-400">₹</span>
@@ -754,12 +755,13 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                         )}
                       </div>
                       
-                      <div className="flex gap-2">
+                      {/* Action Buttons Row */}
+                      <div className="grid grid-cols-2 gap-2">
                         <Button 
                           asChild
                           variant="ghost" 
                           size="sm" 
-                          className="text-xs border border-white/20 text-slate-300 hover:bg-white/10 hover:text-white"
+                          className="text-xs border border-white/20 text-slate-300 hover:bg-white/10 hover:text-white w-full"
                         >
                           <Link href={`/store/${product.slug}`}>Details</Link>
                         </Button>
@@ -767,7 +769,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                           <Button 
                             onClick={handleGoToCart}
                             size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 animate-none"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1.5 animate-none w-full text-xs"
                           >
                             <ShoppingCart className="w-4 h-4" />
                             Go to Cart
@@ -776,7 +778,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                           <Button 
                             onClick={() => addToCart(product)}
                             size="sm"
-                            className="bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-1.5 animate-none"
+                            className="bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center gap-1.5 animate-none w-full text-xs"
                           >
                             Add to Cart
                           </Button>

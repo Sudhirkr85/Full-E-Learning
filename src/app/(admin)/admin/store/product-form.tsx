@@ -339,10 +339,11 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                   <input type="hidden" name="assetUrl" value={assetUrl} />
 
                   {assetUrl ? (
-                    <div className="p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center justify-between gap-4">
-                      <div className="truncate">
-                        <p className="text-xs font-semibold text-white truncate">PDF Book Uploaded</p>
-                        <p className="text-[10px] text-indigo-300 truncate max-w-md">{assetUrl}</p>
+                    <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                          ✓ PDF Book Uploaded
+                        </p>
                       </div>
                       <Button
                         type="button"

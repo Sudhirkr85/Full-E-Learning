@@ -44,13 +44,13 @@ export function DetailClient({ product }: DetailClientProps) {
   const isInCart = cartItems.some(item => item.productId === product.id);
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mt-8">
+    <div className="grid grid-cols-2 gap-3 mt-8">
       {isInCart ? (
         <button 
           onClick={handleGoToCart}
           className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-2 shadow-md shadow-emerald-600/10 border border-transparent"
         >
-          <ShoppingCart className="h-4.5 w-4.5" />
+          <ShoppingCart className="h-5 w-5" />
           Go to Cart
         </button>
       ) : (
@@ -58,7 +58,7 @@ export function DetailClient({ product }: DetailClientProps) {
           onClick={() => handleAddToCart(false)}
           className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-slate-200 hover:text-white hover:bg-white/10 transition font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-2"
         >
-          <ShoppingCart className="h-4.5 w-4.5" />
+          <ShoppingCart className="h-5 w-5" />
           Add to Cart
         </button>
       )}
@@ -66,7 +66,7 @@ export function DetailClient({ product }: DetailClientProps) {
         onClick={handleBuyNow}
         className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-2 shadow-md shadow-indigo-600/10 border border-transparent"
       >
-        <Lock className="h-3.5 w-3.5" />
+        <Lock className="h-4 w-4" />
         Buy Now
         <ArrowRight className="h-4 w-4" />
       </button>

@@ -768,32 +768,28 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                       </div>
                       
                       {/* Action Buttons Row */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button 
-                          asChild
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-xs border border-white/20 text-slate-300 hover:bg-white/10 hover:text-white w-full"
-                        >
-                          <Link href={`/store/${product.slug}`}>Details</Link>
-                        </Button>
+                      <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
+                        <Link href={`/store/${product.slug}`} className="w-full">
+                          <button className="w-full h-11 rounded-xl font-extrabold border border-white/10 hover:border-white/20 text-slate-200 hover:text-white bg-white/5 hover:bg-white/10 transition text-xs uppercase tracking-normal flex items-center justify-center">
+                            Details
+                          </button>
+                        </Link>
                         {cart.some(item => item.productId === product.id) ? (
-                          <Button 
+                          <button 
                             onClick={handleGoToCart}
-                            size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1.5 animate-none w-full text-xs"
+                            className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-1.5 transition shadow-md shadow-emerald-600/10 border border-transparent"
                           >
                             <ShoppingCart className="w-4 h-4" />
                             Go to Cart
-                          </Button>
+                          </button>
                         ) : (
-                          <Button 
+                          <button 
                             onClick={() => addToCart(product)}
-                            size="sm"
-                            className="bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center gap-1.5 animate-none w-full text-xs"
+                            className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-1.5 transition shadow-md shadow-indigo-600/10 border border-transparent"
                           >
+                            <ShoppingCart className="w-4 h-4" />
                             Add to Cart
-                          </Button>
+                          </button>
                         )}
                       </div>
                     </div>

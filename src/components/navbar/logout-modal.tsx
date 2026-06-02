@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useTransition } from "react";
+import React, { useTransition, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { LogOut, X, Loader2 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,13 @@ interface LogoutModalProps {
 
 export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
   const [isPending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -25,7 +31,7 @@ export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
     });
   };
 
-  return (
+  return createPortal(
     <div className="fixed top-0 left-0 w-screen h-screen z-[200] flex items-center justify-center p-4">
       {/* Backdrop overlay — covers entire screen including navbar */}
       <div 
@@ -100,6 +106,7 @@ export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -83,6 +84,12 @@ export function CoursesSearchFilter() {
 
 export function CourseActionButtons({ courseId, status }: { courseId: string; status: string }) {
   const [isPending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [confirmConfig, setConfirmConfig] = useState<{
     title: string;
     message: string;
@@ -187,8 +194,8 @@ export function CourseActionButtons({ courseId, status }: { courseId: string; st
         )}
       </div>
 
-      {confirmConfig && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+      {confirmConfig && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md overflow-hidden bg-[#0b0f19] border border-white/10 rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-white">
@@ -225,7 +232,8 @@ export function CourseActionButtons({ courseId, status }: { courseId: string; st
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

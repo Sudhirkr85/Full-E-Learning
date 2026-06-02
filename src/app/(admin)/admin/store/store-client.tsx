@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,12 @@ type StoreClientProps = {
 
 export function StoreClient({ initialProducts }: StoreClientProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [products, setProducts] = useState<any[]>(initialProducts);
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -334,7 +341,7 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
       )}
 
       {/* Centered Glassmorphic Confirmation Modal */}
-      {productToDelete && (
+      {productToDelete && mounted && createPortal(
         <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#090d20] border border-red-500/20 rounded-2xl p-6 w-full max-w-md shadow-[0_0_50px_rgba(239,68,68,0.15)] relative animate-in fade-in zoom-in duration-200 text-left overflow-hidden">
             {/* Top red laser glow bar */}
@@ -367,7 +374,8 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

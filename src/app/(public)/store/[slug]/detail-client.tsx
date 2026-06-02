@@ -30,8 +30,15 @@ export function DetailClient({ product }: DetailClientProps) {
   const handleAddToCart = (buyNow = false) => {
     addToCart(product);
     if (buyNow) {
-      openDrawer();
+      handleGoToCart();
     }
+  };
+
+  const handleBuyNow = () => {
+    if (!isInCart) {
+      addToCart(product);
+    }
+    handleGoToCart();
   };
 
   const isInCart = cartItems.some(item => item.productId === product.id);
@@ -59,7 +66,7 @@ export function DetailClient({ product }: DetailClientProps) {
         </Button>
       )}
       <Button 
-        onClick={() => handleAddToCart(true)}
+        onClick={handleBuyNow}
         size="lg"
         className="flex-1 h-12 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold transition-colors flex items-center justify-center gap-2"
       >

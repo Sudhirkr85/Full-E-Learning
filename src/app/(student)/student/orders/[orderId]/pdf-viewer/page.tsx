@@ -4,11 +4,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { makeMetadata } from "@/lib/site";
-import { ArrowLeft, BookOpen, ShieldAlert } from "lucide-react";
+import { PdfReader } from "@/components/pdf-reader/PdfReader";
 
 type PdfViewerPageProps = {
   params: Promise<{
@@ -98,38 +97,13 @@ export default async function StudentPdfViewerPage({ params, searchParams }: Pdf
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-6 h-[90vh] flex flex-col">
-      {/* Header Panel */}
-      <div className="flex items-center justify-between border-b border-white/5 pb-4 shrink-0">
-        <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="sm" className="rounded-xl">
-            <Link href={`/student/orders/${orderId}`} className="text-slate-400 hover:text-white">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Receipt
-            </Link>
-          </Button>
-          <div className="h-4 w-[1px] bg-white/10"></div>
-          <div className="space-y-0.5">
-            <h1 className="text-sm font-semibold text-white flex items-center gap-1.5">
-              <BookOpen className="h-4 w-4 text-indigo-400" />
-              {item.productName}
-            </h1>
-            <p className="text-[10px] text-slate-400">In-App Secure Reader Desk</p>
-          </div>
-        </div>
-        <Badge variant="secondary" className="bg-indigo-500/10 text-indigo-300 border-indigo-500/20 text-[10px]">
-          🔒 Protected Document
-        </Badge>
-      </div>
-
-      {/* SECURE PDF VIEWPORT */}
-      <div className="flex-1 bg-[#040714] border border-white/5 rounded-2xl overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-        <iframe
-          src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-          className="w-full h-full border-none"
-          title={item.productName}
-        />
-      </div>
-    </div>
+    <PdfReader
+      productId={productId}
+      orderId={orderId}
+      fileUrl={pdfUrl}
+      userName={session.user.name || "Student"}
+      userEmail={session.user.email || ""}
+      productName={item.productName}
+    />
   );
 }

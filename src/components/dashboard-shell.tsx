@@ -108,18 +108,12 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         { label: "Store Orders", href: "/admin/store/orders" },
         { label: "Coupons", href: "/admin/coupons" }
       ];
-      const settingsLinks = [
-        { label: "Change Password", href: "/admin/settings/change-password" }
-      ];
 
       return (
         <div className="flex flex-col gap-1.5">
           {renderLink(profileLink)}
           <hr className="my-1.5 border-white/5" />
           {mainLinks.map(renderLink)}
-          <hr className="my-1.5 border-white/5" />
-          <p className="px-3.5 py-1 text-[9px] font-bold uppercase tracking-widest text-indigo-400/80">Settings</p>
-          {settingsLinks.map(renderLink)}
         </div>
       );
     }

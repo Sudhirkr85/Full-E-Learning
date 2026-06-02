@@ -175,21 +175,6 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                   <ShoppingBag className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Store Orders
                 </Link>
-
-
-
-                <hr className="my-1.5 border-white/5" />
-
-                {/* 4. Settings (Admin Only) */}
-                <Link
-                  href="/admin/settings/change-password"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
-                >
-                  <Lock className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
-                  Change Password
-                </Link>
-
               </>
             )}
 

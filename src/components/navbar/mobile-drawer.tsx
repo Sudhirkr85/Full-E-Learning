@@ -132,7 +132,6 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
           { label: "Store (admin)", href: "/admin/store", icon: ShoppingBag },
           { label: "Store Orders", href: "/admin/store/orders", icon: ShoppingBag },
           { label: "Coupons", href: "/admin/coupons", icon: Tag },
-          { label: "Change Password", href: "/admin/settings/change-password", icon: Lock },
         ];
       default:
         return [];

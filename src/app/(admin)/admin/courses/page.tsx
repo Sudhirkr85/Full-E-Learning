@@ -101,67 +101,136 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
         </CardHeader>
         <CardContent className="px-0 md:px-6">
           {courses.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-200 border-collapse">
-                <thead>
-                  <tr className="border-b border-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                    <th className="px-4 py-3">Course Title</th>
-                    <th className="px-4 py-3">Instructor</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-center">Enrollments</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {courses.map((c) => {
-                    const primaryTeacher = c.teachers[0]?.teacher?.name ?? c.teachers[0]?.teacher?.email ?? "Unassigned";
-                    return (
-                      <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 py-3.5 font-semibold text-white">
-                          <Link href={`/admin/courses/${c.id}`} className="hover:underline hover:text-indigo-400 transition">
+            <div>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-200 border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                      <th className="px-4 py-3">Course Title</th>
+                      <th className="px-4 py-3">Instructor</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-center">Enrollments</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {courses.map((c) => {
+                      const primaryTeacher = c.teachers[0]?.teacher?.name ?? c.teachers[0]?.teacher?.email ?? "Unassigned";
+                      return (
+                        <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-4 py-3.5 font-semibold text-white">
+                            <Link href={`/admin/courses/${c.id}`} className="hover:underline hover:text-indigo-400 transition">
+                              {c.title}
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3.5 text-xs text-slate-300">{primaryTeacher}</td>
+                          <td className="px-4 py-3.5">
+                            <Badge
+                              variant={
+                                c.status === "PUBLISHED"
+                                  ? "default"
+                                  : c.status === "ARCHIVED"
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              className={
+                                c.status === "PUBLISHED"
+                                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold"
+                                  : c.status === "ARCHIVED"
+                                  ? "bg-slate-500/20 text-slate-300 border-slate-500/30"
+                                  : "bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold"
+                              }
+                            >
+                              {c.status}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3.5 text-center font-mono font-bold text-xs text-slate-300">
+                            {c._count.enrollments}
+                          </td>
+                          <td className="px-4 py-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button asChild variant="ghost" size="sm" className="text-indigo-400 hover:text-white hover:bg-white/5 rounded-xl">
+                                <Link href={`/admin/courses/${c.id}`}>Manage</Link>
+                              </Button>
+                              <Button asChild variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl">
+                                <Link href={`/admin/courses/${c.id}/edit`}>Edit</Link>
+                              </Button>
+                              <CourseActionButtons courseId={c.id} status={c.status} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Stacked Card View */}
+              <div className="block md:hidden space-y-4 px-4">
+                {courses.map((c) => {
+                  const primaryTeacher = c.teachers[0]?.teacher?.name ?? c.teachers[0]?.teacher?.email ?? "Unassigned";
+                  return (
+                    <div key={c.id} className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-4 hover:border-white/10 transition-all">
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest font-mono">Platform Course</span>
+                        <h4 className="text-sm font-bold text-white leading-relaxed">
+                          <Link href={`/admin/courses/${c.id}`} className="hover:text-indigo-400 transition hover:underline">
                             {c.title}
                           </Link>
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-300">{primaryTeacher}</td>
-                        <td className="px-4 py-3.5">
-                          <Badge
-                            variant={
-                              c.status === "PUBLISHED"
-                                ? "default"
-                                : c.status === "ARCHIVED"
-                                ? "secondary"
-                                : "outline"
-                            }
-                            className={
-                              c.status === "PUBLISHED"
-                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold"
-                                : c.status === "ARCHIVED"
-                                ? "bg-slate-500/20 text-slate-300 border-slate-500/30"
-                                : "bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold"
-                            }
-                          >
-                            {c.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3.5 text-center font-mono font-bold text-xs text-slate-300">
-                          {c._count.enrollments}
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Button asChild variant="ghost" size="sm" className="text-indigo-400 hover:text-white hover:bg-white/5 rounded-xl">
-                              <Link href={`/admin/courses/${c.id}`}>Manage</Link>
-                            </Button>
-                            <Button asChild variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl">
-                              <Link href={`/admin/courses/${c.id}/edit`}>Edit</Link>
-                            </Button>
-                            <CourseActionButtons courseId={c.id} status={c.status} />
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 py-3 border-y border-white/5 text-xs">
+                        <div className="space-y-1">
+                          <span className="text-slate-400 font-medium block">Instructor</span>
+                          <span className="text-white font-semibold">{primaryTeacher}</span>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-slate-400 font-medium block">Status</span>
+                          <div>
+                            <Badge
+                              variant={
+                                c.status === "PUBLISHED"
+                                  ? "default"
+                                  : c.status === "ARCHIVED"
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              className={
+                                c.status === "PUBLISHED"
+                                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold py-0 text-[10px]"
+                                  : c.status === "ARCHIVED"
+                                  ? "bg-slate-500/20 text-slate-300 border-slate-500/30 py-0 text-[10px]"
+                                  : "bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold py-0 text-[10px]"
+                              }
+                            >
+                              {c.status}
+                            </Badge>
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                        <div className="space-y-1 col-span-2">
+                          <span className="text-slate-400 font-medium">Student Enrollments:</span>
+                          <span className="text-indigo-350 font-bold font-mono ml-2">{c._count.enrollments}</span>
+                        </div>
+                      </div>
+
+                      {/* Tap Action buttons row */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <Button asChild variant="outline" size="sm" className="bg-indigo-600/10 border-indigo-500/20 text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-xl text-xs h-9 flex-1 min-w-[80px]">
+                          <Link href={`/admin/courses/${c.id}`}>Manage</Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl text-xs h-9 flex-1 min-w-[80px]">
+                          <Link href={`/admin/courses/${c.id}/edit`}>Edit</Link>
+                        </Button>
+                        <div className="flex-1 min-w-[80px]">
+                          <CourseActionButtons courseId={c.id} status={c.status} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="py-12 text-center text-slate-400 text-sm">

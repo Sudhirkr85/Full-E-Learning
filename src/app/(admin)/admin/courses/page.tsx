@@ -217,10 +217,10 @@ export default async function AdminCoursesPage({ searchParams }: CoursesPageProp
 
                       {/* Tap Action buttons row */}
                       <div className="flex flex-wrap items-center gap-2 pt-1">
-                        <Button asChild variant="outline" size="sm" className="bg-indigo-600/10 border-indigo-500/20 text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-xl text-xs h-9 flex-1 min-w-[80px]">
+                        <Button asChild size="sm" className="bg-indigo-600/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-xl text-xs h-9 flex-1 min-w-[80px] flex items-center justify-center transition-all">
                           <Link href={`/admin/courses/${c.id}`}>Manage</Link>
                         </Button>
-                        <Button asChild variant="outline" size="sm" className="bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl text-xs h-9 flex-1 min-w-[80px]">
+                        <Button asChild size="sm" className="bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl text-xs h-9 flex-1 min-w-[80px] flex items-center justify-center transition-all">
                           <Link href={`/admin/courses/${c.id}/edit`}>Edit</Link>
                         </Button>
                         <div className="flex-1 min-w-[80px]">

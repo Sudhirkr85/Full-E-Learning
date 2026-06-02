@@ -175,79 +175,161 @@ export function StoreClient({ initialProducts }: StoreClientProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#090d20]/60 backdrop-blur-xl">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                <th className="px-6 py-4">Name</th>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Price</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-center">Stock</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5 text-xs text-slate-300">
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-white/[0.01] transition-colors duration-150">
-                  <td className="px-6 py-4 font-semibold text-white max-w-xs truncate">
-                    {product.title}
-                  </td>
-                  <td className="px-6 py-4">
-                    {getTypeBadge(product.productType)}
-                  </td>
-                  <td className="px-6 py-4 font-mono font-semibold text-white">
-                    ₹{(product.priceCents / 100).toLocaleString("en-IN")}
-                  </td>
-                  <td className="px-6 py-4">
-                    {getStatusBadge(product.status)}
-                  </td>
-                  <td className="px-6 py-4 text-center font-mono">
-                    {product.productType === "PHYSICAL" ? product.stockQuantity ?? 0 : "—"}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {loadingProductId === product.id ? (
-                        <Loader2 className="h-4.5 w-4.5 text-indigo-400 animate-spin mr-4" />
-                      ) : (
-                        <>
-                          {/* Publish/Unpublish toggle icon button */}
-                          <button
-                            onClick={() => handleToggleStatus(product.id, product.status)}
-                            title={product.status === "PUBLISHED" ? "Switch to Draft" : "Switch to Active"}
-                            className="text-slate-400 hover:text-white p-1.5 transition-colors duration-150"
-                          >
-                            {product.status === "PUBLISHED" ? (
-                              <ToggleRight className="h-5 w-5 text-emerald-400" />
-                            ) : (
-                              <ToggleLeft className="h-5 w-5" />
-                            )}
-                          </button>
-
-                          {/* Edit button */}
-                          <Button asChild size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-white/5 hover:text-indigo-400">
-                            <Link href={`/admin/store/${product.id}`}>
-                              <Edit className="h-4 w-4" />
-                            </Link>
-                          </Button>
-
-                          {/* Delete button */}
-                          <Button
-                            onClick={() => handleDeleteClick(product.id)}
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-400 text-slate-400"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+        <div>
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto rounded-2xl border border-white/5 bg-[#090d20]/60 backdrop-blur-xl">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <th className="px-6 py-4">Name</th>
+                  <th className="px-6 py-4">Type</th>
+                  <th className="px-6 py-4">Price</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-center">Stock</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-xs text-slate-300">
+                {filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-white/[0.01] transition-colors duration-150">
+                    <td className="px-6 py-4 font-semibold text-white max-w-xs truncate">
+                      {product.title}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getTypeBadge(product.productType)}
+                    </td>
+                    <td className="px-6 py-4 font-mono font-semibold text-white">
+                      ₹{(product.priceCents / 100).toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(product.status)}
+                    </td>
+                    <td className="px-6 py-4 text-center font-mono">
+                      {product.productType === "PHYSICAL" ? product.stockQuantity ?? 0 : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {loadingProductId === product.id ? (
+                          <Loader2 className="h-4.5 w-4.5 text-indigo-400 animate-spin mr-4" />
+                        ) : (
+                          <>
+                            {/* Publish/Unpublish toggle icon button */}
+                            <button
+                              onClick={() => handleToggleStatus(product.id, product.status)}
+                              title={product.status === "PUBLISHED" ? "Switch to Draft" : "Switch to Active"}
+                              className="text-slate-400 hover:text-white p-1.5 transition-colors duration-150"
+                            >
+                              {product.status === "PUBLISHED" ? (
+                                <ToggleRight className="h-5 w-5 text-emerald-400" />
+                              ) : (
+                                <ToggleLeft className="h-5 w-5" />
+                              )}
+                            </button>
+
+                            {/* Edit button */}
+                            <Button asChild size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-white/5 hover:text-indigo-400">
+                              <Link href={`/admin/store/${product.id}`}>
+                                <Edit className="h-4 w-4" />
+                              </Link>
+                            </Button>
+
+                            {/* Delete button */}
+                            <Button
+                              onClick={() => handleDeleteClick(product.id)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-lg hover:bg-rose-500/10 hover:text-rose-400 text-slate-400"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Stacked Card View */}
+          <div className="block md:hidden space-y-4 px-4">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-4 hover:border-white/10 transition-all">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest font-mono">Catalog Offering</span>
+                    <div>{getTypeBadge(product.productType)}</div>
+                  </div>
+                  <h4 className="text-sm font-bold text-white leading-relaxed pt-1">
+                    {product.title}
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 py-3 border-y border-white/5 text-xs">
+                  <div className="space-y-1">
+                    <span className="text-slate-400 font-medium block">Price</span>
+                    <span className="text-white font-bold font-mono text-sm">
+                      ₹{(product.priceCents / 100).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-400 font-medium block">Status</span>
+                    <div>{getStatusBadge(product.status)}</div>
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                    <span className="text-slate-400 font-medium">Inventory Stock:</span>
+                    <span className="text-slate-200 font-bold font-mono ml-2">
+                      {product.productType === "PHYSICAL" ? product.stockQuantity ?? 0 : "Unlimited (Digital)"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Mobile tap actions row */}
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
+                    <button
+                      onClick={() => handleToggleStatus(product.id, product.status)}
+                      title={product.status === "PUBLISHED" ? "Switch to Draft" : "Switch to Active"}
+                      className="text-slate-400 hover:text-white p-2 transition-colors duration-150"
+                    >
+                      {product.status === "PUBLISHED" ? (
+                        <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold font-mono">
+                          <ToggleRight className="h-5.5 w-5.5" /> Active
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold font-mono">
+                          <ToggleLeft className="h-5.5 w-5.5" /> Draft
+                        </div>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {loadingProductId === product.id ? (
+                      <Loader2 className="h-5 w-5 text-indigo-400 animate-spin mr-2" />
+                    ) : (
+                      <>
+                        <Button asChild size="sm" className="h-9 px-3.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-all text-xs font-bold uppercase tracking-wider gap-1.5 flex items-center justify-center">
+                          <Link href={`/admin/store/${product.id}`}>
+                            <Edit className="h-3.5 w-3.5" /> Edit
+                          </Link>
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteClick(product.id)}
+                          size="sm"
+                          variant="ghost"
+                          className="h-9 w-9 p-0 rounded-xl hover:bg-rose-500/10 hover:text-rose-400 text-slate-400"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

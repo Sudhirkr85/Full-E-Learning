@@ -42,7 +42,7 @@ The application contains the following fully implemented production modules:
     *   **Notification Bell**: Real-time unread badge for logged-in users.
     *   **Avatar Dropdown**: Upgraded role-specific dropdown (Admin, Student, Teacher) matching the dashboard sidebar navigation links exactly, complete with an Identity Header, My Profile shortcut, and elegant low-opacity glass dividers.
 *   **Authentication & Role Isolation**: Custom Auth.js engine enforcing STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware, alongside a secure, transaction-safe **forgot password & reset password** flow utilizing JSON-metadata storage and Brevo SMTP email links.
-*   **Admin**: Full admin dashboard featuring a high-fidelity SaaS overview dashboard (trend-indicating stat cards, dynamic Recharts Pie & Bar visualizations, and live recent enrollments database table), a hardened sidebar navigation with 'My Profile' and 'Audit Logs' integrations, user management with role promotion, complete course oversight, category management, CRM support desk, change password, and platform configuration. Enrollment & Orders Desk: Full platform-wide student enrollment viewer with search, filter by status, progress bars, and metric cards. Features a **Total Platform Revenue** card tracking Course and Store sales together with clear sub-breakdowns (avoiding double-counting). Separate Store Orders tab showing only PDF, Physical, Bundle, and Membership purchases (strictly excluding `COURSE_ACCESS` orders) with payment status, product type icons, amount paid in ₹ INR, and dedicated empty states.
+*   **Admin**: Full admin dashboard featuring a high-fidelity SaaS overview dashboard (trend-indicating stat cards, dynamic Recharts Pie & Bar visualizations, and live recent enrollments database table), a hardened sidebar navigation with 'My Profile' and 'Audit Logs' integrations, user management with role promotion, complete course oversight, category management, CRM support desk, and platform configuration. Enrollment & Orders Desk: Full platform-wide student enrollment viewer with search, filter by status, progress bars, and metric cards. Features a **Total Platform Revenue** card tracking Course and Store sales together with clear sub-breakdowns (avoiding double-counting). Separate Store Orders tab showing only PDF, Physical, Bundle, and Membership purchases (strictly excluding `COURSE_ACCESS` orders) with payment status, product type icons, amount paid in ₹ INR, and dedicated empty states.
 *   **Teacher**: Full Teacher Overview Dashboard at `/teacher/dashboard` featuring dynamic welcome hero cards, key metric aggregates (Total Courses, Students, Active Seats, Avg Completion), responsive Recharts visual timelines (6-month enrollment trends and curriculum progress donut charts), tabbed live activity tracking, and comprehensive glassmorphic management tables for owned course shells and student logs. My Students Dashboard: Course-scoped enrollment viewer at `/teacher/enrollments` showing only students enrolled in the teacher's own courses. Includes progress tracking, completion status, and mobile numbers. Payment and revenue data is intentionally hidden.
 *   **Store Management**: Admin can create and manage PDF Books and Physical Products with complete **INR pricing** controls, including a dedicated **Original Price** field alongside the Sale Price in a sleek 3-column admin form. Supports drag-and-drop PDF document uploads with responsive, simplified success indicators (hiding raw URLs). Fully separate from LMS course flow.
 *   **Courses & Lesson Navigation**: Dynamic public course catalog at `/courses` completely redesigned with a high-fidelity cinematic dark theme (`bg-[#0a0a0f]`), `.bg-grid-cyber` mesh overlays, soft indigo radial glows, and dark glassmorphic category filter pills. Published course cards display both View Details and Enroll Now actions. Users may either review the full course information before purchasing or directly enroll from the catalog. After successful enrollment, actions automatically change to Continue Learning and Start Learning. Course detail page shows 2-column layout (desktop) with sticky price card. Left side: thumbnail, meta, teacher info, description with read-more, curriculum accordion with preview/locked lessons. Right side: sticky card with INR pricing, discount badge, enrollment CTA based on login and enrollment state, and course includes section.
@@ -137,7 +137,6 @@ src/
   │       ├── store/[productId]/          # Edit product
   │       ├── support/                    # CRM ticket moderation desk
   │       └── settings/
-  │           ├── change-password/        # Admin secure password update
   │           └── platform/               # Site config singleton settings
   ├── (protected)/
   │   ├── courses/           # Locked classroom lesson player
@@ -265,7 +264,7 @@ Authentication is powered by **Auth.js (v5)**, **bcryptjs**, and **OAuth 2.0 Int
 *   **Next.js Middleware**: Intercepts requests to check authentication states. Automatically redirects unauthenticated users or restricts unauthorized routes:
     *   **STUDENT**: Can access `/student/*`, `/courses/*` (enrolled), and `/profile/*`. Blocked from `/teacher/*` and `/admin/*`.
     *   **TEACHER**: Can access `/teacher/*`, `/courses/*` (bypass enrollments), and `/profile/*`. Can access `/teacher/enrollments` to view students enrolled in their own courses.
-    *   **ADMIN**: Full platform access. Can manage all users, courses, categories, support tickets, and platform configurations. Admin stays on /admin/* routes always and does not redirect to /teacher/* routes. Can change password via /admin/settings/change-password. Can promote students to Teacher.
+    *   **ADMIN**: Full platform access. Can manage all users, courses, categories, support tickets, and platform configurations. Admin stays on /admin/* routes always and does not redirect to /teacher/* routes. Can promote students to Teacher.
 *   **Super Admin Protection**: A single permanent super admin account is seeded via `prisma/seed.ts` using an upsert strategy. The admin email is defined in `src/lib/admin-config.ts` as `SUPER_ADMIN_EMAIL`. This email is blocked from public registration. The admin account is protected at the Prisma middleware layer — `delete` and `deleteMany` operations on `ADMIN`-role users throw a hard error, preventing accidental removal from any admin UI or script.
 
 ---
@@ -285,7 +284,6 @@ Every admin page is protected — session and role === "ADMIN" verified on both 
 | Categories | /admin/categories | Add, edit, delete categories |
 | Store | /admin/store | Product management — PDF Books and Physical Products |
 | Support | /admin/support | Ticket list, reply, status update |
-| Change Password | /admin/settings/change-password | Verify current, set new password |
 | Platform Config | /admin/settings/platform | Site name, support email, maintenance mode |
 
 ---
@@ -570,8 +568,8 @@ The platform includes enhanced credential security controls for both administrat
     *   At least **one lowercase letter** (a-z)
     *   At least **one number** (0-9)
     *   At least **one special character** (e.g., `@`, `$`, `!`, `%`, `*`, `?`, `&`)
-*   **Interactive Password Strength Meter**: The `/admin/settings/change-password` viewport and the public `/register` viewport both embed a live, color-coded strength bar and a real-time criteria checklist that updates dynamically as the user types, displaying green checkmarks and matching validation.
-*   **Secure Verification flow**: Administrative updates fully validate current passwords using `bcrypt` comparison matches before updates are committed, and public signups enforce these rules client-side.
+*   **Interactive Password Strength Meter**: The public `/register` and `/reset-password` viewports both embed a live, color-coded strength bar and a real-time criteria checklist that updates dynamically as the user types, displaying green checkmarks and matching validation.
+*   **Secure Verification flow**: Public password updates fully validate credentials using bcrypt comparison matches before updates are committed, and public signups enforce these rules client-side.
 
 ### 3. Public Course Card Redesign & Custom Centered Confirmation Dialogs
 *   **Public Course Listing Card**: Redesigned public course cards with modern visual architecture:
@@ -768,8 +766,8 @@ The platform includes enhanced credential security controls for both administrat
     *   At least **one lowercase letter** (a-z)
     *   At least **one number** (0-9)
     *   At least **one special character** (e.g., `@`, `$`, `!`, `%`, `*`, `?`, `&`)
-*   **Interactive Password Strength Meter**: The `/admin/settings/change-password` viewport and the public `/register` viewport both embed a live, color-coded strength bar and a real-time criteria checklist that updates dynamically as the user types, displaying green checkmarks and matching validation.
-*   **Secure Verification flow**: Administrative updates fully validate current passwords using `bcrypt` comparison matches before updates are committed, and public signups enforce these rules client-side.
+*   **Interactive Password Strength Meter**: The public `/register` and `/reset-password` viewports both embed a live, color-coded strength bar and a real-time criteria checklist that updates dynamically as the user types, displaying green checkmarks and matching validation.
+*   **Secure Verification flow**: Public password updates fully validate credentials using bcrypt comparison matches before updates are committed, and public signups enforce these rules client-side.
 
 ### 3. Public Course Card Redesign & Custom Centered Confirmation Dialogs
 *   **Public Course Listing Card**: Redesigned public course cards with modern visual architecture:

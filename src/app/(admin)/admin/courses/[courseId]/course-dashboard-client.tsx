@@ -192,6 +192,11 @@ export function CourseDashboardClient({
     e.preventDefault();
     if (!newContentTitle.trim() || !contentType) return;
 
+    if (contentType === "ARTICLE" && !pdfUrl.trim()) {
+      showAlert("Please upload a PDF playbook file first.");
+      return;
+    }
+
     let youtubeUrl: string | undefined;
     if (contentType === "VIDEO" && youtubeVideoId.trim()) {
       let videoId = youtubeVideoId.trim();
@@ -490,7 +495,6 @@ export function CourseDashboardClient({
                                   
                                   {contentType === "ARTICLE" && (
                                     <div className="space-y-2">
-                                      <Input value={pdfUrl} onChange={(e) => setPdfUrl(e.target.value)} placeholder="PDF Link (R2 URL)" className="bg-white/5 border-white/10 text-white" required />
                                       <div className="flex items-center gap-2">
                                         <input 
                                           type="file" 

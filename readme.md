@@ -938,3 +938,21 @@ A complete cinematic redesign has been applied to the Course Detail page to alig
 *   **Accessibility & Responsive Spacing**:
     *   Maintained absolute visual consistency across standard mobile views, grid layouts, and desktop column configurations, ensuring zero scroll leaks and highly legible elements.
 
+### 18. Immersive Learning & Administrative Governance Upgrades
+
+To further secure transactions, streamline classrooms, and empower active learners, the platform has been updated with the following high-end capabilities:
+
+*   **Verified Review Self-Editing Flow (PUT Integration)**:
+    *   **Secure Multi-Method API**: Added a `PUT` handler to the [/api/courses/reviews](file:///d:/Work/E-Learning/src/app/api/courses/reviews/route.ts) endpoint that validates sessions and active student course enrollments, updating ratings and comments securely.
+    *   **Pulsing Edit CTAs**: When an enrolled student has already published a review, the header triggers an animated **"Edit Your Review"** action that pre-fills values and lets them edit their review seamlessly.
+*   **Rupee Price Layout Alignments & Subtotal Corrections**:
+    *   **Unified Formatting**: Integrated localized comma separations (`.toLocaleString("en-IN")`) into the course purchase button so that the primary CTA displays `Buy Now — ₹4,999` instead of raw integers.
+    *   **Subtotal Mismatch Fixed**: Patched sticky purchase cards to correctly display the original price (`₹99,999`) with a line-through in the subtotal field instead of duplicating the discounted sale price.
+*   **Cinematic Classroom Lesson Player Redesign**:
+    *   **Space-Mesh Overlays**: Remodeled the protected [LessonPlayerPage](file:///d:/Work/E-Learning/src/app/(protected)/courses/[slug]/lessons/[lessonSlug]/page.tsx) with a deep dark background (`bg-[#0a0a0f]`), grid overlays, and radial glowing accents.
+    *   **Gradient Milestone Progress Tracker**: Added a progress bar (`from-indigo-500 via-purple-500 to-pink-500`) with Trophy/Graduation milestones, alongside completion checkmarks.
+    *   **Classroom Sidebar Navigation**: Integrated sleek next-lesson, previous-lesson, and back-to-syllabus shortcuts with premium hover transitions.
+*   **Admin Curriculum Desk Edit Short-cuts**:
+    *   **Instant Admin Redirection**: Inserted a highly styled **"Edit Course"** button next to the enrollments count card in the [Admin Curriculum outline dashboard](file:///d:/Work/E-Learning/src/app/(admin)/admin/courses/[courseId]/page.tsx) for fast access to metadata editing.
+
+

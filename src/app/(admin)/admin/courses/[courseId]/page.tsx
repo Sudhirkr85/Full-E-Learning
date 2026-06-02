@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { makeMetadata } from "@/lib/site";
 import { ArrowLeft, BookOpen, FileText, LayoutList, PlayCircle, Users, Mail, Phone, Calendar } from "lucide-react";
@@ -98,14 +99,22 @@ export default async function AdminCourseDetailPage({ params }: CourseDetailPage
             <p className="text-sm text-slate-400 max-w-3xl mt-1">{course.subtitle ?? course.description ?? "No description provided."}</p>
           </div>
 
-          <div className="flex items-center gap-4 bg-[#090d20]/80 p-3 rounded-2xl border border-white/5 w-fit shrink-0">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-indigo-400" />
-              <div className="text-left">
-                <span className="block text-xs text-slate-400 leading-none">Enrollments</span>
-                <span className="text-lg font-bold text-white leading-none">{course._count.enrollments}</span>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-4 bg-[#090d20]/80 p-3 rounded-2xl border border-white/5 w-fit">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-indigo-400" />
+                <div className="text-left">
+                  <span className="block text-xs text-slate-400 leading-none">Enrollments</span>
+                  <span className="text-lg font-bold text-white leading-none">{course._count.enrollments}</span>
+                </div>
               </div>
             </div>
+
+            <Button asChild className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl h-11 text-xs font-bold uppercase tracking-wider px-5 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+              <Link href={`/admin/courses/${course.id}/edit`}>
+                Edit Course
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

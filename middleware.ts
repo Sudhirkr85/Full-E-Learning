@@ -19,7 +19,18 @@ function getDashboardPath(role?: string | null) {
 export default async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathname = nextUrl.pathname;
-  const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+  
+  // NextAuth v5 uses authjs.session-token cookie names.
+  // We dynamically resolve secureCookie and cookieName based on HTTPS to prevent live environment desyncs.
+  const secureCookie = nextUrl.protocol === "https:";
+  const cookieName = secureCookie ? "__Secure-authjs.session-token" : "authjs.session-token";
+
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.AUTH_SECRET,
+    secureCookie,
+    cookieName
+  });
   const isLoggedIn = Boolean(token && token.sub);
   const role = typeof token?.role === "string" ? token.role : null;
 

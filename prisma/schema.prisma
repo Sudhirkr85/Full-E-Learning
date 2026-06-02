@@ -34,6 +34,7 @@ model User {
   assignedTickets     SupportTicket[] @relation("TicketAssignee")
   supportTickets      SupportTicket[] @relation("TicketReporter")
   wishlists           Wishlist[]
+  reviews             Review[]
 
   @@index([role])
   @@index([isActive])
@@ -449,6 +450,7 @@ model Product {
   updatedAt          DateTime       @updatedAt
   orderItems         OrderItem[]
   course             Course?        @relation(fields: [courseId], references: [id])
+  reviews            Review[]
 
   @@index([courseId])
   @@index([status])
@@ -791,5 +793,18 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   @@map("cart_items")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  userId    String   @db.Uuid
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
 }
 

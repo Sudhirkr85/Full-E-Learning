@@ -20,11 +20,7 @@ export function DetailClient({ product }: DetailClientProps) {
   const cartItems = useCartStore((state) => state.cartItems);
   
   const handleGoToCart = () => {
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      router.push('/cart');
-    } else {
-      openDrawer();
-    }
+    router.push('/cart');
   };
 
   const handleAddToCart = (buyNow = false) => {

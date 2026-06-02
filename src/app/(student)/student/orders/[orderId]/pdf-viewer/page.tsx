@@ -44,18 +44,30 @@ export default async function StudentPdfViewerPage({ params, searchParams }: Pdf
     redirect(`/student/orders/${orderId}`);
   }
 
-  // Fetch the order with items to verify purchase
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        where: { productId },
-        include: {
-          product: true
+  // Validate if orderId is a valid UUID to prevent Prisma database runtime errors
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(orderId)) {
+    return notFound();
+  }
+
+  // Fetch the order with items to verify purchase using try-catch for absolute database safety
+  let order;
+  try {
+    order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          where: { productId },
+          include: {
+            product: true
+          }
         }
       }
-    }
-  });
+    });
+  } catch (err) {
+    console.error("[PDF_VIEWER_DB_ERROR]", err);
+    return notFound();
+  }
 
   if (!order || order.status !== "PAID" || order.items.length === 0) {
     return notFound();

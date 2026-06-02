@@ -25,12 +25,7 @@ export default function MobileCartPage() {
   useEffect(() => {
     initializeCart();
     setMounted(true);
-    
-    // Redirect if screen is desktop width
-    if (window.innerWidth >= 768) {
-      router.replace("/store");
-    }
-  }, [initializeCart, router]);
+  }, [initializeCart]);
 
   // Helper to format phone to: 91021 30956
   const formatPhoneNumber = (value: string) => {
@@ -413,7 +408,8 @@ export default function MobileCartPage() {
   if (!mounted) return null;
 
   return (
-    <div className="h-[100dvh] bg-[#0a0a0f] flex flex-col text-slate-100 select-none overflow-hidden">
+    <div className="h-[100dvh] bg-[#0a0a0f] flex justify-center text-slate-100 select-none overflow-hidden">
+      <div className="w-full max-w-4xl h-full flex flex-col bg-[#070709] border-x border-white/10 shadow-2xl relative">
       {/* Top bar */}
       <div className="sticky top-0 z-10 bg-[#0d1117]/95 backdrop-blur-md border-b border-white/10 px-4 py-4 flex items-center gap-3">
         <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-white/5 transition-colors" aria-label="Go back">
@@ -771,6 +767,7 @@ export default function MobileCartPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

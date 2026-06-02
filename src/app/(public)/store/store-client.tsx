@@ -95,6 +95,18 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     initializeCart();
   }, [initializeCart]);
 
+  // Open cart drawer if redirected from detail page with cart=open query param
+  useEffect(() => {
+    if (searchParams.get("cart") === "open") {
+      openDrawer();
+      // Remove cart param from URL silently
+      const params = new URLSearchParams(window.location.search);
+      params.delete("cart");
+      const newUrl = params.toString() ? `/store?${params.toString()}` : "/store";
+      router.replace(newUrl);
+    }
+  }, [searchParams, openDrawer, router]);
+
   useEffect(() => {
     const media = window.matchMedia("(max-width: 768px)");
     setIsMobile(media.matches);

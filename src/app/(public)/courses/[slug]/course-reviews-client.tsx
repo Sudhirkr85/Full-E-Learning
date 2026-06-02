@@ -121,16 +121,22 @@ export function CourseReviewsClient({
     : avgRating || 0;
 
   return (
-    <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 backdrop-blur-md">
+    <div className="mt-10 bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-md relative overflow-hidden shadow-2xl">
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-40 pointer-events-none" />
+
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 pb-6 border-b border-white/10 relative z-10">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-yellow-400" />
-            Student Reviews & Ratings
+          <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5">
+            <Sparkles className="h-5 w-5 text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
+            Student Reviews & Feedback
           </h2>
           {reviews.length > 0 && (
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center gap-1 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-lg text-yellow-400">
+                <span className="text-xs font-bold">★</span>
+                <span className="text-xs font-extrabold">{currentAvgRating.toFixed(1)}</span>
+              </div>
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <span
@@ -138,17 +144,14 @@ export function CourseReviewsClient({
                     className={
                       star <= Math.round(currentAvgRating)
                         ? "text-yellow-400 text-sm"
-                        : "text-slate-600 text-sm"
+                        : "text-slate-700 text-sm"
                     }
                   >
                     ★
                   </span>
                 ))}
               </div>
-              <span className="text-white font-semibold text-sm">
-                {currentAvgRating.toFixed(1)}
-              </span>
-              <span className="text-slate-400 text-xs">
+              <span className="text-slate-400 text-xs font-medium">
                 ({totalCount} {totalCount === 1 ? "review" : "reviews"})
               </span>
             </div>
@@ -160,27 +163,30 @@ export function CourseReviewsClient({
           <Button
             onClick={() => setShowForm(true)}
             variant="outline"
-            className="border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl h-11 text-xs px-4"
+            className="bg-indigo-600/10 border-indigo-500/30 text-indigo-300 hover:bg-indigo-600 hover:text-white rounded-xl h-11 text-xs px-5 font-bold uppercase tracking-wider transition-all duration-200"
           >
-            <MessageSquarePlus className="mr-1.5 h-4 w-4" />
-            Write a Course Review
+            <MessageSquarePlus className="mr-2 h-4 w-4" />
+            Write a Review
           </Button>
         )}
       </div>
 
       {/* Review Submission Form */}
       {showForm && (
-        <Card id="course-review-submission-card" className="bg-white/5 border border-white/10 rounded-xl mb-6 overflow-hidden">
-          <CardContent className="p-4 sm:p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-white">Share Your Learning Experience</h3>
+        <Card id="course-review-submission-card" className="bg-[#090d20]/80 border border-indigo-500/20 rounded-2xl mb-8 overflow-hidden relative z-10 shadow-[0_0_30px_rgba(99,102,241,0.05)]">
+          <CardContent className="p-5 sm:p-6 space-y-5">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Share Your Learning Experience</h3>
+            </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Star Selector */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Course Rating
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Rate this Course
                 </label>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
@@ -188,13 +194,13 @@ export function CourseReviewsClient({
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(null)}
-                      className="focus:outline-none transition-transform hover:scale-110"
+                      className="focus:outline-none transition-all duration-150 hover:scale-125"
                     >
                       <Star
                         className={`h-7 w-7 ${
                           star <= (hoverRating ?? rating)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-slate-500"
+                            ? "fill-yellow-400 text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.4)]"
+                            : "text-slate-600"
                         }`}
                       />
                     </button>
@@ -203,39 +209,39 @@ export function CourseReviewsClient({
               </div>
 
               {/* Comment Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Comment
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Detailed Feedback
                 </label>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Share your thoughts on the course structure, lessons quality, and code examples (Max 500 characters)"
+                  placeholder="Tell future students about the course structure, curriculum depth, value of hands-on code examples, etc. (Max 500 chars)"
                   maxLength={500}
-                  rows={3}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:ring-1 focus:ring-indigo-500"
+                  rows={4}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all duration-200 leading-relaxed"
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-3 pt-2">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setShowForm(false)}
-                  className="rounded-xl text-slate-400 hover:text-white hover:bg-white/5 h-11 text-xs px-4"
+                  className="rounded-xl text-slate-400 hover:text-white hover:bg-white/5 h-11 text-xs px-5 font-bold uppercase tracking-wider"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 text-xs px-6 font-semibold"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 text-xs px-6 font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_25px_rgba(99,102,241,0.3)] transition-all duration-200"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                      Submitting...
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Publishing...
                     </>
                   ) : (
                     "Publish Review"
@@ -248,49 +254,65 @@ export function CourseReviewsClient({
       )}
 
       {/* Review list */}
-      {reviews.length > 0 ? (
-        <div className="space-y-4">
-          {reviews.map((review) => (
-            <div
-              key={review.id}
-              className="border-t border-white/5 pt-4 first:border-0 first:pt-0"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold text-white flex items-center gap-1.5">
-                  <span className="h-6 w-6 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 text-[10px]">
-                    <User className="h-3 w-3" />
-                  </span>
-                  {review.user?.name || "Verified Student"}
-                </span>
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      className={
-                        star <= review.rating ? "text-yellow-400 text-xs" : "text-slate-600 text-xs"
-                      }
-                    >
-                      ★
-                    </span>
-                  ))}
+      <div className="relative z-10">
+        {reviews.length > 0 ? (
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 hover:border-white/10 hover:bg-white/[0.04] transition-all duration-300"
+              >
+                <div className="flex items-center justify-between gap-4 mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                      <User className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-slate-200 block">
+                        {review.user?.name || "Verified Learner"}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">
+                        {formatDate(review.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 bg-yellow-500/5 border border-yellow-500/10 px-2.5 py-1 rounded-lg">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        className={
+                          star <= review.rating ? "text-yellow-400 text-xs" : "text-slate-700 text-xs"
+                        }
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
                 </div>
+                {review.comment ? (
+                  <p className="text-sm text-slate-300 leading-relaxed font-medium pl-1">
+                    {review.comment}
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500 italic pl-1">
+                    Rated course {review.rating} out of 5 stars with no written feedback.
+                  </p>
+                )}
               </div>
-              {review.comment && (
-                <p className="text-sm text-slate-300 leading-relaxed pl-7">
-                  {review.comment}
-                </p>
-              )}
-              <p className="text-[10px] text-slate-500 mt-1 pl-7">
-                {formatDate(review.createdAt)}
-              </p>
+            ))}
+          </div>
+        ) : (
+          <div className="py-12 text-center flex flex-col items-center justify-center border border-dashed border-white/10 rounded-2xl bg-white/[0.01] p-6">
+            <div className="h-12 w-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mb-3 shadow-[0_0_15px_rgba(255,255,255,0.02)]">
+              <MessageSquarePlus className="h-6 w-6 text-indigo-400" />
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="py-6 text-center text-slate-500 text-sm">
-          No student reviews yet. Be the first to leave feedback!
-        </div>
-      )}
+            <p className="text-slate-300 font-bold mb-1 text-sm tracking-wide">No feedback published yet</p>
+            <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+              Be the first to share your learning experience and help other learners master this topic!
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

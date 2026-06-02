@@ -275,7 +275,7 @@ export function EnrollButton({
       <div className="space-y-2 mb-3">
         <div className="flex justify-between items-center text-slate-400 text-xs">
           <span>Subtotal</span>
-          <span className={hasDiscount ? "line-through" : "text-white font-semibold"}>₹{coursePrice.toLocaleString("en-IN")}</span>
+          <span className={hasDiscount ? "line-through text-slate-500" : "text-white font-semibold"}>₹{(hasDiscount ? safeOriginal : coursePrice).toLocaleString("en-IN")}</span>
         </div>
         {hasDiscount && (
           <div className="flex justify-between items-center text-xs">
@@ -385,7 +385,7 @@ export function EnrollButton({
           </>
         ) : (
           <>
-            <Lock className="w-3.5 h-3.5" /> {variant === "card" ? "Enroll" : `Buy Now — ₹${finalPayablePrice}`}
+            <Lock className="w-3.5 h-3.5" /> {variant === "card" ? "Enroll" : `Buy Now — ₹${finalPayablePrice.toLocaleString("en-IN")}`}
           </>
         )}
       </button>

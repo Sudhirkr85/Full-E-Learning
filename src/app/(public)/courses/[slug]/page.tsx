@@ -194,98 +194,122 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
       : [];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 flex flex-col gap-8">
-          <div className="flex flex-col gap-4">
-            {course.coverImageUrl ? (
-              <img src={course.coverImageUrl} alt={course.title} className="w-full rounded-xl max-h-72 object-cover" />
-            ) : (
-              <div className={`w-full rounded-xl max-h-72 h-72 bg-gradient-to-br ${categoryGradient(categoryName)}`} />
-            )}
+    <div className="min-h-screen bg-[#0a0a0f] text-white relative overflow-hidden bg-grid-cyber">
+      {/* Cinematic glows */}
+      <div className="absolute top-0 left-1/4 -translate-x-1/2 w-[500px] h-[500px] bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-full filter blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 right-10 w-[300px] h-[300px] bg-indigo-500/5 rounded-full filter blur-[100px] pointer-events-none" />
 
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="rounded-full px-2 py-1 text-xs">{categoryName}</Badge>
-              <Badge variant="outline" className="rounded-full px-2 py-1 text-xs">{course.level.toLowerCase()}</Badge>
+      <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            <div className="flex flex-col gap-5 text-left">
+              {/* Premium Media Card Thumbnail */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl group shrink-0">
+                {course.coverImageUrl ? (
+                  <img 
+                    src={course.coverImageUrl} 
+                    alt={course.title} 
+                    className="w-full max-h-80 object-cover transition-transform duration-500 group-hover:scale-105" 
+                  />
+                ) : (
+                  <div className={`w-full max-h-80 h-72 bg-gradient-to-br ${categoryGradient(categoryName)} transition-transform duration-500 group-hover:scale-105`} />
+                )}
+                {/* Cinematic dark bottom gradient cover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
+              </div>
+
+              <div className="flex flex-wrap gap-2.5">
+                <Badge className="rounded-full px-3 py-1 text-xs bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-bold uppercase tracking-wide">
+                  {categoryName}
+                </Badge>
+                <Badge variant="outline" className="rounded-full px-3 py-1 text-xs border-white/15 text-slate-300 font-medium capitalize">
+                  {course.level.toLowerCase().replace("_", " ")}
+                </Badge>
+              </div>
+
+              <h1 className="font-display text-4xl sm:text-5xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(99,102,241,0.15)] leading-tight">
+                {course.title}
+              </h1>
+
+              <p className="text-base text-slate-300 leading-relaxed font-medium">
+                {course.subtitle ?? course.excerpt ?? "Published course ready for learning."}
+              </p>
+
+              <div className="flex flex-wrap gap-4 text-xs sm:text-sm text-slate-400 font-medium border-y border-white/5 py-3.5">
+                <span className="inline-flex items-center gap-1.5"><BookOpen className="h-4.5 w-4.5 text-indigo-400" /> {sectionsCount} Sections</span>
+                <span className="inline-flex items-center gap-1.5"><Clapperboard className="h-4.5 w-4.5 text-indigo-400" /> {lessonsCount} Lessons</span>
+                <span className="inline-flex items-center gap-1.5"><Clock3 className="h-4.5 w-4.5 text-indigo-400" /> {course.level.toLowerCase().replace("_", " ")}</span>
+                <span className="inline-flex items-center gap-1.5"><Globe className="h-4.5 w-4.5 text-indigo-400" /> {course.language}</span>
+              </div>
+
+              <div className="flex items-center gap-3 text-sm text-slate-300 font-semibold mt-1">
+                {teacher?.image ? (
+                  <img src={teacher.image} alt={teacher.name ?? "Instructor"} className="h-9 w-9 rounded-full object-cover border border-white/10" />
+                ) : (
+                  <div className="h-9 w-9 rounded-full border border-white/15 bg-white/5 flex items-center justify-center text-xs font-bold text-indigo-400">{teacher?.name ? initials(teacher.name) : <UserCircle2 className="h-4.5 w-4.5" />}</div>
+                )}
+                <span>Instructor: {teacher?.name ?? "TBA"}</span>
+              </div>
             </div>
 
-            <h1 className="text-3xl font-bold">{course.title}</h1>
-            <p className="text-muted-foreground text-base">{course.subtitle ?? course.excerpt ?? "Published course ready for learning."}</p>
-
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1"><BookOpen className="h-4 w-4" /> {sectionsCount} sections</span>
-              <span className="inline-flex items-center gap-1"><Clapperboard className="h-4 w-4" /> {lessonsCount} lessons</span>
-              <span className="inline-flex items-center gap-1"><Clock3 className="h-4 w-4" /> {course.level.toLowerCase()}</span>
-              <span className="inline-flex items-center gap-1"><Globe className="h-4 w-4" /> {course.language}</span>
-            </div>
-
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              {teacher?.image ? (
-                <img src={teacher.image} alt={teacher.name ?? "Instructor"} className="h-9 w-9 rounded-full object-cover" />
-              ) : (
-                <div className="h-9 w-9 rounded-full border flex items-center justify-center text-xs font-semibold">{teacher?.name ? initials(teacher.name) : <UserCircle2 className="h-4 w-4" />}</div>
-              )}
-              <span>Instructor: {teacher?.name ?? "TBA"}</span>
-            </div>
-          </div>
-
-          <CourseDetailClient
-            slug={course.slug}
-            description={course.description ?? course.excerpt ?? "Course details will be updated soon."}
-            sections={course.sections}
-            isEnrolled={isEnrolled}
-            outcomes={learningOutcomes}
-          />
-
-          <CourseReviewsClient
-            courseId={course.id}
-            initialReviews={courseReviews.map(r => ({
-              id: r.id,
-              rating: r.rating,
-              comment: r.body,
-              createdAt: r.createdAt,
-              user: { name: r.enrollment.user?.name || "Verified Student" }
-            }))}
-            avgRating={avgRating}
-            isLoggedIn={Boolean(session?.user)}
-            isEnrolled={isEnrolled}
-            hasReviewed={hasReviewed}
-            totalReviewsCount={reviewsCount}
-          />
-        </div>
-
-        <div className="lg:col-span-1">
-          <div className="lg:sticky lg:top-6 border rounded-xl p-6 flex flex-col gap-4 bg-card">
-            <EnrollButton
-              courseId={course.id}
-              coursePrice={price}
-              courseName={course.title}
-              courseSlug={course.slug}
+            <CourseDetailClient
+              slug={course.slug}
+              description={course.description ?? course.excerpt ?? "Course details will be updated soon."}
+              sections={course.sections}
               isEnrolled={isEnrolled}
-              isFree={price === 0}
-              userPhone={dbUser?.phone || ""}
-              userEmail={dbUser?.email || session?.user?.email || ""}
-              userName={dbUser?.name || session?.user?.name || ""}
-              isLoggedIn={Boolean(session?.user)}
-              originalPrice={originalPrice}
+              outcomes={learningOutcomes}
             />
 
-            <div className="flex flex-col gap-2 text-sm text-muted-foreground border-t pt-4 mt-2">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                <span>{sectionsCount} sections · {lessonsCount} lessons</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="h-4 w-4" />
-                <span>Certificate on completion</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4" />
-                <span>Access on mobile & desktop</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Infinity className="h-4 w-4" />
-                <span>Lifetime access</span>
+            <CourseReviewsClient
+              courseId={course.id}
+              initialReviews={courseReviews.map(r => ({
+                id: r.id,
+                rating: r.rating,
+                comment: r.body,
+                createdAt: r.createdAt,
+                user: { name: r.enrollment.user?.name || "Verified Student" }
+              }))}
+              avgRating={avgRating}
+              isLoggedIn={Boolean(session?.user)}
+              isEnrolled={isEnrolled}
+              hasReviewed={hasReviewed}
+              totalReviewsCount={reviewsCount}
+            />
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-6 border border-white/10 rounded-xl p-6 flex flex-col gap-4 bg-[#090d20]/50 backdrop-blur-md shadow-2xl text-slate-100">
+              <EnrollButton
+                courseId={course.id}
+                coursePrice={price}
+                courseName={course.title}
+                courseSlug={course.slug}
+                isEnrolled={isEnrolled}
+                isFree={price === 0}
+                userPhone={dbUser?.phone || ""}
+                userEmail={dbUser?.email || session?.user?.email || ""}
+                userName={dbUser?.name || session?.user?.name || ""}
+                isLoggedIn={Boolean(session?.user)}
+                originalPrice={originalPrice}
+              />
+
+              <div className="flex flex-col gap-2 text-sm text-slate-300 border-t border-white/10 pt-4 mt-2">
+                <div className="flex items-center gap-2 text-slate-300">
+                  <BookOpen className="h-4 w-4 text-indigo-400" />
+                  <span>{sectionsCount} sections · {lessonsCount} lessons</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Award className="h-4 w-4 text-indigo-400" />
+                  <span>Certificate on completion</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Smartphone className="h-4 w-4 text-indigo-400" />
+                  <span>Access on mobile & desktop</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Infinity className="h-4 w-4 text-indigo-400" />
+                  <span>Lifetime access</span>
+                </div>
               </div>
             </div>
           </div>

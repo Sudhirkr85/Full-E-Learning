@@ -15,9 +15,12 @@ export async function createSectionAction(courseId: string, title: string) {
   }
 
   try {
-    const sectionsCount = await prisma.courseSection.count({
-      where: { courseId }
+    const maxSection = await prisma.courseSection.findFirst({
+      where: { courseId },
+      orderBy: { orderIndex: "desc" },
+      select: { orderIndex: true }
     });
+    const nextOrderIndex = maxSection ? maxSection.orderIndex + 1 : 0;
 
     let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     if (!slug) slug = "section";
@@ -35,7 +38,7 @@ export async function createSectionAction(courseId: string, title: string) {
         courseId,
         title,
         slug,
-        orderIndex: sectionsCount
+        orderIndex: nextOrderIndex
       }
     });
 
@@ -50,6 +53,7 @@ export async function createSectionAction(courseId: string, title: string) {
 type LessonExtras = {
   description?: string;
   youtubeUrl?: string;
+  r2AssetUrl?: string;
   sessionType?: "LIVE" | "RECORDED";
   accessType?: "FREE" | "PAID";
   liveDateTime?: string;
@@ -61,7 +65,7 @@ export async function createLessonAction(
   courseId: string,
   sectionId: string,
   title: string,
-  contentType: "VIDEO" | "ARTICLE" | "RESOURCE",
+  contentType: "VIDEO" | "ARTICLE" | "RESOURCE" | "QUIZ",
   extras?: LessonExtras
 ) {
   const session = await auth();
@@ -74,9 +78,12 @@ export async function createLessonAction(
   }
 
   try {
-    const lessonsCount = await prisma.lesson.count({
-      where: { sectionId }
+    const maxLesson = await prisma.lesson.findFirst({
+      where: { sectionId },
+      orderBy: { orderIndex: "desc" },
+      select: { orderIndex: true }
     });
+    const nextOrderIndex = maxLesson ? maxLesson.orderIndex + 1 : 0;
 
     let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     if (!slug) slug = "lesson";
@@ -96,15 +103,32 @@ export async function createLessonAction(
     if (extras?.liveDateTime) metadata.liveDateTime = extras.liveDateTime;
     if (extras?.publishDate) metadata.publishDate = extras.publishDate;
 
+    if (contentType === "QUIZ") {
+      // Auto-generate test shell
+      const test = await prisma.test.create({
+        data: {
+          courseId,
+          sectionId,
+          title,
+          slug: `${slug}-quiz-${Date.now()}`,
+          type: "QUIZ",
+          passingScore: 70,
+          isPublished: true
+        }
+      });
+      metadata.testId = test.id;
+    }
+
     await prisma.lesson.create({
       data: {
         sectionId,
         title,
         slug,
         contentType,
-        orderIndex: lessonsCount,
+        orderIndex: nextOrderIndex,
         description: extras?.description ?? null,
         youtubeUrl: extras?.youtubeUrl ?? null,
+        r2AssetUrl: extras?.r2AssetUrl ?? null,
         isPreview: extras?.isPreview ?? false,
         isPublished: true,
         metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
@@ -118,3 +142,47 @@ export async function createLessonAction(
     return { error: "Failed to create session." };
   }
 }
+
+export async function deleteSectionAction(courseId: string, sectionId: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    // Delete all lessons first (due to DB constraints if any, or Cascade if configured)
+    await prisma.lesson.deleteMany({
+      where: { sectionId }
+    });
+
+    await prisma.courseSection.delete({
+      where: { id: sectionId }
+    });
+
+    revalidatePath(`/admin/courses/${courseId}`);
+    return { success: "Section deleted successfully!" };
+  } catch (error) {
+    console.error("Delete section error:", error);
+    return { error: "Failed to delete section." };
+  }
+}
+
+export async function deleteLessonAction(courseId: string, lessonId: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    await prisma.lesson.delete({
+      where: { id: lessonId }
+    });
+
+    revalidatePath(`/admin/courses/${courseId}`);
+    return { success: "Lesson deleted successfully!" };
+  } catch (error) {
+    console.error("Delete lesson error:", error);
+    return { error: "Failed to delete lesson." };
+  }
+}
+

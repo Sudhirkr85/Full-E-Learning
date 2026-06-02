@@ -452,13 +452,16 @@ export async function submitAttemptAction(
           },
         });
       } else if (question.kind === QuestionType.SHORT_ANSWER) {
-        // Short answers compare student answerText case-insensitively with any option values marked as isCorrect
-        const trimmedAnswer = (ans?.answerText || "").trim().toLowerCase();
+        const isCaseSensitive = (question.metadata as any)?.caseSensitive === true;
+        const studentAns = (ans?.answerText || "").trim();
         const correctOptions = question.options.filter((opt) => opt.isCorrect);
 
-        isCorrect = correctOptions.some(
-          (opt) => (opt.value || opt.label).trim().toLowerCase() === trimmedAnswer
-        );
+        isCorrect = correctOptions.some((opt) => {
+          const acceptedVal = (opt.value || opt.label || "").trim();
+          return isCaseSensitive 
+            ? acceptedVal === studentAns 
+            : acceptedVal.toLowerCase() === studentAns.toLowerCase();
+        });
 
         await tx.attemptAnswer.create({
           data: {
@@ -501,4 +504,83 @@ export async function submitAttemptAction(
 
   revalidatePath(`/courses/${attempt.test.course.slug}/tests/${attempt.test.slug}`);
   return { success: true };
+}
+
+export async function startClassroomAttemptAction(courseId: string, testId: string, lessonSlug: string) {
+  const student = await requireRole([UserRole.STUDENT, UserRole.ADMIN, UserRole.TEACHER]);
+
+  // Check enrollment (bypassed for ADMIN/TEACHER)
+  const isStaff = student.role === "ADMIN" || student.role === "TEACHER";
+  let enrollment = null;
+  if (!isStaff) {
+    enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: student.id,
+          courseId,
+        },
+      },
+    });
+
+    if (!enrollment || (enrollment.status !== "ACTIVE" && enrollment.status !== "COMPLETED")) {
+      throw new Error("You must be actively enrolled in the course to take this test.");
+    }
+  } else {
+    // Staff enrollment fallback or create mock one if required, or simply query if they have one
+    enrollment = await prisma.enrollment.findFirst({
+      where: { userId: student.id, courseId }
+    });
+  }
+
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    include: {
+      course: {
+        select: { slug: true },
+      },
+    },
+  });
+
+  if (!test || !test.isPublished) {
+    throw new Error("This quiz is currently unavailable.");
+  }
+
+  // Check attempt limits
+  const attemptsCount = await prisma.attempt.count({
+    where: {
+      testId,
+      userId: student.id,
+    },
+  });
+
+  if (test.attemptLimit && attemptsCount >= test.attemptLimit) {
+    throw new Error(`You have reached the maximum attempt limit of ${test.attemptLimit} for this test.`);
+  }
+
+  // Check if there is an active in-progress attempt, reuse if exists
+  const activeAttempt = await prisma.attempt.findFirst({
+    where: {
+      testId,
+      userId: student.id,
+      status: AttemptStatus.IN_PROGRESS,
+    },
+  });
+
+  if (activeAttempt) {
+    redirect(`/courses/${test.course.slug}/learn?lesson=${lessonSlug}&attemptId=${activeAttempt.id}`);
+  }
+
+  // Create new attempt
+  const attempt = await prisma.attempt.create({
+    data: {
+      testId,
+      userId: student.id,
+      enrollmentId: enrollment?.id || null,
+      status: AttemptStatus.IN_PROGRESS,
+      attemptNumber: attemptsCount + 1,
+      startedAt: new Date(),
+    },
+  });
+
+  redirect(`/courses/${test.course.slug}/learn?lesson=${lessonSlug}&attemptId=${attempt.id}`);
 }

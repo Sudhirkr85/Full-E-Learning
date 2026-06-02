@@ -17,10 +17,12 @@ import {
   BookOpen, 
   User, 
   ArrowLeft,
-  Star
+  Star,
+  HelpCircle
 } from "lucide-react";
 import { toggleLessonCompletionAction } from "@/lib/courses/actions";
 import { revalidatePath } from "next/cache";
+import ClassroomQuizPortal from "./classroom-quiz-portal";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,7 @@ type LearnPageProps = {
   }>;
   searchParams?: Promise<{
     lesson?: string;
+    attemptId?: string;
   }>;
 };
 
@@ -146,6 +149,101 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
 
   const isActiveCompleted = completedLessonIds.has(activeLesson.id);
 
+  let quizTest = null;
+  let quizAttempts: any[] = [];
+  let quizActiveAttempt = null;
+  let quizReviewAttempt = null;
+  let quizQuestions: any[] = [];
+
+  const activeAttemptId = sParams?.attemptId;
+
+  if (activeLesson.contentType === "QUIZ") {
+    const testId = (activeLesson.metadata as any)?.testId;
+    if (testId) {
+      quizTest = await prisma.test.findUnique({
+        where: { id: testId },
+        include: {
+          questions: {
+            include: {
+              options: true
+            },
+            orderBy: { orderIndex: "asc" }
+          }
+        }
+      });
+
+      if (quizTest) {
+        quizAttempts = await prisma.attempt.findMany({
+          where: {
+            testId: quizTest.id,
+            userId: session.user.id
+          },
+          orderBy: { attemptNumber: "desc" }
+        });
+
+        quizActiveAttempt = quizAttempts.find(att => att.status === "IN_PROGRESS") || null;
+
+        if (activeAttemptId) {
+          quizReviewAttempt = quizAttempts.find(att => att.id === activeAttemptId) || null;
+        }
+
+        const isTakingPhase = quizActiveAttempt && (!quizReviewAttempt || quizReviewAttempt.status === "IN_PROGRESS");
+        
+        quizQuestions = await Promise.all(quizTest.questions.map(async (q) => {
+          const answers = activeAttemptId ? await prisma.attemptAnswer.findMany({
+            where: { attemptId: activeAttemptId, questionId: q.id }
+          }) : [];
+
+          return {
+            id: q.id,
+            prompt: q.prompt,
+            kind: q.kind,
+            points: q.points,
+            explanation: q.explanation,
+            options: q.options.map((o) => ({
+              id: o.id,
+              label: o.label,
+              isCorrect: isTakingPhase ? undefined : o.isCorrect,
+              explanation: isTakingPhase ? undefined : o.explanation
+            })),
+            answers: answers.map(a => ({
+              selectedOptionId: a.selectedOptionId,
+              answerText: a.answerText,
+              isCorrect: a.isCorrect,
+              metadata: a.metadata
+            }))
+          };
+        }));
+
+        // Automatic lesson completion when passed
+        if (quizReviewAttempt && quizReviewAttempt.scorePercent !== null && quizReviewAttempt.scorePercent >= quizTest.passingScore && enrollment) {
+          const isCompleted = completedLessonIds.has(activeLesson.id);
+          if (!isCompleted) {
+            await prisma.lessonProgress.upsert({
+              where: {
+                enrollmentId_lessonId: {
+                  enrollmentId: enrollment.id,
+                  lessonId: activeLesson.id
+                }
+              },
+              create: {
+                enrollmentId: enrollment.id,
+                lessonId: activeLesson.id,
+                isCompleted: true,
+                completedAt: new Date()
+              },
+              update: {
+                isCompleted: true,
+                completedAt: new Date()
+              }
+            });
+            completedLessonIds.add(activeLesson.id);
+          }
+        }
+      }
+    }
+  }
+
   // 5. Calculate overall progress stats
   const totalLessonsCount = allLessons.length;
   const completedLessonsCount = completedLessonIds.size;
@@ -211,31 +309,68 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
         <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Active Content Viewer */}
-            <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl">
-              {activeLesson.youtubeUrl ? (
-                <iframe
-                  className="w-full h-full"
-                  src={activeLesson.youtubeUrl}
-                  title={activeLesson.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
+            {activeLesson.contentType === "QUIZ" ? (
+              quizTest ? (
+                <ClassroomQuizPortal
+                  phase={
+                    quizReviewAttempt 
+                      ? (quizReviewAttempt.status === "IN_PROGRESS" ? "taking" : "review")
+                      : (quizActiveAttempt ? "taking" : "overview")
+                  }
+                  courseSlug={course.slug}
+                  lessonSlug={activeLesson.slug}
+                  test={{
+                    id: quizTest.id,
+                    title: quizTest.title,
+                    description: quizTest.description,
+                    type: quizTest.type,
+                    passingScore: quizTest.passingScore,
+                    timeLimitMinutes: quizTest.timeLimitMinutes,
+                    attemptLimit: quizTest.attemptLimit,
+                    courseId: course.id
+                  }}
+                  attempts={quizAttempts}
+                  activeAttempt={quizActiveAttempt}
+                  reviewAttempt={quizReviewAttempt}
+                  questions={quizQuestions}
+                  onRefresh={async () => {
+                    "use server";
+                    revalidatePath(`/courses/${course.slug}/learn`);
+                  }}
                 />
-              ) : activeLesson.r2AssetUrl ? (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">
-                  <BookOpen className="h-16 w-16 text-indigo-400" />
-                  <h3 className="text-lg font-bold">This lesson contains a digital article playbook.</h3>
-                  <p className="text-sm text-slate-400 max-w-sm">Use the link below to open this protected study resource.</p>
-                  <Button asChild className="bg-indigo-600 hover:bg-indigo-500">
-                    <a href={activeLesson.r2AssetUrl} target="_blank" rel="noreferrer">Open Lesson Playbook</a>
-                  </Button>
-                </div>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-500">
-                  <PlayCircle className="h-12 w-12" />
-                  <span>No primary video asset has been published for this lesson.</span>
+                <div className="w-full flex flex-col items-center justify-center gap-2 text-slate-500 py-16 border border-dashed border-white/10 rounded-2xl">
+                  <HelpCircle className="h-12 w-12 text-slate-600" />
+                  <span>This Quiz Lesson has not been configured with any questions yet.</span>
                 </div>
-              )}
-            </div>
+              )
+            ) : (
+              <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl">
+                {activeLesson.youtubeUrl ? (
+                  <iframe
+                    className="w-full h-full"
+                    src={activeLesson.youtubeUrl}
+                    title={activeLesson.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                ) : activeLesson.r2AssetUrl ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">
+                    <BookOpen className="h-16 w-16 text-indigo-400" />
+                    <h3 className="text-lg font-bold">This lesson contains a digital article playbook.</h3>
+                    <p className="text-sm text-slate-400 max-w-sm">Use the link below to open this protected study resource.</p>
+                    <Button asChild className="bg-indigo-600 hover:bg-indigo-500">
+                      <a href={activeLesson.r2AssetUrl} target="_blank" rel="noreferrer">Open Lesson Playbook</a>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-500">
+                    <PlayCircle className="h-12 w-12" />
+                    <span>No primary video asset has been published for this lesson.</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Lesson Title & Actions Row */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">

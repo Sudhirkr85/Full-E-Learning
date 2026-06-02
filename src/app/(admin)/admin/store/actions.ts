@@ -13,6 +13,7 @@ export async function createProductAction(data: {
   fullDescription?: string;
   coverImageUrl?: string;
   priceInRupees: number;
+  originalPriceInRupees?: number;
   status: ProductStatus;
   assetUrl?: string;
   stockQuantity?: number;
@@ -28,6 +29,7 @@ export async function createProductAction(data: {
   }
 
   const priceCents = Math.round(data.priceInRupees * 100);
+  const originalPriceCents = data.originalPriceInRupees ? Math.round(data.originalPriceInRupees * 100) : null;
   
   const slug = await reserveUniqueSlug(data.title, async (candidate) => {
     const existing = await prisma.product.findUnique({
@@ -45,6 +47,7 @@ export async function createProductAction(data: {
       fullDescription: data.fullDescription || null,
       coverImageUrl: data.coverImageUrl || null,
       priceCents,
+      originalPriceCents,
       status: data.status,
       assetUrl: data.productType === "DIGITAL_RESOURCE" ? (data.assetUrl || null) : null,
       stockQuantity: data.productType === "PHYSICAL" ? (data.stockQuantity ?? 0) : null,
@@ -66,6 +69,7 @@ export async function updateProductAction(productId: string, data: {
   fullDescription?: string;
   coverImageUrl?: string;
   priceInRupees: number;
+  originalPriceInRupees?: number;
   status: ProductStatus;
   assetUrl?: string;
   stockQuantity?: number;
@@ -89,6 +93,7 @@ export async function updateProductAction(productId: string, data: {
   }
 
   const priceCents = Math.round(data.priceInRupees * 100);
+  const originalPriceCents = data.originalPriceInRupees ? Math.round(data.originalPriceInRupees * 100) : null;
   
   const slug = await reserveUniqueSlug(data.title, async (candidate) => {
     const existing = await prisma.product.findUnique({
@@ -107,6 +112,7 @@ export async function updateProductAction(productId: string, data: {
       fullDescription: data.fullDescription || null,
       coverImageUrl: data.coverImageUrl || null,
       priceCents,
+      originalPriceCents,
       status: data.status,
       assetUrl: data.productType === "DIGITAL_RESOURCE" ? (data.assetUrl || null) : null,
       stockQuantity: data.productType === "PHYSICAL" ? (data.stockQuantity ?? 0) : null,

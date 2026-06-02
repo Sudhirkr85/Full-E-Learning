@@ -39,7 +39,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   }
 
   const product = res.product;
-  const formattedPrice = `₹${(product.priceCents / 100).toLocaleString("en-IN")}`;
+  const price = product.priceCents / 100;
+  const originalPrice = product.originalPriceCents ? product.originalPriceCents / 100 : null;
+  const hasDiscount = originalPrice !== null && originalPrice > price && price > 0;
+  const discountPercent = hasDiscount ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
 
   // Extract meta data
   const meta: any = product.metadata || {};
@@ -113,9 +116,23 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <h1 className="font-display text-3xl font-bold tracking-tight text-white leading-tight">
                 {product.title}
               </h1>
-              <p className="text-2xl font-bold text-violet-400 tracking-tight pt-1">
-                {formattedPrice}
-              </p>
+              
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <span className="text-3xl font-extrabold text-white">
+                  <span className="text-violet-400">₹</span>
+                  {price.toLocaleString("en-IN")}
+                </span>
+                {hasDiscount && (
+                  <>
+                    <span className="line-through text-slate-500 text-base font-semibold">
+                      ₹{originalPrice.toLocaleString("en-IN")}
+                    </span>
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-wide">
+                      {discountPercent}% OFF
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="border-t border-white/10 pt-6">

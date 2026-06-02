@@ -700,8 +700,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => {
-              const meta = product.metadata as { originalPrice?: unknown } | null;
-              const originalPrice = meta?.originalPrice ? Number(meta.originalPrice) : null;
+              const originalPrice = product.originalPriceCents ? product.originalPriceCents / 100 : null;
               const price = product.priceCents / 100;
               const hasDiscount = originalPrice !== null && originalPrice > price && price > 0;
               const discountPercent = hasDiscount ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
@@ -738,16 +737,20 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                     </div>
 
                     <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                      <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-2xl font-bold text-white">
                           <span className="text-violet-400">₹</span>
                           {price.toLocaleString("en-IN")}
                         </span>
                         {hasDiscount && (
-                          <div className="flex items-center">
-                            <span className="line-through text-slate-500 text-xs font-semibold">₹{originalPrice.toLocaleString("en-IN")}</span>
-                            <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full ml-1.5">{discountPercent}% OFF</span>
-                          </div>
+                          <>
+                            <span className="line-through text-slate-500 text-sm font-semibold">
+                              ₹{originalPrice.toLocaleString("en-IN")}
+                            </span>
+                            <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-wide">
+                              {discountPercent}% OFF
+                            </span>
+                          </>
                         )}
                       </div>
                       

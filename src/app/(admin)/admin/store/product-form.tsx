@@ -32,6 +32,9 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
   const [priceInRupees, setPriceInRupees] = useState<number | "">(
     initialProduct?.priceCents ? Math.round(initialProduct.priceCents / 100) : ""
   );
+  const [originalPriceInRupees, setOriginalPriceInRupees] = useState<number | "">(
+    initialProduct?.originalPriceCents ? Math.round(initialProduct.originalPriceCents / 100) : ""
+  );
   const [status, setStatus] = useState<ProductStatus>(initialProduct?.status || "DRAFT");
 
   // Conditional states
@@ -158,6 +161,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
       fullDescription: fullDescription || undefined,
       coverImageUrl: coverImageUrl || undefined,
       priceInRupees: Number(priceInRupees),
+      originalPriceInRupees: originalPriceInRupees === "" ? undefined : Number(originalPriceInRupees),
       status,
       assetUrl: productType === "DIGITAL_RESOURCE" ? assetUrl : undefined,
       stockQuantity: productType === "PHYSICAL" ? stockQuantity : undefined,
@@ -247,8 +251,8 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                 />
               </div>
 
-              {/* Product Type & Price Row */}
-              <div className="grid gap-4 md:grid-cols-2">
+              {/* Product Type, Sale Price & Original Price Row */}
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
                     Product Type <span className="text-rose-400">*</span>
@@ -265,7 +269,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Price (₹) <span className="text-rose-400">*</span>
+                    Sale Price (₹) <span className="text-rose-400">*</span>
                   </label>
                   <Input
                     type="number"
@@ -276,6 +280,21 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                     placeholder="e.g. 499"
                     className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
                     required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Original Price (₹)
+                  </label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={originalPriceInRupees}
+                    onChange={(e) => setOriginalPriceInRupees(e.target.value === "" ? "" : Number(e.target.value))}
+                    placeholder="e.g. 999"
+                    className="bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 h-11 text-xs"
                   />
                 </div>
               </div>

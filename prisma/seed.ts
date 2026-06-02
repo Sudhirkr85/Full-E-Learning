@@ -40,7 +40,9 @@ async function main() {
   // 3. Create independent digital resources
   await prisma.product.upsert({
     where: { slug: "nextjs-architecture-playbook" },
-    update: {},
+    update: {
+      originalPriceCents: 9900,
+    },
     create: {
       title: "Next.js 15+ Advanced Architecture Playbook",
       slug: "nextjs-architecture-playbook",
@@ -48,6 +50,7 @@ async function main() {
       productType: ProductType.DIGITAL_RESOURCE,
       status: ProductStatus.ACTIVE,
       priceCents: 1900, // $19.00
+      originalPriceCents: 9900,
       currency: "USD",
       coverImageUrl: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&auto=format&fit=crop&q=80",
       assetUrl: "https://r2.e-learning.academy/books/nextjs-architecture-playbook.pdf",
@@ -62,7 +65,9 @@ async function main() {
 
   await prisma.product.upsert({
     where: { slug: "tailwind-glassmorphic-ui-kit" },
-    update: {},
+    update: {
+      originalPriceCents: 19900,
+    },
     create: {
       title: "Tailwind CSS Premium Glassmorphic UI Dashboard Kit",
       slug: "tailwind-glassmorphic-ui-kit",
@@ -70,6 +75,7 @@ async function main() {
       productType: ProductType.DIGITAL_RESOURCE,
       status: ProductStatus.ACTIVE,
       priceCents: 2900, // $29.00
+      originalPriceCents: 19900,
       currency: "USD",
       coverImageUrl: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&auto=format&fit=crop&q=80",
       assetUrl: "https://r2.e-learning.academy/assets/tailwind-glassmorphic-ui-kit.zip",
@@ -84,7 +90,9 @@ async function main() {
   // 4. Create a bundle product
   await prisma.product.upsert({
     where: { slug: "complete-fullstack-dev-bundle" },
-    update: {},
+    update: {
+      originalPriceCents: 29900,
+    },
     create: {
       title: "The Complete Full-Stack Developer Starter Bundle",
       slug: "complete-fullstack-dev-bundle",
@@ -92,6 +100,7 @@ async function main() {
       productType: ProductType.BUNDLE,
       status: ProductStatus.ACTIVE,
       priceCents: 5900, // $59.00
+      originalPriceCents: 29900,
       currency: "USD",
       coverImageUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
       inventoryCount: null,

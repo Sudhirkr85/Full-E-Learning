@@ -437,6 +437,7 @@ model Product {
   productType        ProductType    @default(DIGITAL_RESOURCE)
   status             ProductStatus  @default(DRAFT)
   priceCents         Int            @default(0)
+  originalPriceCents Int?
   currency           String         @default("USD")
   assetUrl           String?
   assetProvider      AssetProvider?

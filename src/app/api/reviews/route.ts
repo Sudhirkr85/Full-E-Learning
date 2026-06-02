@@ -57,6 +57,13 @@ export async function POST(req: Request) {
         userId: session.user.id,
         rating: Number(rating),
         comment: comment || null
+      },
+      include: {
+        user: {
+          select: {
+            name: true
+          }
+        }
       }
     });
 

@@ -283,8 +283,8 @@ export default async function StudentOrdersPage() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between sm:justify-end gap-4">
-                            <span className="text-xs font-bold text-slate-300 font-mono">{price}</span>
+                          <div className="flex items-center justify-between sm:justify-end gap-2">
+                            <span className="text-xs font-bold text-slate-300 font-mono mr-2">{price}</span>
                             {order.status === "PAID" && isPdf && (
                               <Link
                                 href={`/student/orders/${order.id}/pdf-viewer?productId=${item.productId}`}
@@ -293,6 +293,21 @@ export default async function StudentOrdersPage() {
                                 <BookOpen className="h-3 w-3" />
                                 Read Now
                               </Link>
+                            )}
+                            {order.status === "PAID" && item.productSlug && (
+                              <div className="flex items-center gap-1 ml-2 border border-white/10 bg-white/5 rounded-xl px-2.5 h-8 shadow-inner" title="Rate Product Now">
+                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mr-1.5">Rate:</span>
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Link
+                                    key={star}
+                                    href={`/store/${item.productSlug}?rating=${star}`}
+                                    className="text-slate-500 hover:text-yellow-400 transition hover:scale-125 text-sm"
+                                    title={`Rate ${star} Stars`}
+                                  >
+                                    ★
+                                  </Link>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>

@@ -98,6 +98,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   };
 
   // --- SECTION 3: CUSTOMER REVIEWS DATA ---
+  const reviewsCount = await prisma.review.count({
+    where: { productId: product.id }
+  });
+
   const reviews = await prisma.review.findMany({
     where: { productId: product.id },
     include: { user: { select: { name: true } } },
@@ -105,9 +109,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     take: 4
   });
 
-  const avgRating = reviews.length > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : null;
+  const ratingSummary = await prisma.review.aggregate({
+    where: { productId: product.id },
+    _avg: {
+      rating: true
+    }
+  });
+
+  const avgRating = ratingSummary._avg.rating || null;
 
   // --- SECTION 4: RELATED PRODUCTS DATA ---
   const related = await prisma.product.findMany({
@@ -246,6 +255,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           isLoggedIn={isLoggedIn}
           hasPurchased={hasPurchased}
           hasReviewed={hasReviewed}
+          totalReviewsCount={reviewsCount}
         />
 
         {/* SECTION 4: RELATED PRODUCTS */}

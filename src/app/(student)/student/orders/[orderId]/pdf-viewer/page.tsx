@@ -44,9 +44,9 @@ export default async function StudentPdfViewerPage({ params, searchParams }: Pdf
     redirect(`/student/orders/${orderId}`);
   }
 
-  // Validate if orderId is a valid UUID to prevent Prisma database runtime errors
+  // Validate if orderId and productId are valid UUIDs to prevent Prisma database runtime casting errors
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(orderId)) {
+  if (!uuidRegex.test(orderId) || !uuidRegex.test(productId)) {
     return notFound();
   }
 

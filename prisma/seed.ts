@@ -53,7 +53,7 @@ async function main() {
       originalPriceCents: 9900,
       currency: "USD",
       coverImageUrl: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&auto=format&fit=crop&q=80",
-      assetUrl: "https://r2.e-learning.academy/books/nextjs-architecture-playbook.pdf",
+      assetUrl: "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf",
       inventoryCount: null, // Unlimited
       metadata: {
         format: "PDF",

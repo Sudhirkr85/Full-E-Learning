@@ -115,6 +115,19 @@ export default async function StudentCoursesPage() {
                     <Button asChild variant="outline">
                       <Link href={`/courses/${enrollment.course.slug}`}>Course details</Link>
                     </Button>
+                    <div className="flex items-center gap-1.5 border border-white/10 bg-white/5 rounded-xl px-3 h-10 shadow-inner" title="Rate Course Now">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mr-1">Rate:</span>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Link
+                          key={star}
+                          href={`/courses/${enrollment.course.slug}?rating=${star}`}
+                          className="text-slate-500 hover:text-yellow-400 transition hover:scale-125 text-base"
+                          title={`Rate ${star} Stars`}
+                        >
+                          ★
+                        </Link>
+                      ))}
+                    </div>
                     {isCompleted && (
                       <Button asChild variant="outline" className="border-amber-500/30 text-amber-600 hover:text-amber-700 hover:bg-amber-500/10">
                         <Link href={`/student/courses/${enrollment.course.slug}/certificate`}>

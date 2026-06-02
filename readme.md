@@ -697,3 +697,218 @@ The platform has been enhanced with a robust, enterprise-grade Admin Coupon Mana
     *   This completely eliminates artificial vertical gaps on short-item checkouts and ensures the payment button remains easily clickable and beautifully aligned on compact mobile viewports without scroll bleed.
 *   **Build Verification**:
     *   The entire platform compiles cleanly with strict typechecking rules under `npx tsc --noEmit`.
+
+### 16. Technical Enhancements, Secure Reader Desk, Cart Routing & Aggregate Reviews
+The storefront, cart, secure online PDF viewer, and reviews system have been enhanced with robust safety constraints, unified UI routing patterns, and enterprise-grade aggregates:
+
+*   **Responsive Desktop Cart Redirection & Side Drawer Integration**:
+*   Swap your Razorpay API keys from `rzp_test_` to `rzp_live_` inside your environment variables.
+*   Update `BREVO_SENDER_EMAIL` to match your registered, domain-validated sending address.
+
+---
+
+## 16. Production Readiness
+
+The platform satisfies all criteria for a premium, stable production deployment:
+
+*   **TypeScript Strict Safety**: The entire codebase compiles with zero TypeScript errors under strict type checking rules.
+*   **Input Validation**: All forms, server actions, and endpoints enforce structured Zod parsing to prevent malicious inputs.
+*   **Security Webhook Integrity**: Razorpay callback webhooks verify HMAC-SHA256 signature hashes, preventing fake orders or course activations.
+*   **Complete Audit Logging**: Security-critical actions are auditable through database audit logs, logging states and actor credentials.
+*   **Graceful Degrades**: System operations are designed to fail-soft (e.g. missing mail credentials or database static-compilations log warnings without crashing), ensuring high availability.
+*   **Course Reviews & 5-Star Capsules**:
+    *   **Interactive 5-Star Rating Capsules & Instant Redirection**: Replaced standard rating buttons with high-fidelity capsule components containing 5 interactive star icons in student dashboards. Clicking a star dynamically appends the parameter (e.g. `?rating=5`) to trigger the review submission drawer via mount listeners.
+    *   **Complete LMS Course Reviews & Ratings System**: Built the `/api/courses/reviews` POST endpoint to validate user credentials and course enrollment, integrated with a new dark glassmorphic `CourseReviewsClient` to capture and display student feedback metrics on the Course details page.
+
+---
+
+## 17. Screens / UX Overview
+
+*   **Cinematic Homepage**: Features premium outcome-based cards, placement salary stats, live ticker banners, and an interactive coding terminal sandbox preview.
+*   **Student Workspace Dashboard**: Progress trackers, continue-learning shortcuts, payment logs, support desks, and certificate generators.
+*   **Teacher Management Area**: Layout editors to customize sections, publish lessons, upload R2 resources, manage categories, and audit tests.
+*   **Zendesk-Inspired CRM Desk**: Admin split-pane support desk to read messages, categorize priorities, and resolve active tickets.
+*   **Secure Checkout Drawer**: Premium invoice logs showcasing coupon updates, Razorpay gateways, and shipping address managers.
+*   **Grading Test Engine**: Modern assessment screen showing time limits, question selectors, and auto-graded result summary charts.
+
+---
+
+## 18. Future Roadmap
+
+Planned architecture and platform improvements include:
+
+*   **Native Android/iOS Mobile Apps**: Exposing server-side actions as REST endpoints to power native mobile portals.
+*   **Interactive AI Co-Pilot Support**: Integrating LLM agents inside coding lessons to help students debug logic in real time.
+*   **Advanced Analytics Visualizer**: Canvas charts in the teacher workspace showing course completion percentages and quiz difficulty ratings.
+*   **Live Stream Classes**: Scheduling live lectures with calendar synchronization.
+*   **Outcome Recommendation Engine**: Dynamic student recommendation paths matching learning speeds to tech job openings.
+
+---
+
+## 19. Indian LMS UX & Admin Governance Updates
+
+The platform has been enhanced with simplified, production-ready Indian student-focused LMS user experiences and hardened security policies:
+
+### 1. Simplified Course Creation UX (Indian LMS First)
+To remove confusing technical inputs for teachers and administrators, the course creation workflow now features streamlined controls:
+*   **Searchable Category Dropdown**: Comma-separated category text inputs have been replaced with a real-time searchable dropdown. Available categories are loaded directly from the database and allow selecting an initial category.
+*   **INR-Only Pricing**: The generic price in cents and currency selectors have been removed. Pricing is fixed to **INR (₹)** as the native currency. Admins enter normal rupee values (e.g. `499`, `999`, `4999`), which are automatically converted to cents (`* 100`) internally for transaction processors.
+*   **YouTube Video ID Integration**: Full trailer URL inputs have been replaced with a simple **YouTube Video ID** input (e.g., `dQw4w9WgXcQ`). The platform automatically builds and stores the canonical watch URL (`https://www.youtube.com/watch?v=...`) internally.
+*   **Direct Banner Upload Flow**: Manual cover image URL pasting has been eliminated. The form features a premium drag-and-drop / click-to-select local file uploader that performs automatic validation, uploads assets securely via `/api/courses/upload-banner` to Cloudflare R2, and displays an instant cover preview with removal controls.
+
+### 2. Hardened Password Governance (Admin & Student Registrations)
+The platform includes enhanced credential security controls for both administrators and public student registrations:
+*   **5-Rule Strong Credentials Validation**: Passwords must strictly satisfy the following criteria:
+    *   Minimum **8 characters** in length
+    *   At least **one uppercase letter** (A-Z)
+    *   At least **one lowercase letter** (a-z)
+    *   At least **one number** (0-9)
+    *   At least **one special character** (e.g., `@`, `$`, `!`, `%`, `*`, `?`, `&`)
+*   **Interactive Password Strength Meter**: The `/admin/settings/change-password` viewport and the public `/register` viewport both embed a live, color-coded strength bar and a real-time criteria checklist that updates dynamically as the user types, displaying green checkmarks and matching validation.
+*   **Secure Verification flow**: Administrative updates fully validate current passwords using `bcrypt` comparison matches before updates are committed, and public signups enforce these rules client-side.
+
+### 3. Public Course Card Redesign & Custom Centered Confirmation Dialogs
+*   **Public Course Listing Card**: Redesigned public course cards with modern visual architecture:
+    *   **Immersive Thumbnail Hero Section**: 48px height with a custom dark gradient overlay (`bg-gradient-to-t from-black/80 via-black/20 to-transparent`) and top-left translucent category badges.
+    *   **Aesthetic Typography Hierarchy**: Course titles overlaid directly on the banner with dual-line clamping, supported by flexible description bodies, dynamic section counts, and teacher names.
+    *   **Advanced Rupee Price Row**: Visual logic distinguishing Free courses, regular Paid courses, and discounted paths (including strikethroughs and dynamic "% OFF" badges).
+    *   **Hover-Lift Animation**: Standardized groups with dynamic `hover:-translate-y-1.5 hover:shadow-lg` for highly engaging micro-interactions.
+    *   **Responsive Grid System**: Grid structure spanning 1, 2, 3, or 4 columns seamlessly across standard viewports.
+*   **Custom Centered Confirmation Modals**: Replaced native browser `confirm()` alerts on the admin course management dashboard with beautiful custom glassmorphic modals, perfectly centered on the screen and optimized for both desktop and mobile viewports.
+
+### 4. Admin Profile Settings & Unified Avatar Dropdown
+*   **Admin Profile Page**: Created a highly secure, premium view/edit profile management page at `/admin/profile` scoped strictly to `ADMIN` users. It provides seamless inline view/edit toggle transitions, client-side input validation, secure uploader updates to Cloudflare R2 via the `/api/profile/avatar` endpoint, and Zod-validated server-side database writes.
+*   **Unified Avatar Dropdown**: Completely updated the header navbar profile dropdown (`src/components/navbar/avatar-dropdown.tsx`) to match the dashboard sidebar links exactly for each role, visually separated with low-opacity glass dividers. It features:
+    *   **ADMIN**: Identity header with an `ADMIN ACCOUNT` badge, `My Profile` linking to `/admin/profile`, administrative operation panels, platform configurations, and a logout button.
+    *   **STUDENT**: Identity header with a `STUDENT ACCOUNT` badge, `My Profile` linking to `/profile`, student-specific links matching their sidebar exactly, and logout.
+    *   **TEACHER**: Identity header with a `TEACHER ACCOUNT` badge, `My Profile` linking to `/profile`, teacher-specific courses/categories links matching their sidebar exactly, and logout.
+
+### 5. Hardened Admin Sidebar & High-Fidelity Overview Dashboard
+*   **Hardened Admin Sidebar Layout**: Re-engineered desktop sidebar and mobile drawer links to implement the exact custom order for administrators (My Profile with `UserCircle` icon → divider → main administration links including **Audit Logs** with `ClipboardList` icon → divider → settings group with "Settings" section label → divider → Logout).
+*   **High-Fidelity SaaS Overview Dashboard**: Upgraded `/admin/dashboard` into a premium SaaS dashboard:
+    *   **Stat Cards & Real Dynamic Growth Trends**: Displays Total Students, Teachers, Courses, and Revenue. Growth trends (e.g. `+12% 30d`, `-5% 7d`) are **100% computed dynamically** from historical database records (comparing current periods with prior periods), with visual color scaling (emerald for growth, rose for decline).
+    *   **User Distribution Visualization**: Interactive donut chart showing Students vs Teachers vs Admins ratio with a center-label displaying total users.
+    *   **Historical Revenue Tracker**: Custom monthly bar chart summarizing INR (₹) transactions.
+    *   **Recent Enrollments Table**: Live database-backed listing tracking the latest 5 course checkouts.
+*   **Enrolled Student Details Desk**: Upgraded `/admin/courses/[courseId]` to include a premium **"Enrolled Students"** card. Admins can view detailed listings of enrolled students for each course, featuring names, emails, mobile numbers, and precise join timestamps, backed by a scrollable viewport.
+
+### 6. Role-Scoped Enrollment & Orders Dashboards
+*   **Admin Enrollment & Store Orders Dashboard**: Designed and created a comprehensive manager at `/admin/enrollments` protected for admins. Features 4 metrics cards (Total Enrollments, Active Learners, Store Revenue in ₹, and Pending Dispatch), a search filter, All/Active/Completed enrollment filter pills, and a 2-tab layout separating course enrollments from catalog product purchases (with visual payment status badges and product type icons).
+*   **Teacher "My Students" Dashboard**: Created a course-scoped student progress view at `/teacher/enrollments` protected for teachers. Fetches only students enrolled in their own courses. Features 3 metrics cards (My Students, Active Learners, and Completions), search, progress bars, and status filter pills, completely shielding sensitive store payments or revenue metrics.
+
+### 7. Dashboard Financial Exclusions & Premium Teacher Dashboard
+*   **Store Orders & Revenue Hardening**: Filtered out all `COURSE_ACCESS` products from the Admin Store Orders tab and Store Revenue metrics cards to prevent double-counting. Designed a beautiful **Total Platform Revenue** metric card breaking down course sales vs store catalog sales. Added a custom empty state message for store orders: `"No store orders yet. PDF books and physical products purchased by students will appear here."`
+*   **Teacher Overview Dashboard Refactoring**: Upgraded `/teacher/dashboard` into a professional, data-rich instructor dashboard:
+    *   **Welcome Hero**: Cinematic welcome panel greeting the teacher, showcasing their name, and offering interactive shortcuts.
+    *   **Core Metrics**: 4 metrics cards displaying Total Courses, Total Students, Active Enrollments, and Avg Completion Rate calculated dynamically from real database records.
+    *   **Interactive Recharts Timelines**: Fully responsive 6-month registration trend charts (AreaChart with gradients) and learner syllabus completion donut charts.
+    *   **Live Tracker activity feed**: Interactive live tracker tab panel logging recent registrations, lesson completions, quiz attempts, and assigned support tickets.
+    *   **Management Overviews**: Custom tables for authored course shells (with average completion progress bars) and unique enrolled students (with view-progress actions).
+
+### 8. Public Courses Catalog Redesign
+*   **Cinematic Space-Dark Styling**: Remodeled `/courses` page layout with a deep space-dark aesthetic featuring `.bg-grid-cyber` mesh patterns and smooth violet radial light flares.
+*   **Glassmorphic Course Catalog**: Formatted catalog filter pills in a semi-transparent `bg-white/5 border border-white/10 text-slate-300` layout, paired with glowing active states.
+*   **Premium Interactive Course Cards**: Created a dark glassmorphic card component featuring dynamic hardware-accelerated translation lifts (`hover:-translate-y-1.5 hover:shadow-indigo-500/20`), cover thumbnail banner grids, text overlay titles, and a detailed INR pricing grid layout (strikethroughs, discount percentages, and Free paths).
+
+### 9. Premium Store UI & Localized Smart-Checkout
+*   **Cinematic Dark Glassmorphic Product Cards**: Store product cards have been upgraded with high-end glassmorphic visuals (`bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl hover:-translate-y-1.5 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-300`) featuring beautiful green `% OFF` discount badges calculated dynamically from metadata.
+*   **Responsive Product Catalog Grid**: Responsive column alignments dynamically adjust to fit standard viewports seamlessly: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6`.
+*   **Polished Smart-Checkout & Pre-filling**: Prefills the billing email, recipient's name, and primary mobile number directly from the student's DB profile or metadata JSON securely, while keeping it fully editable.
+*   **Localized Delhi-based Placeholders**: Employs Delhi-specific details (e.g. `Sudhir Kumar`, `A-12, Ring Road, Lajpat Nagar IV`, `New Delhi`, `Delhi`, `110024`) as intuitive Indian localized form placeholder prompts.
+*   **Primary & Secondary Shipping Phone Numbers**: Fully collects a mandatory primary phone and an optional secondary phone for secure physical product fulfillment, stored transparently inside order metadata.
+*   **Always-Dark Scroll-Transition Header**: Transitioned header background from `bg-[#0d1117]/80 backdrop-blur-sm` (unscrolled) to slightly more opaque `bg-[#0d1117]/95 backdrop-blur-md border-b border-white/10` when scrolled past 10px, for a polished dark brand atmosphere.
+*   **Anti-Flash Dark Canvas**: Set `bg-[#0a0a0f]` directly on root `layout.tsx` layout body to completely shield students from white page-hydration flashes.
+
+### 10. Cinematic Hero Section "Tech Mastery Preview" Card
+*   **High-Fidelity Preview Experience**: Replaced the interactive dashboard mockup on the landing page hero with a premium, fully visual **Tech Mastery Preview** card (`bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl`).
+*   **Animated Typographic Terminal**: Showcases a simulated developer terminal running compiled code scripts with a CSS-pulsing cursor (`animate-pulse`) simulating active placement checking.
+*   **Glow-Dot Technology Stack Badges**: Highlights key industry skills (React, Node.js, PostgreSQL, Docker, AWS) using translucent pills combined with vibrant colored glowing dots.
+*   **Skills You'll Master Accordion**: Displays a checklist of 3 high-impact engineering milestones emphasized with emerald green icons.
+*   **Outcome Stat Chips**: Embeds 3 dark stat chips ("Full Stack", "AI Ready", "Job Ready") featuring micro-scale translation transforms on mouse hover.
+
+### 11. Database User Refinements & Complete Native-App Mobile Responsiveness Fixes
+*   **Database `phone` Field & Typings**: Added a `phone` string field directly under `email` in the `User` model (`prisma/schema.prisma`), regenerated the Prisma Client (`npx prisma generate`), and updated the Auth.js session user, `User`, and `JWT` token interface typings in `src/types/next-auth.d.ts` for strict type-safety.
+*   **Single Unified Left-Aligned Mobile Navigation Sidebar**: Rewrote the mobile navigation sidebar in `mobile-drawer.tsx` to slide smoothly from the **left** (`left-0`, `-translate-x-full` to `translate-x-0` using hardware-accelerated transitions) exactly like a native application sidebar, featuring a premium user profile card at the absolute top (Avatar + Name + Email + Role Badge) and pinning the Logout button at the absolute bottom (`mt-auto`).
+*   **Escape Key & Body Scroll Locks**: Integrated full background body scroll-locks (`overflow: hidden`) and Escape key listeners that automatically clean up when drawers close.
+*   **Responsive Cart Page Routing (Desktop Drawer + Mobile Full Page)**: 
+    *   **Desktop/Tablet**: Shows a premium `w-[420px]` side drawer with standardised quantity button controls (`w-8 h-8 rounded-lg`) and a sticky footer bottom container to ensure pricing totals and "Secure Checkout" buttons are always visible.
+    *   **Mobile Redirect**: Integrated active media queries (`useMediaQuery`) to bypass side-drawers and direct mobile users straight to a new dedicated route `/cart`.
+*   **Dedicated Full-Screen Mobile Cart Route**: Designed a full-screen mobile-only shopping cart and checkout page (`src/app/(public)/cart/page.tsx`) with a back-header bar, styled cart items list, discount coupon managers, and a sticky bottom price checkout block.
+*   **iOS Tap Scale & Input Font-Size Fixes**: Added responsive CSS parameters (`globals.css`) fixing `font-size: 16px` on inputs/textareas/selects to bypass forced iOS browser auto-zooming, alongside `-webkit-tap-highlight-color: transparent` resets.
+*   **Zero Scroll Bleed Guard**: Appended `overflow-x-hidden` directly onto the root layout's `body` tag to guarantee zero horizontal scroll bleed.
+
+### 12. Full-Fidelity End-to-End LMS Store Purchase Flow
+The entire transactional journey from catalog display through successful execution is fully secured, responsive, and animated:
+*   **Store Page Grid & Product Details**: Integrated premium dark glassmorphism (`bg-[#0a0a0f]`) across the public store page and catalog product detail interfaces. Highlights bold white typography, ₹ INR-only pricing structures, and responsive 3-column / 1-column layouts with floating Emerald `% OFF` coupons.
+*   **Centralized Zustand Cart Controller**: Cart actions automatically trigger responsive UI updates:
+    *   **Stale Item Auto-Cleanup**: Scans product availability in the database on load/drawer-open and automatically prunes deleted or unavailable items. Shows a warnings toast without blocking the checkout flow for other valid items.
+    *   **Desktop Glassmorphic Cart Drawer**: Triggers a slide-in drawer on viewports `> 768px` featuring uniform quantity micro-buttons, body scroll-locks, and sticky action buttons.
+    *   **Mobile Full-Page Cart Page**: Redirects viewports `< 768px` to a standalone `/cart` page optimizing single-tap checkout triggers and thumbnail clarity.
+*   **Secure Checkout & Live Pre-filling**: Fetches standard profile credentials (name, email, and mobile) to prefill Indian localized placeholders (e.g. Lajpat Nagar, New Delhi). Allows double-entry primary and backup phone registers to ensure secure shipping.
+*   **Razorpay Integration Overlay**: Integrates the Razorpay checkout overlay pre-configured with theme matches (`#7c3aed`) and live transaction response bindings.
+*   **Cryptographic Verification Webhook API**: The Next.js API route `/api/razorpay/verify` validates server callbacks using secure SHA-256 HMAC signature handshakes. Validated transactions mark orders as `PAID`, trigger Brevo receipt emails, and label physical shipments as `PROCESSING` inside nested item JSON arrays to avoid schema compilations errors.
+*   **Order Confirmation Dashboard**: The Dynamic `order-confirmation/[orderId]` screen queries recent transaction databases and renders high-end success cards or retry triggers based on checkout status.
+
+### 13. Direct Razorpay Checkout Integration & Webhook Safety Net
+To elevate the user checkout journey, the intermediate checkout routes have been completely bypassed. Payments now proceed directly from the shopping cart interface (desktop drawer or mobile `/cart` route) to the secure Razorpay payment modal, and automatically transition successful customers to the dynamic order confirmation screen.
+*   **Direct Checkout Triggers**: Both the slide-in cart drawer and full-screen mobile cart page capture billing email and phone parameters before triggering the standard Razorpay modal securely. It prefectly overlays brand theme colors (`#7c3aed`) and handles prefills natively.
+*   **Failed & Dismissed Action Tracking**: Dismissing or encountering card authorization drops automatically posts callbacks to `/api/razorpay/fail` to safely register cancellation telemetry and mark the internal database Order status as `CANCELLED` (avoiding stranded transactions).
+*   **Safety Webhook Receiver**: Created `/api/razorpay/webhook` to handle callbacks like `payment.captured` or `payment.failed` asynchronously (resolving cases where users close tabs post-payment). Uses cryptographic signature checks to secure database actions.
+*   **Webhook Dashboard Registration**:
+    To synchronize live environments, set up a webhook in the Razorpay Dashboard → Settings → Webhooks:
+    - **URL**: `https://yourdomain.com/api/razorpay/webhook`
+    - **Secret**: Configure to match the local `RAZORPAY_WEBHOOK_SECRET` variable in `.env`.
+    - **Events**: Subscribe to `payment.captured` and `payment.failed`.
+*   **New Environment Variables**:
+    ```ini
+    RAZORPAY_KEY_ID=your_key_id
+    RAZORPAY_KEY_SECRET=your_key_secret
+    RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+    NEXT_PUBLIC_RAZORPAY_KEY_ID=your_key_id
+    ```
+
+### 14. Course Purchase & Enrollment Flow (Razorpay + Brevo + SWR)
+The LMS now features a production-grade, highly responsive Course Purchase & Enrollment Flow, complete with instant free enrollment, direct Razorpay checkouts, webhook fail-safes, real-time SWR syncing, and beautiful transactional Brevo notifications:
+*   **Aesthetic Responsive Pricing sync**: Sticky pricing cards on the public course detail page dynamically query `/api/courses/[courseId]/enrollment-status` via `SWR`, hiding pricing tags and rendering glowing emerald `Enrolled` badges instantly when enrollment is active.
+*   **Double-Click Protection & Safe Scripting**: Enrollment buttons enforce double-click blocks (`disabled={enrollLoading}` and loading spinner transitions), verify global `window.Razorpay` script existence, and gracefully log cancellations inside `/api/courses/enroll/fail`.
+*   **Strict Order Retry Policy**: Encountering payment dismissals or merchant failures automatically prompts "Complete Payment" CTAs that call `/api/courses/enroll/checkout` to generate a brand new enrollment record and fresh Razorpay order (keeping old failed entries clean for historical audit logs).
+*   **Cryptographic Verification Route**: The `/api/courses/enroll/verify` endpoint verifies signature checkouts using SHA-256 HMAC encryption, transitions status to `ACTIVE`, creates course progress models, and dispatches the welcome email.
+*   **Webhook Fail-safe Protection**: Extends `/api/razorpay/webhook` to handle asynchronous `payment.captured` and `payment.failed` callbacks specifically for course enrollment Order IDs, offering complete protection when tabs are closed.
+*   **Brevo Transactional Welcome Mailer**: Connects to the REST email client to dispatch responsive welcome emails designed with custom futuristic dark styles (`#0a0a0f`) and clear learning expectations.
+
+### 15. Admin Coupon Management & Premium Checkout UI Refinements
+The platform has been enhanced with a robust, enterprise-grade Admin Coupon Management module and highly polished e-commerce checkout spacing improvements, fully optimized for both desktop and mobile viewports:
+
+*   **Universal Coupon Validation Engine**:
+    *   Centralized validation API at `/api/coupons/validate` dynamically processes percentage discount caps (`maxDiscountCents`), minimum order limits (`minimumOrderAmountCents`), start/end dates, global redemptions, and user-specific usage limits.
+    *   Supports scope targets spanning **ALL** platform items, **STORE** purchases, **COURSES** enrollments, or **SPECIFIC_COURSES** / **SPECIFIC_PRODUCTS** via database checkboxes.
+*   **Production-Ready Admin Coupon Desk (`/admin/coupons`)**:
+    *   Features real-time KPI metrics cards tracking Total Coupons, Active Promos, Expired Campaigns, and Total Redemptions.
+    *   Provides full CRUD panels with a dynamic multi-item select drawer, code uniqueness checks, live-preview cards, and detailed usage audit logs.
+*   **Complete Alphanumeric Sanitization Security**:
+    *   Enforces input sanitization via `replace(/[^A-Za-z0-9]/g, "")` across all coupon fields on the platform (form creation, mobile cart, cart drawer, course page) and backend API endpoints.
+    *   Automatically strips out `%` signs, spaces, and special symbols to prevent typos and ensure clean uppercase alphanumeric codes (e.g. `SUPER90`, `WELCOME10`).
+*   **Dynamic Date Formatting Safety**:
+    *   Employs a custom `formatDateForInput` helper inside the admin desk to handle both ISO string and raw JavaScript `Date` representations returned from server-side databases, resolving dynamic time-zone formatting and avoiding runtime `TypeError` crashes during campaigns updates.
+*   **Polished Spacing & Mobile-First Scrolling**:
+    *   Redesigned the standalone Mobile Cart Page (`(public)/cart/page.tsx`) to set dynamic viewport bounds (`h-[100dvh] overflow-hidden`) and group the items list, delivery information card, and coupon sections into a single natural scroll flow.
+    *   Transformed the floats-at-bottom `sticky` container into a premium inline **Pricing & Checkout Summary Card** (`bg-white/5 border border-white/10 rounded-xl p-4 mt-2 mx-4`).
+    *   This completely eliminates artificial vertical gaps on short-item checkouts and ensures the payment button remains easily clickable and beautifully aligned on compact mobile viewports without scroll bleed.
+*   **Build Verification**:
+    *   The entire platform compiles cleanly with strict typechecking rules under `npx tsc --noEmit`.
+
+### 16. Technical Enhancements, Secure Reader Desk, Cart Routing & Aggregate Reviews
+The storefront, cart, secure online PDF viewer, and reviews system have been enhanced with robust safety constraints, unified UI routing patterns, and enterprise-grade aggregates:
+
+*   **Responsive Desktop Cart Redirection & Side Drawer Integration**:
+    *   **Unified Cart UX Flow**: Clicking **Buy Now** or **Go to Cart** on the Product Detail page on desktop viewports (`window.innerWidth >= 768`) now seamlessly redirects the user to the catalog storefront page with a custom parameter (`/store?cart=open`). On mobile/tablet viewports, it continues to intelligently open the dedicated mobile full-screen `/cart` page.
+    *   **Silently Triggered Cart Drawer**: Created an integrated event-listener hook in the Store catalog page (`store-client.tsx`) that catches the `cart=open` parameter, automatically opens the slide-in **Cart Drawer**, and silently cleans up the URL without causing a full page reload or layout flickering.
+    *   **Centered Desktop App Container Layout**: Redesigned the full-screen `/cart` page as a centered, highly premium responsive container (`max-w-4xl flex justify-center bg-[#0a0a0f] border-x border-white/10 relative shadow-2xl`) so it works flawlessly on both desktop and mobile viewports without awkward stretching.
+*   **Secure PDF online Reader UUID Safety Validation**:
+    *   **Defensive Type Guarding**: Upgraded the secure PDF in-app viewer route (`/student/orders/[orderId]/pdf-viewer`) to rigorously validate **both** the `orderId` parameter and the `productId` query parameter against a standard UUID regex pattern.
+    *   **Casting Exception Prevention**: This validation acts as a defensive type guard, immediately returning a clean `notFound()` for malformed inputs (such as `productId=null` or invalid strings) instead of querying Postgres. This completely prevents PostgreSQL runtime casting errors (Prisma `P2023` error code) and guarantees database safety.
+    *   **Stable R2 Storage Asset Links**: Hotpatched expired Cloudflare R2 subdomains inside `prisma/seed.ts` and the live PostgreSQL database to use a guaranteed stable, online, secure public PDF document from Mozilla's CDN that permits iframe embedding, resolving iframe connection refusal errors.
+*   **Dynamic Review Aggregates & Publisher Relations**:
+    *   **True Mathematical Average Ratings**: Replaced local capped array calculations with an absolute, platform-wide database aggregation query (`prisma.review.aggregate`) to fetch the true average rating across all reviews of a product, rather than average-capping only the first 4 displayed reviews.
+    *   **Live Total Counts**: Added total reviews count tracking to the database queries, and implemented reactive local state increments in the `ReviewsClient` component. The customer review header now accurately updates and displays counts instantly when a new feedback is published.
+    *   **Immediate Reviewer Identity Synchronization**: Patched the review creation API (`/api/reviews`) to select and include the `user: { name }` relation during DB insertion, enabling the page to immediately display the logged-in customer's correct name upon submission without forcing a hard reload.

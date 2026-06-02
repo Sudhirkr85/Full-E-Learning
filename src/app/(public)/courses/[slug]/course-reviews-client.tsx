@@ -17,25 +17,25 @@ interface ReviewWithUser {
   };
 }
 
-interface ReviewsClientProps {
-  productId: string;
+interface CourseReviewsClientProps {
+  courseId: string;
   initialReviews: ReviewWithUser[];
   avgRating: number | null;
   isLoggedIn: boolean;
-  hasPurchased: boolean;
+  isEnrolled: boolean;
   hasReviewed: boolean;
   totalReviewsCount: number;
 }
 
-export function ReviewsClient({
-  productId,
+export function CourseReviewsClient({
+  courseId,
   initialReviews,
   avgRating,
   isLoggedIn,
-  hasPurchased,
+  isEnrolled,
   hasReviewed,
   totalReviewsCount,
-}: ReviewsClientProps) {
+}: CourseReviewsClientProps) {
   const router = useRouter();
   const [reviews, setReviews] = useState<ReviewWithUser[]>(initialReviews);
   const [totalCount, setTotalCount] = useState(totalReviewsCount);
@@ -50,14 +50,14 @@ export function ReviewsClient({
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       const urlRating = searchParams.get("rating");
-      if (urlRating && isLoggedIn && hasPurchased && !userReviewed) {
+      if (urlRating && isLoggedIn && isEnrolled && !userReviewed) {
         const parsedRating = parseInt(urlRating, 10);
         if (parsedRating >= 1 && parsedRating <= 5) {
           setRating(parsedRating);
           setShowForm(true);
-          // Smooth scroll to the review form
+          // Smooth scroll to the course review form
           setTimeout(() => {
-            const formElement = document.getElementById("review-submission-card");
+            const formElement = document.getElementById("course-review-submission-card");
             if (formElement) {
               formElement.scrollIntoView({ behavior: "smooth", block: "center" });
             }
@@ -65,7 +65,7 @@ export function ReviewsClient({
         }
       }
     }
-  }, [isLoggedIn, hasPurchased, userReviewed]);
+  }, [isLoggedIn, isEnrolled, userReviewed]);
 
   const formatDate = (dateInput: Date | string) => {
     const d = new Date(dateInput);
@@ -85,10 +85,10 @@ export function ReviewsClient({
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/reviews", {
+      const res = await fetch("/api/courses/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, rating, comment }),
+        body: JSON.stringify({ courseId, rating, comment }),
       });
 
       const data = await res.json();
@@ -97,7 +97,7 @@ export function ReviewsClient({
         throw new Error(data.error || "Failed to submit review.");
       }
 
-      toast.success("Thank you for your feedback! Review published.");
+      toast.success("Thank you for your feedback! Course review published.");
       setReviews([data.review, ...reviews]);
       setTotalCount(prev => prev + 1);
       setUserReviewed(true);
@@ -116,7 +116,6 @@ export function ReviewsClient({
     return null; // Hide completely if no reviews and not logged in
   }
 
-  // Calculate dynamic average rating based on local state (just in case they add one)
   const currentAvgRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : avgRating || 0;
@@ -128,7 +127,7 @@ export function ReviewsClient({
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-yellow-400" />
-            Customer Reviews
+            Student Reviews & Ratings
           </h2>
           {reviews.length > 0 && (
             <div className="flex items-center gap-2 mt-1">
@@ -157,29 +156,29 @@ export function ReviewsClient({
         </div>
 
         {/* Write a Review Button */}
-        {isLoggedIn && hasPurchased && !userReviewed && !showForm && (
+        {isLoggedIn && isEnrolled && !userReviewed && !showForm && (
           <Button
             onClick={() => setShowForm(true)}
             variant="outline"
             className="border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl h-11 text-xs px-4"
           >
             <MessageSquarePlus className="mr-1.5 h-4 w-4" />
-            Write a Review
+            Write a Course Review
           </Button>
         )}
       </div>
 
       {/* Review Submission Form */}
       {showForm && (
-        <Card id="review-submission-card" className="bg-white/5 border border-white/10 rounded-xl mb-6 overflow-hidden">
+        <Card id="course-review-submission-card" className="bg-white/5 border border-white/10 rounded-xl mb-6 overflow-hidden">
           <CardContent className="p-4 sm:p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-white">Share Your Feedback</h3>
+            <h3 className="text-sm font-semibold text-white">Share Your Learning Experience</h3>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Star Selector */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Your Rating
+                  Course Rating
                 </label>
                 <div className="flex items-center gap-1.5">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -211,7 +210,7 @@ export function ReviewsClient({
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="What did you like or dislike about this product? (Max 500 characters)"
+                  placeholder="Share your thoughts on the course structure, lessons quality, and code examples (Max 500 characters)"
                   maxLength={500}
                   rows={3}
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:ring-1 focus:ring-indigo-500"
@@ -261,7 +260,7 @@ export function ReviewsClient({
                   <span className="h-6 w-6 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 text-[10px]">
                     <User className="h-3 w-3" />
                   </span>
-                  {review.user?.name || "Verified Buyer"}
+                  {review.user?.name || "Verified Student"}
                 </span>
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -289,7 +288,7 @@ export function ReviewsClient({
         </div>
       ) : (
         <div className="py-6 text-center text-slate-500 text-sm">
-          No reviews yet. Be the first to leave feedback!
+          No student reviews yet. Be the first to leave feedback!
         </div>
       )}
     </div>

@@ -143,7 +143,7 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
             <div className="p-6 bg-slate-900 text-white flex justify-between items-start flex-wrap gap-4">
               <div>
                 <span className="text-[10px] text-amber-500 uppercase tracking-widest font-mono font-bold block mb-1">Receipt Invoice</span>
-                <h2 className="font-mono text-lg font-bold tracking-tight">{order.orderNumber}</h2>
+                <h2 className="font-mono text-sm sm:text-lg font-bold tracking-tight break-all">{order.orderNumber}</h2>
                 <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
                   {dateStr}
@@ -253,9 +253,9 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
                     {order.items.map((item) => {
                       if (item.productType === "DIGITAL_RESOURCE" && item.product?.assetUrl) {
                         return (
-                          <div key={item.id} className="flex items-center justify-between p-3 border border-emerald-500/20 bg-emerald-500/[0.02] rounded-xl">
-                            <span className="text-xs font-semibold text-foreground truncate max-w-sm">{item.productName}</span>
-                            <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 rounded-xl">
+                          <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-emerald-500/20 bg-emerald-500/[0.02] rounded-xl">
+                            <span className="text-xs font-semibold text-foreground truncate w-full sm:max-w-sm">{item.productName}</span>
+                            <Button asChild size="sm" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 rounded-xl shrink-0">
                               <Link href={`/student/orders/${order.id}/pdf-viewer?productId=${item.productId}`}>
                                 <BookOpen className="h-3.5 w-3.5" />
                                 Read PDF Book

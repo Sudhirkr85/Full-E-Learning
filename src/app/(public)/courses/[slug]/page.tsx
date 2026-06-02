@@ -9,6 +9,7 @@ import { makeMetadata } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, UserCircle2 } from "lucide-react";
 import { CourseDetailClient } from "./course-detail-client";
+import { CourseReviewsClient } from "./course-reviews-client";
 
 export const dynamic = "force-dynamic";
 
@@ -129,6 +130,42 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
     : null;
 
   const isEnrolled = Boolean(enrollment);
+
+  let hasReviewed = false;
+  if (enrollment) {
+    const existingReview = await prisma.courseReview.findFirst({
+      where: { enrollmentId: enrollment.id }
+    });
+    hasReviewed = !!existingReview;
+  }
+
+  // --- SECTION 3: COURSE REVIEWS DATA ---
+  const reviewsCount = await prisma.courseReview.count({
+    where: { enrollment: { courseId: course.id }, status: "PUBLISHED" }
+  });
+
+  const courseReviews = await prisma.courseReview.findMany({
+    where: { enrollment: { courseId: course.id }, status: "PUBLISHED" },
+    include: {
+      enrollment: {
+        include: {
+          user: { select: { name: true } }
+        }
+      }
+    },
+    orderBy: { createdAt: "desc" },
+    take: 4
+  });
+
+  const ratingSummary = await prisma.courseReview.aggregate({
+    where: { enrollment: { courseId: course.id }, status: "PUBLISHED" },
+    _avg: {
+      rating: true
+    }
+  });
+
+  const avgRating = ratingSummary._avg.rating || null;
+
   const price = course.priceCents ? Math.round(course.priceCents / 100) : 0;
 
   let originalPrice: number | null = null;
@@ -198,6 +235,22 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
             sections={course.sections}
             isEnrolled={isEnrolled}
             outcomes={learningOutcomes}
+          />
+
+          <CourseReviewsClient
+            courseId={course.id}
+            initialReviews={courseReviews.map(r => ({
+              id: r.id,
+              rating: r.rating,
+              comment: r.body,
+              createdAt: r.createdAt,
+              user: { name: r.enrollment.user?.name || "Verified Student" }
+            }))}
+            avgRating={avgRating}
+            isLoggedIn={Boolean(session?.user)}
+            isEnrolled={isEnrolled}
+            hasReviewed={hasReviewed}
+            totalReviewsCount={reviewsCount}
           />
         </div>
 

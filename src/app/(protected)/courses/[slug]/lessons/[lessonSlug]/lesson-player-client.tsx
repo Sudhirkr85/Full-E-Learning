@@ -49,6 +49,7 @@ export function LessonPlayerClient({
   const [mounted, setMounted] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isMobileSyllabusOpen, setIsMobileSyllabusOpen] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -196,18 +197,36 @@ export function LessonPlayerClient({
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
               {bundle.lesson.title}
             </h1>
-            <p className="text-sm text-slate-400 max-w-3xl leading-relaxed">
-              {bundle.lesson.description ?? bundle.course.description ?? "Access protected modules, system designs, and code playbooks."}
-            </p>
+            <div className="text-sm text-slate-400 max-w-3xl leading-relaxed">
+              {(() => {
+                const desc = bundle.lesson.description ?? bundle.course.description ?? "Access protected modules, system designs, and code playbooks.";
+                if (desc.length <= 180) {
+                  return <p className="whitespace-pre-line">{desc}</p>;
+                }
+                return (
+                  <div>
+                    <p className={cn("whitespace-pre-line transition-all duration-300", !isDescriptionExpanded && "line-clamp-2")}>
+                      {isDescriptionExpanded ? desc : `${desc.slice(0, 180)}...`}
+                    </p>
+                    <button
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      className="text-indigo-400 hover:text-indigo-300 font-bold mt-1 text-xs inline-flex items-center gap-0.5 transition cursor-pointer"
+                    >
+                      {isDescriptionExpanded ? "Read Less" : "Read More"}
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
 
           {/* Syllabus Drawer Trigger for Mobile */}
           <Button
             onClick={() => setIsMobileSyllabusOpen(true)}
             variant="outline"
-            className="flex md:hidden border-white/10 text-slate-300 hover:bg-white/5 rounded-xl text-xs h-10 px-4 font-bold uppercase tracking-wider items-center gap-2"
+            className="flex md:hidden bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:text-white rounded-xl text-xs h-10 px-4 font-bold uppercase tracking-wider items-center gap-2 transition-all"
           >
-            <Menu className="h-4 w-4" />
+            <Menu className="h-4 w-4 text-indigo-400" />
             Syllabus Outline
           </Button>
         </div>

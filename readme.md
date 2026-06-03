@@ -10,6 +10,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
 
 *   **Advanced LMS Ecosystem**: Student dashboards, lesson player modules, interactive assessments, real-world coding sandboxes, automatic course progress trackers, and public blockchain-verified digital certificates.
 *   **Digital & Physical Products Store**: A built-in storefront catalog capable of processing independent digital downloads (PDF playbooks, code repositories), physical merchandise (vouchers, dashboard UI kits), course access keys, and complex product bundles.
+*   **Platform Security & Architecture**: Strict separation of server-side logic using `server-only` and `"use server"` directives to prevent sensitive database logic (Prisma) from leaking into client bundles, ensuring high performance and secure production builds.
 *   **Platform Metrics & Outcomes**: Immersive visual interfaces highlighting learner outcome statistics (completion rate, average rating, career growth, time-to-certificate), platform trust banners, and configurable social proof sections.
 
 > **Homepage Content is Configurable**: All homepage text — hero headline, stats, feature highlights, skill tags, trust banner companies, outcome metrics, testimonials, certificate mockup, and CTA copy — is driven from a single central config file: [`src/lib/site.ts`](src/lib/site.ts). Edit the `siteConfig` object there to update the entire homepage without touching JSX.

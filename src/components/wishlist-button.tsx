@@ -24,15 +24,15 @@ export function WishlistButton({
 }: WishlistButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const { wishlistedIds, toggleWishlist, isWishlisted } = useWishlistStore();
+  const { toggleWishlist, isWishlisted } = useWishlistStore();
   const active = isWishlisted(courseId);
 
-  // Sync initial state to Zustand store on mount
+  // Sync initial state to Zustand store on mount only once
   useEffect(() => {
-    if (initialWishlisted && !wishlistedIds.includes(courseId)) {
+    if (initialWishlisted && !useWishlistStore.getState().isWishlisted(courseId)) {
       useWishlistStore.getState().addToWishlist(courseId);
     }
-  }, [courseId, initialWishlisted, wishlistedIds]);
+  }, [courseId, initialWishlisted]);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();

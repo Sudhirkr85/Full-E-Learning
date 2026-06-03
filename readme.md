@@ -334,7 +334,7 @@ npx prisma migrate dev
 ```bash
 npx tsx prisma/seed.ts
 ```
-*(Default admin email is defined in `src/lib/admin-config.ts` with password `Admin@123456`)*
+*(Default admin email is set as `admin@yourapp.com` with password `Admin@123456` directly inside the seed script)*
 
 ### 5. Start Development Server
 ```bash

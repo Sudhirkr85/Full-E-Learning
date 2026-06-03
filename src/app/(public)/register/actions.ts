@@ -5,7 +5,7 @@ import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { registerSchema } from "@/lib/auth-schemas";
-import { SUPER_ADMIN_EMAIL } from "@/lib/admin-config";
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "admin@yourapp.com";
 
 function splitName(name: string) {
   const parts = name.trim().split(/\s+/);

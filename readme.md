@@ -22,7 +22,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
 *   **UI/UX Refinements**:
     *   **Interactive Certificates**: Added 3-step dynamic zoom (Off, 1.5x, 2.5x) and 2D overflow scrolling to the public certificate verification page for better mobile inspection.
     *   **Futuristic CTAs**: Redesigned "Buy Now" and "Add to Cart" buttons across the platform with a high-fidelity shimmer effect, interactive hover states, and premium gradients to drive conversion.
-    *   **Classroom Consistency**: Normalized student navigation buttons to high-quality outline variants with coordinated indigo/slate palettes for a cohesive learning experience.
+    *   **Classroom Consistency**: Normalized student navigation buttons to high-quality outline variants and added a dedicated top navigation header in the lesson player for easy "Back to Course" and "Home" access.
     *   **Mobile Experience**: Refined the wishlist count indicator in the mobile drawer with a vibrant pink-rose gradient badge and glow effect.
 
 *   **Bug Fixes & System Stability**:

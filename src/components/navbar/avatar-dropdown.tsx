@@ -17,6 +17,7 @@ import {
   Heart,
   Award
 } from "lucide-react";
+import { useWishlistStore } from "@/store/wishlist-store";
 
 interface AvatarDropdownProps {
   user: {
@@ -31,6 +32,7 @@ interface AvatarDropdownProps {
 export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { count } = useWishlistStore();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -213,6 +215,11 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                 >
                   <Heart className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Wishlist
+                  {count > 0 && (
+                    <span className="ml-auto bg-rose-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                      {count}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   href="/student/certificates"

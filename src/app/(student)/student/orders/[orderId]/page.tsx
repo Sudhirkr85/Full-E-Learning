@@ -121,6 +121,33 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
 
   return (
     <section className="space-y-8 pb-16">
+      <style>{`
+        @media print {
+          body {
+            background: white;
+            color: black;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+          .bg-gradient-to-r.from-slate-900 {
+            background: linear-gradient(to right, rgb(30, 41, 59), rgb(30, 41, 59)) !important;
+          }
+          .text-white {
+            color: white !important;
+          }
+          .text-slate-300 {
+            color: rgb(148, 163, 184) !important;
+          }
+          .shadow-lg {
+            box-shadow: none !important;
+          }
+          @page {
+            margin: 1cm;
+            size: A4;
+          }
+        }
+      `}</style>
       {/* Page Header (Hidden on print) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
         <Button asChild variant="ghost" size="sm" className="hover:bg-white/5">
@@ -131,134 +158,167 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
         </Button>
 
         <div className="flex gap-2">
-          <PrintInvoiceButton />
+          <PrintInvoiceButton orderId={order.id} />
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12 items-start">
         {/* Invoice Body Details */}
-        <div className="lg:col-span-8 space-y-6 print:w-full print:col-span-12">
+        <div className="lg:col-span-9 space-y-6 print:w-full print:col-span-12">
           {/* Printable Invoice Header */}
-          <Card className="border-border/60 shadow-soft overflow-hidden rounded-2xl">
-            <div className="p-6 bg-slate-900 text-white flex justify-between items-start flex-wrap gap-4">
-              <div>
-                <span className="text-[10px] text-amber-500 uppercase tracking-widest font-mono font-bold block mb-1">Receipt Invoice</span>
-                <h2 className="font-mono text-sm sm:text-lg font-bold tracking-tight break-all">{order.orderNumber}</h2>
-                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
+          <Card className="mx-auto max-w-4xl w-full border border-slate-200 shadow-lg overflow-hidden rounded-2xl bg-white" data-invoice-content>
+            <div className="p-6 md:p-8 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex justify-between items-start flex-wrap gap-4">
+              <div className="space-y-2">
+                <span className="text-[11px] text-amber-400 uppercase tracking-widest font-mono font-extrabold block">📄 Receipt Invoice</span>
+                <h2 className="font-mono text-base sm:text-xl font-black tracking-tight break-all text-white" data-order-number>{order.orderNumber}</h2>
+                <p className="text-sm text-slate-300 mt-2 flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
                   {dateStr}
                 </p>
               </div>
-              <div className="text-left sm:text-right">
-                <Badge className={order.status === "PAID" ? "bg-emerald-500 text-white border-none py-1 px-3" : "bg-amber-500 text-black border-none py-1 px-3"}>
-                  {order.status.toLowerCase()}
+              <div className="text-left sm:text-right space-y-2">
+                <Badge className={order.status === "PAID" ? "bg-emerald-500 text-white border-none py-2 px-4 text-sm font-bold" : "bg-amber-500 text-slate-900 border-none py-2 px-4 text-sm font-bold"}>
+                  ✓ {order.status.toLowerCase()}
                 </Badge>
-                <span className="text-[10px] text-slate-400 block mt-2">Billing: {order.billingEmail}</span>
+                <p className="text-[12px] text-slate-300 mt-2">Email: <span className="text-white font-semibold">{order.billingEmail}</span></p>
               </div>
             </div>
 
-            <CardContent className="p-6 divide-y divide-border/80">
+            <CardContent className="p-6 md:p-8 divide-y divide-slate-200 space-y-8 bg-white">
               {/* Billing & Shipping Details Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8">
                 {/* Billing Info */}
-                <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Billing Details</span>
-                  <p className="font-semibold text-white text-sm">{shippingAddress?.fullName || session.user.name || "Customer"}</p>
-                  <p className="text-slate-300">Email: <span className="text-white font-medium">{order.billingEmail}</span></p>
-                  {order.billingPhone && (
-                    <p className="text-slate-300">Mobile: <span className="text-white font-medium">{order.billingPhone}</span></p>
-                  )}
+                <div className="space-y-3 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                  <span className="text-[12px] text-slate-600 uppercase tracking-widest font-extrabold block mb-1">👤 Billing Details</span>
+                  <div className="space-y-3 border-t border-slate-200 pt-4">
+                    <div>
+                      <p className="text-xs text-slate-500 font-semibold">Full Name</p>
+                      <p className="text-slate-900 font-bold text-base mt-1">{shippingAddress?.fullName || session.user.name || "Customer"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 font-semibold">Email Address</p>
+                      <p className="text-slate-900 font-medium text-sm mt-1 break-all">{order.billingEmail}</p>
+                    </div>
+                    {order.billingPhone && (
+                      <div>
+                        <p className="text-xs text-slate-500 font-semibold">Phone</p>
+                        <p className="text-slate-900 font-medium text-sm mt-1">{order.billingPhone}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Shipping Info */}
                 {shippingAddress ? (
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Delivery Address</span>
-                    <p className="font-semibold text-white text-sm">{shippingAddress.fullName}</p>
-                    <p className="text-slate-300">Mobile: <span className="text-white font-medium">{shippingAddress.primaryPhone || order.billingPhone}</span></p>
-                    <p className="text-slate-300 leading-relaxed">
-                      {shippingAddress.addressLine1}
-                      {shippingAddress.addressLine2 ? `, ${shippingAddress.addressLine2}` : ""}
-                      <br />
-                      {shippingAddress.city}, {shippingAddress.state} - {shippingAddress.postalCode}
-                    </p>
-                    <p className="text-slate-300">{shippingAddress.country}</p>
+                  <div className="space-y-3 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <span className="text-[12px] text-slate-600 uppercase tracking-widest font-extrabold block mb-1">🚚 Delivery Address</span>
+                    <div className="space-y-3 border-t border-slate-200 pt-4">
+                      <div>
+                        <p className="text-xs text-slate-500 font-semibold">Recipient Name</p>
+                        <p className="text-slate-900 font-bold text-base mt-1">{shippingAddress.fullName}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-semibold">Phone</p>
+                        <p className="text-slate-900 font-medium text-sm mt-1">{shippingAddress.primaryPhone || order.billingPhone}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-semibold">Full Address</p>
+                        <p className="text-slate-900 font-medium text-sm mt-1 leading-relaxed">
+                          {shippingAddress.addressLine1}
+                          {shippingAddress.addressLine2 ? `, ${shippingAddress.addressLine2}` : ""}
+                          <br />
+                          {shippingAddress.city}, {shippingAddress.state} - {shippingAddress.postalCode}
+                          <br />
+                          {shippingAddress.country}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Delivery Method</span>
-                    <p className="font-semibold text-emerald-400 text-sm">Instant Digital Access</p>
-                    <p className="text-slate-300 leading-relaxed">Authorized PDF resources and online course access are unlocked immediately on your dashboard.</p>
+                  <div className="space-y-3 bg-emerald-50 p-6 rounded-xl border border-emerald-200">
+                    <span className="text-[12px] text-emerald-700 uppercase tracking-widest font-extrabold block mb-1">📦 Delivery Method</span>
+                    <div className="border-t border-emerald-200 pt-4 space-y-2">
+                      <p className="font-bold text-emerald-700 text-base">Instant Digital Access</p>
+                      <p className="text-emerald-700 leading-relaxed text-sm">✓ Authorized PDF resources and online course access are unlocked immediately on your dashboard.</p>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Product Listing */}
-              <div className="py-4 space-y-4">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest block font-bold mb-2">Purchased items</span>
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex justify-between items-start gap-4 text-sm">
-                    <div>
-                      <p className="font-semibold text-foreground">{item.productName}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Type: {item.productType?.replace("_", " ") || "Digital"}</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-medium">
-                        {(item.totalPriceCents / 100).toLocaleString("en-US", {
-                          style: "currency",
-                          currency: item.currency,
-                        })}
-                      </span>
-                      {item.quantity > 1 && (
-                        <span className="text-xs text-muted-foreground block mt-0.5">
-                          {item.quantity} x ${(item.unitPriceCents / 100).toFixed(2)}
+              <div className="py-8 space-y-4">
+                <span className="text-[12px] text-slate-600 uppercase tracking-widest font-extrabold block mb-4">📋 Purchased Items</span>
+                <div className="space-y-3">
+                  {order.items.map((item, idx) => (
+                    <div key={item.id} className="flex justify-between items-start gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2 mb-2">
+                          <span className="text-xs font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded">Item {idx + 1}</span>
+                          <span className="text-xs font-semibold text-slate-600 bg-blue-100 text-blue-700 px-2 py-1 rounded uppercase">{item.productType?.replace("_", " ") || "Digital"}</span>
+                        </div>
+                        <p className="font-bold text-slate-900 text-sm md:text-base">{item.productName}</p>
+                        {item.quantity > 1 && (
+                          <p className="text-xs text-slate-600 mt-1.5">Quantity: <span className="font-semibold">{item.quantity}</span> × <span className="font-semibold">₹{(item.unitPriceCents / 100).toFixed(2)}</span></p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs text-slate-600 font-semibold mb-1">Amount</p>
+                        <span className="font-black text-slate-900 text-base md:text-lg">
+                          {(item.totalPriceCents / 100).toLocaleString("en-US", {
+                            style: "currency",
+                            currency: item.currency,
+                          })}
                         </span>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               {/* Invoice Totals */}
-              <div className="py-4 space-y-2 text-xs text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>{formattedSubtotal}</span>
+              <div className="py-8 space-y-4">
+                <div className="space-y-3 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-700 font-semibold">Subtotal:</span>
+                    <span className="text-slate-900 font-bold text-base">{formattedSubtotal}</span>
+                  </div>
+                  {order.discountCents > 0 && (
+                    <div className="flex justify-between items-center text-sm border-t border-slate-200 pt-2">
+                      <span className="text-slate-700 font-semibold">Discount Applied:</span>
+                      <span className="text-emerald-700 font-bold text-base">-{formattedDiscount}</span>
+                    </div>
+                  )}
+                  {shippingFeeCents > 0 && (
+                    <div className="flex justify-between items-center text-sm border-t border-slate-200 pt-2">
+                      <span className="text-slate-700 font-semibold">Shipping Fee:</span>
+                      <span className="text-slate-900 font-bold text-base">{formattedShipping}</span>
+                    </div>
+                  )}
                 </div>
-                {order.discountCents > 0 && (
-                  <div className="flex justify-between text-emerald-600 font-medium">
-                    <span>Discount Applied</span>
-                    <span>-{formattedDiscount}</span>
-                  </div>
-                )}
-                {shippingFeeCents > 0 && (
-                  <div className="flex justify-between">
-                    <span>Shipping Fee</span>
-                    <span>{formattedShipping}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm text-foreground font-extrabold pt-2 border-t border-dashed">
-                  <span>Total Paid</span>
-                  <span className="text-lg text-foreground font-mono">{formattedTotal}</span>
+                <div className="flex justify-between items-center pt-4 px-6 py-5 border-t-4 border-slate-900 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-xl shadow-lg">
+                  <span className="font-black text-base md:text-lg uppercase tracking-wider">💰 Total Paid</span>
+                  <span className="text-2xl md:text-3xl font-mono font-black">{formattedTotal}</span>
                 </div>
               </div>
 
               {/* Digital File Delivery Secure Reader */}
               {order.status === "PAID" && order.items.some(i => i.productType === "DIGITAL_RESOURCE" && i.product?.assetUrl) && (
-                <div className="py-6 space-y-3 print:hidden">
-                  <span className="text-[10px] text-emerald-600 uppercase tracking-widest block font-extrabold mb-1">PDF Books Unlocked! 📖</span>
-                  <p className="text-xs text-muted-foreground mb-3">Your digital PDF books are authorized and ready. Click below to open and read them directly within the secure in-app reader:</p>
+                <div className="py-8 space-y-4 print:hidden">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[11px] text-emerald-400 uppercase tracking-widest font-extrabold">✓ PDF Books Unlocked</span>
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed mb-4">Your digital PDF books are authorized and ready to read. Click below to open them in the secure in-app reader:</p>
                   
-                  <div className="grid gap-2">
+                  <div className="grid gap-3">
                     {order.items.map((item) => {
                       if (item.productType === "DIGITAL_RESOURCE" && item.product?.assetUrl) {
                         return (
-                          <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-emerald-500/20 bg-emerald-500/[0.02] rounded-xl">
-                            <span className="text-xs font-semibold text-foreground truncate w-full sm:max-w-sm">{item.productName}</span>
-                            <Button asChild size="sm" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 rounded-xl shrink-0">
+                          <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-emerald-500/30 bg-emerald-500/[0.05] rounded-xl hover:border-emerald-500/50 transition">
+                            <span className="text-sm font-semibold text-white truncate flex-1">{item.productName}</span>
+                            <Button asChild size="sm" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 rounded-lg">
                               <Link href={`/student/orders/${order.id}/pdf-viewer?productId=${item.productId}`}>
-                                <BookOpen className="h-3.5 w-3.5" />
-                                Read PDF Book
+                                <BookOpen className="h-4 w-4" />
+                                Open PDF
                               </Link>
                             </Button>
                           </div>
@@ -274,7 +334,7 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
         </div>
 
         {/* Shipping details timeline & tracking sidebar */}
-        <div className="lg:col-span-4 space-y-6 print:hidden">
+        <div className="lg:col-span-3 space-y-6 print:hidden">
           {shippingStatus !== "NOT_APPLICABLE" && (
             <Card className="border-border/60 shadow-soft overflow-hidden rounded-2xl">
               <CardHeader className="bg-muted/40 p-4 border-b border-border">
@@ -425,6 +485,19 @@ export default async function StudentOrderDetailPage({ params }: OrderDetailPage
               </CardContent>
             </Card>
           )}
+        </div>
+      </div>
+
+      {/* Mobile sticky actions (compact) */}
+      <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 print:hidden">
+        <div className="mx-auto max-w-4xl w-full bg-slate-900/90 backdrop-blur-md rounded-xl p-3 shadow-lg border border-white/10 flex items-center justify-between gap-3">
+          <div className="flex-1">
+            <p className="text-xs text-slate-300">Order {order.orderNumber?.slice(0,8)}</p>
+            <p className="text-sm font-bold text-white">{formattedTotal}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <PrintInvoiceButton orderId={order.id} />
+          </div>
         </div>
       </div>
     </section>

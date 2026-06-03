@@ -22,14 +22,24 @@ This platform represents a modern fusion of an advanced Educational portal and a
 *   **UI/UX Refinements**:
     *   **Interactive Certificates**: Added 3-step dynamic zoom (Off, 1.5x, 2.5x) and 2D overflow scrolling to the public certificate verification page for better mobile inspection.
     *   **Futuristic CTAs**: Redesigned "Buy Now" and "Add to Cart" buttons across the platform with a high-fidelity shimmer effect, interactive hover states, and premium gradients to drive conversion.
-    *   **Classroom Consistency**: Normalized student navigation buttons to high-quality outline variants and added a dedicated top navigation header in the lesson player for easy "Back to Course" and "Home" access.
+    *   **Classroom Navigation**: Added dedicated "Back to Courses" and "Home" navigation header in the lesson player for easy course navigation.
     *   **Mobile Experience**: Refined the wishlist count indicator in the mobile drawer with a vibrant pink-rose gradient badge and glow effect.
+    *   **Professional Invoice Design**: Completely redesigned order confirmation invoices with:
+      - **Dark text on light backgrounds** for excellent readability
+      - **Customer billing & delivery details** clearly visible with proper labels
+      - **Product items** displayed with names, types, quantities, and prices
+      - **Color-coded sections** (billing, delivery, items, totals) for easy scanning
+      - **View Invoice** - Opens clean fullscreen view
+      - **Download PDF** - Triggers browser print dialog to save as PDF (uses iframe-based rendering)
+      - **Responsive design** that works beautifully on mobile and desktop
+      - **Professional banking-style layout** with clear visual hierarchy
 
 *   **Bug Fixes & System Stability**:
     *   **Checkout Validation**: Fixed a logic error where the checkout API would reject valid items added from the homepage. The system now correctly validates both `PUBLISHED` and `ACTIVE` product states.
     *   **Guest Session Safety**: Implemented protective guards on the Cart and Checkout pages. Guests are now gracefully redirected to login with `callbackUrl` persistence instead of encountering "Unauthorized" errors.
     *   **Wishlist Logic**: Fixed the wishlist toggle behavior to correctly perform add/remove operations in a single click-cycle.
     *   **Link Integrity**: Removed dead support links (404) from the storefront.
+    *   **YouTube Thumbnail Fallback**: Added robust fallback for YouTube video thumbnails to prevent 404 errors on missing maxresdefault images.
 
 ## 2. Tech Stack
 

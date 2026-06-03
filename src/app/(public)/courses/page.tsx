@@ -168,12 +168,12 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                     </div>
 
                     {/* Translucent category badge top-left */}
-                    <span className="absolute top-3.5 left-3.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                    <span className="absolute top-4 left-4 rounded-full bg-black/60 border border-white/10 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
                       {categoryName ?? "General"}
                     </span>
 
                     {/* Course title in white overlaid on the banner */}
-                    <div className="absolute bottom-3 left-3 right-3 z-10">
+                    <div className="absolute bottom-4 left-4 right-4 z-10">
                       <h3 className="line-clamp-2 text-sm sm:text-base font-bold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {course.title}
                       </h3>
@@ -181,9 +181,9 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                   </div>
 
                   {/* Body Content */}
-                  <div className="flex flex-col flex-1 justify-between p-4.5 gap-4">
-                    <div className="space-y-2">
-                      <p className="line-clamp-2 text-xs text-slate-400 font-medium">
+                  <div className="flex flex-col flex-1 justify-between p-6 gap-5">
+                    <div className="space-y-2.5">
+                      <p className="line-clamp-2 text-xs text-slate-400 font-medium leading-relaxed">
                         {shortDescription ?? "Immersive published EdTech course pathway ready for immediate enrollment."}
                       </p>
                       <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
@@ -191,7 +191,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                       </div>
                     </div>
 
-                    <div className="space-y-3.5">
+                    <div className="space-y-4">
                       {/* Price Row */}
                       <div>
                         {price === 0 ? (
@@ -200,19 +200,19 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                           </Badge>
                         ) : hasDiscount ? (
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-base font-extrabold text-white">₹{price.toLocaleString("en-IN")}</span>
+                            <span className="text-lg font-black text-white">₹{price.toLocaleString("en-IN")}</span>
                             <span className="line-through text-slate-500 text-xs font-semibold">₹{safeOriginalPrice.toLocaleString("en-IN")}</span>
                             <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold text-emerald-300 uppercase tracking-wide">
                               {discountPercent}% OFF
                             </span>
                           </div>
                         ) : (
-                          <span className="text-base font-extrabold text-white">₹{price.toLocaleString("en-IN")}</span>
+                          <span className="text-lg font-black text-white">₹{price.toLocaleString("en-IN")}</span>
                         )}
                       </div>
 
                       {/* CTA Action Buttons side-by-side */}
-                      <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div className="grid grid-cols-2 gap-3 mt-2">
                         <Link href={`/courses/${course.slug}`} className="w-full">
                           <button className="w-full h-11 rounded-xl font-extrabold border border-white/10 hover:border-white/20 text-slate-200 hover:text-white bg-white/5 hover:bg-white/10 transition text-xs uppercase tracking-normal flex items-center justify-center">
                             View Details

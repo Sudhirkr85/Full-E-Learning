@@ -292,7 +292,7 @@ export default async function HomePage() {
               return (
                 <div 
                   key={course.id} 
-                  className="soft-3d-card relative flex flex-col justify-between rounded-3xl border border-white/5 bg-[#0a0f21]/70 p-5 backdrop-blur-lg transition-all duration-300 group hover:border-cyan-500/20"
+                  className="soft-3d-card relative flex flex-col justify-between rounded-3xl border border-white/5 bg-[#0a0f21]/70 p-6 backdrop-blur-lg transition-all duration-300 group hover:border-cyan-500/20"
                 >
                   {/* Decorative corner glows inside card */}
                   <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-cyan-500/5 blur-2xl group-hover:bg-cyan-500/10 transition-all duration-300"></div>
@@ -330,7 +330,7 @@ export default async function HomePage() {
                   </div>
 
                     {/* Footer billing & button */}
-                  <div className="mt-6 flex items-center justify-between pt-4 border-t border-white/5 relative z-10">
+                  <div className="mt-6 flex items-center justify-between pt-5 border-t border-white/5 relative z-10">
                     <div>
                       <p className="text-[10px] text-slate-500">Total Enrollment Cost</p>
                       {/* Price with discount badge — matches /courses page pattern exactly */}
@@ -340,14 +340,14 @@ export default async function HomePage() {
                         </span>
                       ) : hasDiscount ? (
                         <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                          <span className="text-lg font-extrabold text-white">₹{price.toLocaleString("en-IN")}</span>
+                          <span className="text-lg font-black text-white">₹{price.toLocaleString("en-IN")}</span>
                           <span className="line-through text-slate-500 text-xs font-semibold">₹{safeOriginalPrice.toLocaleString("en-IN")}</span>
                           <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold text-emerald-300 uppercase tracking-wide">
                             {discountPercent}% OFF
                           </span>
                         </div>
                       ) : (
-                        <p className="text-lg font-extrabold text-white mt-0.5">₹{price.toLocaleString("en-IN")}</p>
+                        <p className="text-lg font-black text-white mt-0.5">₹{price.toLocaleString("en-IN")}</p>
                       )}
                     </div>
                     
@@ -424,7 +424,7 @@ export default async function HomePage() {
               return (
                 <div
                   key={product.id}
-                  className="soft-3d-card relative flex flex-col justify-between rounded-3xl border border-white/5 bg-[#0a0f21]/70 p-5 backdrop-blur-lg transition-all duration-300 group hover:border-violet-500/20"
+                  className="soft-3d-card relative flex flex-col justify-between rounded-3xl border border-white/5 bg-[#0a0f21]/70 p-6 backdrop-blur-lg transition-all duration-300 group hover:border-violet-500/20"
                 >
                   {/* Decorative corner glow */}
                   <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-violet-500/5 blur-2xl group-hover:bg-violet-500/10 transition-all duration-300" />
@@ -464,19 +464,19 @@ export default async function HomePage() {
                   </div>
 
                   {/* Footer: price + CTA */}
-                  <div className="mt-6 flex items-center justify-between pt-4 border-t border-white/5 relative z-10">
+                  <div className="mt-6 flex items-center justify-between pt-5 border-t border-white/5 relative z-10">
                     <div>
                       <p className="text-[10px] text-slate-500">Price</p>
                       {hasDiscount ? (
                         <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                          <span className="text-lg font-extrabold text-white">₹{price.toLocaleString("en-IN")}</span>
+                          <span className="text-lg font-black text-white">₹{price.toLocaleString("en-IN")}</span>
                           <span className="line-through text-slate-500 text-xs font-semibold">₹{originalPrice!.toLocaleString("en-IN")}</span>
                           <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold text-emerald-300 uppercase tracking-wide">
                             {discountPercent}% OFF
                           </span>
                         </div>
                       ) : (
-                        <p className="text-lg font-extrabold text-white mt-0.5">₹{price.toLocaleString("en-IN")}</p>
+                        <p className="text-lg font-black text-white mt-0.5">₹{price.toLocaleString("en-IN")}</p>
                       )}
                     </div>
 

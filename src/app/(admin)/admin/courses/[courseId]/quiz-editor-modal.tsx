@@ -117,10 +117,8 @@ export function QuizEditorModal({
 
   // Options for MCQ
   const [mcqOptions, setMcqOptions] = useState<Array<{ id?: string; label: string; isCorrect: boolean }>>([
-    { label: "Option 1", isCorrect: true },
-    { label: "Option 2", isCorrect: false },
-    { label: "Option 3", isCorrect: false },
-    { label: "Option 4", isCorrect: false }
+    { label: "", isCorrect: true },
+    { label: "", isCorrect: false }
   ]);
 
   // Options for Fill in the Blank (alternative answers)
@@ -162,10 +160,8 @@ export function QuizEditorModal({
     setQuestionExplanation("");
     setIsCaseSensitive(false);
     setMcqOptions([
-      { label: "Option A", isCorrect: true },
-      { label: "Option B", isCorrect: false },
-      { label: "Option C", isCorrect: false },
-      { label: "Option D", isCorrect: false }
+      { label: "", isCorrect: true },
+      { label: "", isCorrect: false }
     ]);
     setFitbAnswers([""]);
     setIsEditorOpen(true);
@@ -473,7 +469,7 @@ export function QuizEditorModal({
                           <ArrowDown className="h-4 w-4" />
                         </Button>
                         <div className="w-px h-5 bg-white/10 mx-1" />
-                        <Button onClick={() => handleStartEditQuestion(q)} variant="outline" className="h-8 text-[10px] font-bold uppercase tracking-wider rounded-lg px-3 border-white/10 hover:bg-white/5 hover:text-white">Edit</Button>
+                        <Button onClick={() => handleStartEditQuestion(q)} variant="outline" className="h-8 text-[10px] font-bold uppercase tracking-wider rounded-lg px-3 border-indigo-500/20 text-indigo-400 bg-indigo-500/5 hover:bg-indigo-600 hover:text-white">Edit</Button>
                         <Button onClick={() => handleDeleteQuestion(q.id)} variant="ghost" className="h-8 w-8 rounded-lg text-rose-400 hover:text-rose-350 hover:bg-rose-500/10 p-0">
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -557,10 +553,20 @@ export function QuizEditorModal({
                       {/* MCQ Option Compilation */}
                       {questionKind === "SINGLE_CHOICE" && (
                         <div className="space-y-3 pt-2">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                            <span>Answer Options</span>
-                            <span className="text-[9px] text-slate-500 italic font-mono">Select the correct choice</span>
-                          </label>
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between w-full">
+                              <span>Answer Options</span>
+                              <span className="text-[9px] text-slate-500 italic font-mono">Select the correct choice</span>
+                            </label>
+                            <Button 
+                              type="button" 
+                              onClick={() => setMcqOptions([...mcqOptions, { label: "", isCorrect: false }])} 
+                              variant="ghost" 
+                              className="h-6 text-[9px] uppercase font-bold text-indigo-400 p-0 hover:bg-transparent"
+                            >
+                              + Add Option
+                            </Button>
+                          </div>
                           <div className="space-y-2">
                             {mcqOptions.map((opt, idx) => (
                               <div key={idx} className="flex gap-2.5 items-center">
@@ -587,10 +593,27 @@ export function QuizEditorModal({
                                     newOpts[idx].label = e.target.value;
                                     setMcqOptions(newOpts);
                                   }} 
-                                  className="bg-white/5 border border-white/10 text-white text-xs h-9.5 rounded-xl" 
+                                  className="bg-white/5 border border-white/10 text-white text-xs h-9.5 rounded-xl flex-1" 
                                   placeholder={`Option ${String.fromCharCode(65 + idx)}`} 
                                   required 
                                 />
+                                {mcqOptions.length > 2 && (
+                                  <Button 
+                                    type="button" 
+                                    onClick={() => {
+                                      const wasCorrect = opt.isCorrect;
+                                      const filtered = mcqOptions.filter((_, oIdx) => oIdx !== idx);
+                                      if (wasCorrect && filtered.length > 0) {
+                                        filtered[0].isCorrect = true;
+                                      }
+                                      setMcqOptions(filtered);
+                                    }} 
+                                    variant="ghost" 
+                                    className="h-9 w-9 text-rose-400 hover:text-rose-350 p-0 hover:bg-rose-500/10 rounded-xl"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </div>
                             ))}
                           </div>

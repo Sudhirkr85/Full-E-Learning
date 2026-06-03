@@ -20,29 +20,26 @@ This platform represents a modern fusion of an advanced Educational portal and a
 ## 2. Recent Improvements & Fixes (June 2026)
 
 *   **UI/UX Refinements**:
+    *   **Curriculum Lesson Detail Editor**: Added support for editing existing lessons (Video, Live Stream, Quiz, PDF Playbook) directly from the curriculum admin dashboard. Admins can update Titles, Descriptions, YouTube Video URLs, PDF materials, Live Scheduled Date/Time, and Free/Paid Preview flags.
+    *   **Section Row Click Accordions**: Click anywhere on a section row header (except active action buttons) to toggle section expansion, instead of forcing users to click only on the tiny chevron/arrow.
+    *   **Auto-Expanding Sections**: Automatically expand a section when clicking the "+ Content" button, allowing immediate and smooth entry of lesson details.
     *   **Interactive Certificates**: Added 3-step dynamic zoom (Off, 1.5x, 2.5x) and 2D overflow scrolling to the public certificate verification page for better mobile inspection.
     *   **Futuristic CTAs**: Redesigned "Buy Now" and "Add to Cart" buttons across the platform with a high-fidelity shimmer effect, interactive hover states, and premium gradients to drive conversion.
     *   **Classroom Navigation**: Added dedicated "Back to Courses" and "Home" navigation header in the lesson player for easy course navigation.
     *   **Mobile Experience**: Refined the wishlist count indicator in the mobile drawer with a vibrant pink-rose gradient badge and glow effect.
     *   **Navigation Synchronization**: Added the **"My Library"** link to the top-right profile avatar dropdown menu to perfectly align with the Student Sidebar navigation.
-    *   **Professional Invoice Design**: Completely redesigned order confirmation invoices with:
-      - **Dark text on light backgrounds** for excellent readability
-      - **Customer billing & delivery details** clearly visible with proper labels
-      - **Product items** displayed with names, types, quantities, and prices
-      - **Color-coded sections** (billing, delivery, items, totals) for easy scanning
-      - **View Invoice** - Opens clean fullscreen view
-      - **Download PDF** - Triggers browser print dialog to save as PDF (uses iframe-based rendering)
-      - **Responsive design** that works beautifully on mobile and desktop
-      - **Professional banking-style layout** with clear visual hierarchy
+    *   **Professional Invoice Design**: Completely redesigned order confirmation invoices.
 
 *   **Bug Fixes & System Stability**:
+    *   **Dynamic Quiz MCQs**: Upgraded the Quiz builder options to support dynamic adding and deleting of options (starting with 2 empty options, placeholder-only labels, and a minimum of 2 choices).
+    *   **Quiz Editor Visibilities**: Fixed the "Edit Question" buttons in the assessment builder list so they are fully visible with indigo accent styling, preventing white-on-white visual masking.
     *   **My Library Content Restrictions**: Restricted the student bookshelf query to strictly load `DIGITAL_RESOURCE` products, ensuring physical purchases do not mistakenly appear in the digital PDF library space.
     *   **Checkout Validation**: Fixed a logic error where the checkout API would reject valid items added from the homepage. The system now correctly validates both `PUBLISHED` and `ACTIVE` product states.
     *   **Guest Session Safety**: Implemented protective guards on the Cart and Checkout pages. Guests are now gracefully redirected to login with `callbackUrl` persistence instead of encountering "Unauthorized" errors.
     *   **Wishlist Logic**: Fixed the wishlist toggle behavior to correctly perform add/remove operations in a single click-cycle.
     *   **Link Integrity**: Removed dead support links (404) from the storefront.
     *   **YouTube Thumbnail Fallback**: Added robust fallback for YouTube video thumbnails to prevent 404 errors on missing maxresdefault images.
-    *   **Fallback Product and Course Removal**: Cleaned the public landing page ([page.tsx](file:///d:/Work/E-Learning/src/app/(public)/page.tsx)) to stop rendering fallback items when no active courses or products exist in the database. Instead, the page now displays beautiful, responsive empty-state message containers with custom details encouraging action.
+    *   **Fallback Product and Course Removal**: Cleaned the public landing page ([page.tsx](file:///d:/Work/E-Learning/src/app/(public)/page.tsx)) to stop rendering fallback items when no active courses or products exist in the database.
 
 ## 2. Tech Stack
 

@@ -37,9 +37,11 @@ import {
   createSectionAction, 
   createLessonAction, 
   deleteSectionAction, 
-  deleteLessonAction 
+  deleteLessonAction,
+  updateLessonAction
 } from "./actions";
 import { QuizEditorModal } from "./quiz-editor-modal";
+import { LessonEditorModal } from "./lesson-editor-modal";
 import { CustomPopup } from "@/components/courses/custom-popup";
 
 type TabType = "overview" | "curriculum" | "students" | "analytics" | "settings";
@@ -78,6 +80,7 @@ export function CourseDashboardClient({
   
   const [activeQuizLesson, setActiveQuizLesson] = useState<any | null>(null);
   const [activeQuizTest, setActiveQuizTest] = useState<any | null>(null);
+  const [activeEditLesson, setActiveEditLesson] = useState<any | null>(null);
 
   // Custom popup states
   const [popup, setPopup] = useState<{
@@ -438,21 +441,27 @@ export function CourseDashboardClient({
                 const isExpanded = expandedSectionId === s.id;
                 return (
                   <div key={s.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md">
-                    <div className="px-5 py-4 flex items-center justify-between gap-4 bg-white/[0.02] border-b border-white/5">
+                    <div 
+                      onClick={() => setExpandedSectionId(isExpanded ? null : s.id)}
+                      className="px-5 py-4 flex items-center justify-between gap-4 bg-white/[0.02] border-b border-white/5 cursor-pointer hover:bg-white/[0.04] transition-all"
+                    >
                       <div className="flex items-center gap-3">
-                        <button onClick={() => setExpandedSectionId(isExpanded ? null : s.id)} className="h-7 w-7 rounded bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition">
+                        <div className="h-7 w-7 rounded bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition">
                           <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-90 text-indigo-400" : ""}`} />
-                        </button>
+                        </div>
                         <div>
                           <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Section {sIdx + 1}</span>
                           <h3 className="text-sm font-bold text-white mt-0.5">{s.title}</h3>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button onClick={() => setShowAddContentSectionId(s.id)} variant="outline" className="border-indigo-500/20 text-indigo-300 bg-indigo-500/5 hover:bg-indigo-600 hover:text-white rounded-xl text-xs h-9 px-3">
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <Button onClick={() => {
+                          setShowAddContentSectionId(s.id);
+                          setExpandedSectionId(s.id);
+                        }} variant="outline" className="border-indigo-500/20 text-indigo-300 bg-indigo-500/5 hover:bg-indigo-600 hover:text-white rounded-xl text-xs h-9 px-3">
                           <Plus className="mr-1 h-3.5 w-3.5" /> Content
                         </Button>
-                        <Button onClick={() => handleDeleteSection(s.id)} variant="ghost" className="h-9 w-9 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 p-0">
+                        <Button onClick={() => handleDeleteSection(s.id)} variant="ghost" className="h-9 w-9 rounded-xl text-rose-400 hover:text-rose-350 hover:bg-rose-500/10 p-0">
                           <Trash2 className="h-4.5 w-4.5" />
                         </Button>
                       </div>
@@ -642,6 +651,13 @@ export function CourseDashboardClient({
                                     <Badge variant="outline" className="border-white/10 text-slate-400 text-[8px] tracking-wider uppercase font-bold px-1.5 py-0.5">
                                       {lesson.contentType}
                                     </Badge>
+                                    <Button 
+                                      onClick={() => setActiveEditLesson(lesson)} 
+                                      variant="outline" 
+                                      className="h-8 text-[10px] font-bold uppercase tracking-wider rounded-xl border-indigo-500/20 text-indigo-300 bg-indigo-500/5 hover:bg-indigo-650 hover:text-white"
+                                    >
+                                      Edit Details
+                                    </Button>
                                     <Button onClick={() => handleDeleteLesson(lesson.id)} variant="ghost" className="h-8 w-8 rounded-lg text-rose-500/80 hover:text-rose-400 hover:bg-rose-500/10 p-0">
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -837,6 +853,17 @@ export function CourseDashboardClient({
             setActiveQuizLesson(null);
             setActiveQuizTest(null);
           }}
+          onRefresh={() => {
+            window.location.reload();
+          }}
+        />
+      )}
+
+      {activeEditLesson && (
+        <LessonEditorModal
+          courseId={course.id}
+          lesson={activeEditLesson}
+          onClose={() => setActiveEditLesson(null)}
           onRefresh={() => {
             window.location.reload();
           }}

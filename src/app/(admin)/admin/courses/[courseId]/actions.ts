@@ -188,3 +188,73 @@ export async function deleteLessonAction(courseId: string, lessonId: string) {
   }
 }
 
+export async function updateLessonAction(
+  courseId: string,
+  lessonId: string,
+  title: string,
+  contentType: "VIDEO" | "ARTICLE" | "RESOURCE" | "QUIZ" | "LIVE",
+  extras?: LessonExtras
+) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Unauthorized" };
+  }
+
+  if (!title.trim()) {
+    return { error: "Lesson title is required." };
+  }
+
+  try {
+    const existing = await prisma.lesson.findUnique({
+      where: { id: lessonId }
+    });
+
+    if (!existing) {
+      return { error: "Lesson not found." };
+    }
+
+    let slug = existing.slug;
+    if (existing.title !== title) {
+      slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      if (!slug) slug = "lesson";
+
+      const existingWithSlug = await prisma.lesson.findFirst({
+        where: { sectionId: existing.sectionId, slug, NOT: { id: lessonId } }
+      });
+
+      if (existingWithSlug) {
+        slug = `${slug}-${Date.now()}`;
+      }
+    }
+
+    // Build metadata for session-specific fields
+    const existingMetadata = (existing.metadata as Record<string, unknown>) || {};
+    const metadata: Record<string, unknown> = { ...existingMetadata };
+    if (extras?.sessionType) metadata.sessionType = extras.sessionType;
+    if (extras?.accessType) metadata.accessType = extras.accessType;
+    if (extras?.liveDateTime) metadata.liveDateTime = extras.liveDateTime;
+    if (extras?.publishDate) metadata.publishDate = extras.publishDate;
+
+    await prisma.lesson.update({
+      where: { id: lessonId },
+      data: {
+        title,
+        slug,
+        contentType,
+        description: extras?.description ?? null,
+        youtubeUrl: extras?.youtubeUrl ?? null,
+        r2AssetUrl: extras?.r2AssetUrl ?? null,
+        isPreview: extras?.isPreview ?? false,
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        scheduledAt: contentType === "LIVE" && extras?.scheduledAt ? new Date(extras.scheduledAt) : null
+      }
+    });
+
+    revalidatePath(`/admin/courses/${courseId}`);
+    return { success: "Lesson updated successfully!" };
+  } catch (error) {
+    console.error("Update lesson error:", error);
+    return { error: "Failed to update lesson." };
+  }
+}
+

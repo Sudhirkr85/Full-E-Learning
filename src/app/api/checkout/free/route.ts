@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const totalLessons = course.sections.reduce((sum, sec) => sum + sec.lessons.length, 0);
 
     // 3. Atomically create active free enrollment
-    await prisma.enrollment.create({
+    const newEnrollment = await prisma.enrollment.create({
       data: {
         userId: session.user.id,
         courseId: course.id,
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      redirectUrl: `/student/courses/${course.slug}`
+      redirectUrl: `/order/${newEnrollment.id}/confirmation`
     });
   } catch (err: any) {
     console.error("[FREE_CHECKOUT_API_ERROR]", err);

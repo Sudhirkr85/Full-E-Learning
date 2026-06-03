@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     // 5. Redirect to dedicated payment success confirmation screen
     return NextResponse.json({
       success: true,
-      redirectUrl: `/payment/success?courseSlug=${course.slug}&orderId=${order.id}`
+      redirectUrl: `/order/${order.id}/confirmation`
     });
   } catch (err: any) {
     console.error("[PAYMENT_VERIFICATION_API_ERROR]", err);

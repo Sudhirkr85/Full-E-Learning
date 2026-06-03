@@ -53,9 +53,10 @@ export async function POST(req: Request) {
     const totalLessons = course.sections.reduce((sum, sec) => sum + sec.lessons.length, 0);
 
     // Create or update enrollment to ACTIVE
+    let activeEnrollmentId = existing ? existing.id : "";
     await prisma.$transaction(async (tx) => {
       if (existing) {
-        await tx.enrollment.update({
+        const updated = await tx.enrollment.update({
           where: { id: existing.id },
           data: {
             status: "ACTIVE",
@@ -64,8 +65,9 @@ export async function POST(req: Request) {
             amountPaid: 0
           }
         });
+        activeEnrollmentId = updated.id;
       } else {
-        await tx.enrollment.create({
+        const created = await tx.enrollment.create({
           data: {
             userId: session.user.id,
             courseId,
@@ -82,6 +84,7 @@ export async function POST(req: Request) {
             }
           }
         });
+        activeEnrollmentId = created.id;
       }
     });
 
@@ -97,8 +100,7 @@ export async function POST(req: Request) {
       console.error("Free enrollment email dispatch error:", emailErr);
     }
 
-    return NextResponse.json({ success: true });
-
+    return NextResponse.json({ success: true, enrollmentId: activeEnrollmentId });
   } catch (err) {
     console.error("Free enrollment error:", err);
     return NextResponse.json({ message: "Something went wrong. Please refresh and try again." }, { status: 500 });

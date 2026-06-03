@@ -111,31 +111,44 @@ export function CheckoutClient({ order }: CheckoutClientProps) {
             if (verifyRes.ok) {
               clearCart(); // clear both localStorage AND server-side cart
               toast.success("Order placed successfully!");
-              router.push(`/order-confirmation/${order.id}`);
+              router.push(`/order/${order.id}/confirmation`);
             } else {
               toast.error("Payment could not be processed. Please try again.");
-              setIsPaying(false);
+              router.push(`/order/${order.id}/confirmation`);
             }
           } catch (err) {
             toast.error("Payment could not be processed. Please try again.");
-            setIsPaying(false);
+            router.push(`/order/${order.id}/confirmation`);
           }
         }
       };
 
       const rzp = new (window as any).Razorpay(options);
       
-      rzp.on("payment.failed", function (response: any) {
+      rzp.on("payment.failed", async function (response: any) {
         console.error("[RAZORPAY_CLIENT_PAYMENT_FAILURE]", response.error);
+        try {
+          await fetch("/api/razorpay/fail", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: order.id,
+              errorCode: response.error.code,
+              errorDescription: response.error.description
+            })
+          });
+        } catch (e) {
+          console.error("Failed to notify fail api:", e);
+        }
         toast.error("Payment could not be processed. Please try again.");
-        setIsPaying(false);
+        router.push(`/order/${order.id}/confirmation`);
       });
 
       rzp.open();
     } catch (err: any) {
       console.error("[PAYMENT_GATEWAY_ERROR]", err);
       toast.error("Payment could not be processed. Please try again.");
-      setIsPaying(false);
+      router.push(`/order/${order.id}/confirmation`);
     }
   };
 
@@ -150,7 +163,7 @@ export function CheckoutClient({ order }: CheckoutClientProps) {
       if (res.success) {
         setSimulationSuccess(res.message ?? "Success!");
         setTimeout(() => {
-          router.push("/student/courses");
+          router.push(`/order/${order.id}/confirmation`);
         }, 1500);
       } else {
         setErrorMessage(res.error ?? "Failed to simulate transaction.");
@@ -161,6 +174,7 @@ export function CheckoutClient({ order }: CheckoutClientProps) {
       setIsSimulating(false);
     }
   };
+
 
   return (
     <Container className="max-w-4xl py-12">

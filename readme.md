@@ -86,6 +86,7 @@ The application contains the following fully implemented production modules:
 *   **Stale Cart Item Pruning & Silent Validation Engine**: Automatically verifies item existence, active state, and inventory count on page load, drawer open, and checkout. It dynamically cleanses the cart of deleted/unpublished products without blocking checkouts on remaining valid items, displaying elegant self-dismissing Sonner Toast alerts and instantly syncing cart badge counters.
 *   **Universal Coupon Processor**: In-cart coupon verification checks dynamically validating minimum order totals, flat-rate/percentage discounts, dates, and applies-to restrictions. Enforces alphanumeric input sanitization.
 *   **Direct Razorpay Localized Checkout**: Bypasses intermediate pages to open Razorpay modal overlay directly. Prefills user profile name, email, and mobile data, collects primary/secondary shipping numbers, and handles localized Indian address formatting.
+*   **Order Confirmation & Async Verification Polling Page**: Renders at `/order/[orderId]/confirmation`. Features a dark glassmorphic design and automatically polls the API using SWR every 2 seconds to transition smoothly when webhook callbacks resolve payment. Handles timeouts (>60s) with detailed processing advice, displays item receipts in ₹ INR, fails safely, and contains sharing modules.
 
 ### Courses & Lesson Navigation
 *   **Courses Catalog**: Cinematic public grid at `/courses` displaying active categories, visual filters, INR prices, strikethrough original prices, and direct enroll/continue learning buttons.
@@ -194,6 +195,7 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 *   `GET /api/student/orders` — Fetches transaction orders history for students.
 *   `GET /api/student/orders/[orderId]/pdf-access` — Validates order tokens and streams secure PDF files safely.
 *   `POST /api/admin/orders/[orderId]/shipping` — Admin shipment courier registration and courier tracking updates.
+*   `GET /order/[orderId]/confirmation` — Renders order payment success, pending processing, or failure screens.
 
 ---
 
@@ -239,6 +241,14 @@ RAZORPAY_KEY_ID="rzp_test_placeholder_key_id"
 RAZORPAY_KEY_SECRET="replace-with-your-razorpay-key-secret"
 NEXT_PUBLIC_RAZORPAY_KEY_ID="rzp_test_placeholder_key_id"
 RAZORPAY_WEBHOOK_SECRET="replace-with-your-razorpay-webhook-secret"
+
+# Steps to set up webhook in Razorpay Dashboard:
+# 1. Go to https://dashboard.razorpay.com → Settings → Webhooks
+# 2. Click "Add New Webhook"
+# 3. URL: https://yourdomain.com/api/razorpay/webhook
+# 4. Secret: paste the value of RAZORPAY_WEBHOOK_SECRET
+# 5. Events to enable: payment.captured, payment.failed
+# 6. Copy the secret shown and paste it in your active environment variables file (.env)
 
 # -------------------------------------------------------------------------
 # Cloudflare R2 Storage (S3-Compatible API)

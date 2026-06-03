@@ -242,11 +242,11 @@ export default async function StudentOrdersPage() {
                       <div className="flex items-center gap-2">
                         {order.status === "PENDING" && (
                           <Link 
-                            href={`/checkout/${order.id}`}
+                            href={`/order/${order.id}/confirmation`}
                             className="h-10 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-1.5 transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)] hover:scale-[1.02]"
                           >
                             <CreditCard className="h-3.5 w-3.5" />
-                            Pay Now
+                            Check Status / Pay
                           </Link>
                         )}
                         <Link 

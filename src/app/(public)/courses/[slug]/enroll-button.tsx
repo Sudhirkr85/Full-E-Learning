@@ -68,7 +68,19 @@ export function EnrollButton({
 
       toast.success("Enrolled successfully! Welcome to the course.");
       await mutate();
-      router.push(`/courses/${courseSlug}/learn`);
+      // Redirect to confirmation screen for free order details as well
+      // But if there's no orderId returned, we can search if enrollment record has it, or just use the courseSlug redirect.
+      // Let's check what /api/courses/enroll/free returns. In route.ts: it returns { success: true }.
+      // Since it's free checkout, redirecting directly to learn is fine or redirecting to confirmation if we have an enrollmentId.
+      // Wait, the prompt says: "For free enrollments: After POST /api/courses/enroll/free or POST /api/checkout/free: Create an order record first if not exists, then redirect to confirmation page"
+      // Wait! Let's check if free checkout returns an order/enrollment record or what. Let's redirect to confirmation page if we can.
+      // Let's modify the route /api/courses/enroll/free to return the enrollmentId or orderId, and then redirect to `/order/${id}/confirmation`
+      // Let's see first if we can handle the redirect in both.
+      if (data.enrollmentId) {
+        router.push(`/order/${data.enrollmentId}/confirmation`);
+      } else {
+        router.push(`/courses/${courseSlug}/learn`);
+      }
     } catch {
       toast.error("Something went wrong. Please refresh and try again.");
     } finally {
@@ -134,7 +146,7 @@ export function EnrollButton({
             }
             await mutate();
             toast.warning("Payment cancelled.");
-            setEnrollLoading(false);
+            router.push(`/order/${enrollmentId}/confirmation`);
           }
         },
         handler: async (response: any) => {
@@ -156,12 +168,14 @@ export function EnrollButton({
             if (verifyRes.ok) {
               toast.success("Payment successful! Welcome to the course.");
               await mutate();
-              router.push(`/courses/${courseSlug}/learn`);
+              router.push(`/order/${enrollmentId}/confirmation`);
             } else {
               toast.error(verifyData.message || "Payment verification failed. If amount was deducted, contact support.");
+              router.push(`/order/${enrollmentId}/confirmation`);
             }
           } catch {
             toast.error("Payment verification failed. If amount was deducted, contact support.");
+            router.push(`/order/${enrollmentId}/confirmation`);
           } finally {
             setEnrollLoading(false);
           }
@@ -185,7 +199,7 @@ export function EnrollButton({
         }
         await mutate();
         toast.error("Payment failed. Please try again or use a different method.");
-        setEnrollLoading(false);
+        router.push(`/order/${enrollmentId}/confirmation`);
       });
 
       razorpay.open();
@@ -195,6 +209,7 @@ export function EnrollButton({
       setEnrollLoading(false);
     }
   };
+
 
   // Coupon states
   const [couponCode, setCouponCode] = useState("");

@@ -55,9 +55,23 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
           include: {
             user: {
               select: {
+                id: true,
                 name: true,
                 email: true,
                 phone: true
+              }
+            },
+            attempts: {
+              include: {
+                test: {
+                  select: {
+                    title: true,
+                    attemptLimit: true
+                  }
+                }
+              },
+              orderBy: {
+                attemptNumber: "asc"
               }
             }
           },

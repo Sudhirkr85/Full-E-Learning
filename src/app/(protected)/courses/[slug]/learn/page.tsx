@@ -12,6 +12,7 @@ import { revalidatePath } from "next/cache";
 import { getYoutubeEmbedUrl, getYoutubeVideoId } from "@/lib/utils";
 import { CustomYoutubePlayer } from "@/components/custom-youtube-player";
 import ClassroomQuizPortal from "./classroom-quiz-portal";
+import { PdfReader } from "@/components/pdf-reader/PdfReader";
 import {
   ArrowLeft,
   HelpCircle,
@@ -347,7 +348,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                 </div>
               )
             ) : (
-              <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl">
+              <div className={activeLesson.r2AssetUrl ? "w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl h-[75vh]" : "aspect-video w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl"}>
                 {activeLesson.contentType === "LIVE" ? (
                   (() => {
                     const scheduledAt = activeLesson.scheduledAt ? new Date(activeLesson.scheduledAt) : null;
@@ -397,14 +398,15 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                     title={activeLesson.title} 
                   />
                 ) : activeLesson.r2AssetUrl ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">
-                    <BookOpen className="h-16 w-16 text-indigo-400" />
-                    <h3 className="text-lg font-bold">This lesson contains a digital article playbook.</h3>
-                    <p className="text-sm text-slate-400 max-w-sm">Use the link below to open this protected study resource.</p>
-                    <Button asChild className="bg-indigo-600 hover:bg-indigo-500">
-                      <a href={activeLesson.r2AssetUrl} target="_blank" rel="noreferrer">Open Lesson Playbook</a>
-                    </Button>
-                  </div>
+                  <PdfReader
+                    productId={course.id}
+                    orderId={enrollment?.id || `lesson-${activeLesson.id}`}
+                    fileUrl={activeLesson.r2AssetUrl}
+                    userName={session.user.name || "Student"}
+                    userEmail={session.user.email || ""}
+                    productName={course.title}
+                    className="h-full w-full"
+                  />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-500">
                     <PlayCircle className="h-12 w-12" />
@@ -425,7 +427,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
               </div>
 
               {/* Progress Tracking Action */}
-              {enrollment && userRole === "STUDENT" && (
+              {enrollment && userRole === "STUDENT" && activeLesson.contentType !== "QUIZ" && (
                 <form action={toggleLessonCompletionAction} className="shrink-0 text-left">
                   <input type="hidden" name="courseId" value={course.id} />
                   <input type="hidden" name="lessonId" value={activeLesson.id} />

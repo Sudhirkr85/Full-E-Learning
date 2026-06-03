@@ -24,6 +24,7 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { CustomPopup } from "@/components/courses/custom-popup";
 
 type OptionData = {
   id: string;
@@ -107,6 +108,50 @@ export default function TestPortalClient({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Custom Popup state
+  const [popup, setPopup] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "alert" | "confirm";
+    confirmText?: string;
+    isError?: boolean;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "alert",
+    onConfirm: () => {}
+  });
+
+  const showAlert = (message: string, isError = true, title = "Quiz Portal Notification") => {
+    setPopup({
+      isOpen: true,
+      title,
+      message,
+      type: "alert",
+      isError,
+      onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+    });
+  };
+
+  const showConfirm = (message: string, onConfirm: () => void, title = "Please Confirm") => {
+    setPopup({
+      isOpen: true,
+      title,
+      message,
+      type: "confirm",
+      confirmText: "Submit",
+      onConfirm: () => {
+        onConfirm();
+        setPopup(prev => ({ ...prev, isOpen: false }));
+      },
+      onCancel: () => setPopup(prev => ({ ...prev, isOpen: false }))
+    });
+  };
 
   // Timer Setup for Active Taking Phase
   useEffect(() => {
@@ -203,29 +248,32 @@ export default function TestPortalClient({
   };
 
   const handleManualSubmit = async () => {
-    if (!confirm("Are you sure you want to submit your answers and complete this attempt?")) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const submissionPayload = questions.map((q) => {
-        const ans = answers[q.id];
-        return {
-          questionId: q.id,
-          selectedOptionId: ans?.selectedOptionId || null,
-          selectedOptionIds: ans?.selectedOptionIds || null,
-          answerText: ans?.answerText || null,
-        };
-      });
+    if (!activeAttempt) return;
+    showConfirm(
+      "Are you sure you want to submit your answers and complete this attempt?",
+      async () => {
+        setIsSubmitting(true);
+        setError(null);
+        try {
+          const submissionPayload = questions.map((q) => {
+            const ans = answers[q.id];
+            return {
+              questionId: q.id,
+              selectedOptionId: ans?.selectedOptionId || null,
+              selectedOptionIds: ans?.selectedOptionIds || null,
+              answerText: ans?.answerText || null,
+            };
+          });
 
-      await submitAttemptAction(activeAttempt!.id, submissionPayload);
-      window.location.href = `/courses/${courseSlug}/tests/${testSlug}?attemptId=${activeAttempt!.id}`;
-    } catch (err: any) {
-      setError(err.message ?? "Failed to submit answers.");
-      setIsSubmitting(false);
-    }
+          await submitAttemptAction(activeAttempt.id, submissionPayload);
+          window.location.href = `/courses/${courseSlug}/tests/${testSlug}?attemptId=${activeAttempt.id}`;
+        } catch (err: any) {
+          setIsSubmitting(false);
+          setError(err.message || "Failed to submit answers.");
+        }
+      },
+      "Submit Quiz"
+    );
   };
 
   const formatTimer = (seconds: number | null) => {
@@ -424,7 +472,10 @@ export default function TestPortalClient({
         {/* Top Timed Bar */}
         <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-card border border-border/60 shadow-lg sticky top-4 z-40">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-muted-foreground">Attempt #{activeAttempt.attemptNumber}</span>
+            <span className="text-sm font-semibold text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+              <span>Attempt #{activeAttempt.attemptNumber}</span>
+              <span className="text-xs text-muted-foreground font-normal">Started At: {new Date(activeAttempt.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            </span>
             <div className="hidden sm:flex items-center gap-1.5 text-sm font-medium">
               <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
               Live active session
@@ -603,6 +654,16 @@ export default function TestPortalClient({
             </Card>
           </div>
         </div>
+        <CustomPopup
+          isOpen={popup.isOpen}
+          title={popup.title}
+          message={popup.message}
+          type={popup.type}
+          onConfirm={popup.onConfirm}
+          onCancel={popup.onCancel}
+          confirmText={popup.confirmText}
+          isError={popup.isError}
+        />
       </div>
     );
   }

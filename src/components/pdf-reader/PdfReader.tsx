@@ -19,6 +19,7 @@ interface PdfReaderProps {
   userName: string;
   userEmail: string;
   productName: string;
+  className?: string;
 }
 
 interface Note {
@@ -146,7 +147,8 @@ export function PdfReader({
   fileUrl,
   userName,
   userEmail,
-  productName
+  productName,
+  className
 }: PdfReaderProps) {
   const router = useRouter();
 
@@ -632,7 +634,7 @@ export function PdfReader({
   return (
     <div 
       ref={containerRef}
-      className={`flex flex-col h-screen select-none relative ${
+      className={`flex flex-col select-none relative ${className || "h-screen"} ${
         theme === "dark" ? "bg-[#0a0a0f] text-slate-100" : "bg-slate-50 text-slate-900"
       }`}
       onContextMenu={(e) => e.preventDefault()} // Disable Right Click completely

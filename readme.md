@@ -19,6 +19,14 @@ This platform represents a modern fusion of an advanced Educational portal and a
 
 ## 2. Recent Improvements & Fixes (June 2026)
 
+*   **LMS Classroom & Assessment Enhancements**:
+    *   **Classroom Secure PDF Display**: Re-routed the playbook link in the classroom learning player to render PDF files directly in-page using the secure watermark-embedded `PdfReader` component instead of opening in external browser tabs.
+    *   **Grades & Attempts Reset Actions**: Added student attempts reset triggers in both Admin and Teacher dashboards under the course detail "Students" tab to clear and reset quiz attempts, letting students retake quizzes if they failed and exhausted their attempts.
+    *   **Mandatory Quiz Time Limit & Custom Attempt Limit**: Added mandatory quiz time limit checks and custom quiz attempt limit configuration fields during lesson creation in Admin and Teacher dashboards.
+    *   **Distraction-Free MCQ & Centered Custom Dialogs**: Set MCQ options to default to 2 elements, hid raw alphabet/number option prefixes, and replaced all native browser `confirm` prompts in student quiz portals with premium, centered viewport-independent `<CustomPopup>` portals to ensure a premium UI experience.
+    *   **Smooth Quiz Editing Experience**: Upgraded the quiz question builder in Admin and Teacher workspaces to perform client-safe updates (`router.refresh()`) rather than full-page reloads, ensuring the modal stays open for seamless addition of multiple questions.
+    *   **Completion Guard**: Hidden the manual "Mark Complete" button for quiz lessons so that students can only pass and complete quiz lessons based on meeting the passing mark criteria.
+
 *   **UI/UX Refinements**:
     *   **Curriculum Lesson Detail Editor**: Added support for editing existing lessons (Video, Live Stream, Quiz, PDF Playbook) directly from the curriculum admin dashboard. Admins can update Titles, Descriptions, YouTube Video URLs, PDF materials, Live Scheduled Date/Time, and Free/Paid Preview flags.
     *   **Section Row Click Accordions**: Click anywhere on a section row header (except active action buttons) to toggle section expansion, instead of forcing users to click only on the tiny chevron/arrow.

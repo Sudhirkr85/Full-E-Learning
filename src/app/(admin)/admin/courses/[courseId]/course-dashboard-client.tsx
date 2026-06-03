@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import {
   Sparkles,
   Radio
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { 
   createSectionAction, 
   createLessonAction, 
@@ -40,6 +41,7 @@ import {
   deleteLessonAction,
   updateLessonAction
 } from "./actions";
+import { resetStudentAttemptsAction } from "@/lib/tests/actions";
 import { QuizEditorModal } from "./quiz-editor-modal";
 import { LessonEditorModal } from "./lesson-editor-modal";
 import { BannerUploadField } from "@/components/courses/banner-upload-field";
@@ -74,6 +76,7 @@ export function CourseDashboardClient({
   removeTeacherAction,
   deleteCourseAction
 }: CourseDashboardClientProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("curriculum");
   const [expandedSectionId, setExpandedSectionId] = useState<string | null>(
     course.sections[0]?.id || null
@@ -82,6 +85,16 @@ export function CourseDashboardClient({
   const [activeQuizLesson, setActiveQuizLesson] = useState<any | null>(null);
   const [activeQuizTest, setActiveQuizTest] = useState<any | null>(null);
   const [activeEditLesson, setActiveEditLesson] = useState<any | null>(null);
+
+  // Sync activeQuizTest state with tests prop changes (e.g. from router.refresh())
+  useEffect(() => {
+    if (activeQuizTest) {
+      const updatedTest = tests.find((t: any) => t.id === activeQuizTest.id);
+      if (updatedTest) {
+        setActiveQuizTest(updatedTest);
+      }
+    }
+  }, [tests, activeQuizTest?.id]);
 
   // Custom popup states
   const [popup, setPopup] = useState<{
@@ -153,6 +166,8 @@ export function CourseDashboardClient({
   const [pdfUrl, setPdfUrl] = useState("");
   const [accessType, setAccessType] = useState<"FREE" | "PAID">("PAID");
   const [liveScheduledAt, setLiveScheduledAt] = useState("");
+  const [newContentTimeLimit, setNewContentTimeLimit] = useState("60");
+  const [newContentAttemptLimit, setNewContentAttemptLimit] = useState("");
 
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [showAddSection, setShowAddSection] = useState(false);
@@ -195,6 +210,11 @@ export function CourseDashboardClient({
       return;
     }
 
+    if (contentType === "QUIZ" && !newContentTimeLimit.trim()) {
+      showAlert("Quiz time limit is mandatory.");
+      return;
+    }
+
     let youtubeUrl: string | undefined;
     if ((contentType === "VIDEO" || contentType === "LIVE") && youtubeVideoId.trim()) {
       let videoId = youtubeVideoId.trim();
@@ -219,7 +239,9 @@ export function CourseDashboardClient({
           youtubeUrl,
           r2AssetUrl: contentType === "ARTICLE" ? pdfUrl.trim() || undefined : undefined,
           isPreview: accessType === "FREE",
-          scheduledAt: contentType === "LIVE" ? liveScheduledAt || undefined : undefined
+          scheduledAt: contentType === "LIVE" ? liveScheduledAt || undefined : undefined,
+          quizTimeLimit: contentType === "QUIZ" ? Number(newContentTimeLimit) : undefined,
+          quizAttemptLimit: (contentType === "QUIZ" && newContentAttemptLimit.trim()) ? Number(newContentAttemptLimit) : undefined
         }
       );
       if (res.error) {
@@ -231,6 +253,8 @@ export function CourseDashboardClient({
         setPdfUrl("");
         setAccessType("PAID");
         setLiveScheduledAt("");
+        setNewContentTimeLimit("60");
+        setNewContentAttemptLimit("");
         setShowAddContentSectionId(null);
         setContentType(null);
       }
@@ -563,6 +587,19 @@ export function CourseDashboardClient({
                                     </div>
                                   )}
 
+                                  {contentType === "QUIZ" && (
+                                    <div className="flex gap-4">
+                                      <div className="space-y-2 text-left flex-1">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Time Limit (Minutes)</label>
+                                        <Input type="number" min="1" value={newContentTimeLimit} onChange={(e) => setNewContentTimeLimit(e.target.value)} className="bg-white/5 border-white/10 text-white" required />
+                                      </div>
+                                      <div className="space-y-2 text-left flex-1">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Attempt Limit (Optional)</label>
+                                        <Input type="number" min="1" value={newContentAttemptLimit} onChange={(e) => setNewContentAttemptLimit(e.target.value)} placeholder="Unlimited" className="bg-white/5 border-white/10 text-white" />
+                                      </div>
+                                    </div>
+                                  )}
+
                                   <div className="flex gap-4 items-center">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Access</span>
                                     <div className="flex gap-2">
@@ -714,6 +751,68 @@ export function CourseDashboardClient({
                           {enrollment.status}
                         </span>
                       </div>
+
+                      {enrollment.attempts && enrollment.attempts.length > 0 && (
+                        <div className="space-y-1.5 pt-2 border-t border-white/5 mt-2">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quiz Attempts</p>
+                          <div className="space-y-1 bg-black/20 p-2 rounded-lg">
+                            {(() => {
+                              // Group attempts by testId to show nice aggregate reset trigger
+                              const attemptsByTest: Record<string, { title: string, count: number, max: number | null, score: number | null, testId: string }> = {};
+                              enrollment.attempts.forEach((att: any) => {
+                                if (!attemptsByTest[att.testId]) {
+                                  attemptsByTest[att.testId] = {
+                                    title: att.test.title,
+                                    count: 0,
+                                    max: att.test.attemptLimit,
+                                    score: null,
+                                    testId: att.testId
+                                  };
+                                }
+                                attemptsByTest[att.testId].count++;
+                                if (att.scorePercent !== null && (attemptsByTest[att.testId].score === null || att.scorePercent > (attemptsByTest[att.testId].score ?? 0))) {
+                                  attemptsByTest[att.testId].score = att.scorePercent;
+                                }
+                              });
+
+                              return Object.values(attemptsByTest).map((group) => (
+                                <div key={group.testId} className="flex items-center justify-between gap-2 text-[10px] py-1 border-b border-white/[0.03] last:border-b-0">
+                                  <div className="truncate">
+                                    <span className="text-white block font-medium truncate">{group.title}</span>
+                                    <span className="text-slate-500">
+                                      Attempts: {group.count}/{group.max ?? "∞"} (Max Score: {group.score !== null ? `${group.score}%` : "None"})
+                                    </span>
+                                  </div>
+                                  <Button
+                                    onClick={() => {
+                                      showConfirm(
+                                        `Are you sure you want to reset all attempts for student "${enrollment.user.name || enrollment.user.email}" on "${group.title}"? This cannot be undone.`,
+                                        async () => {
+                                          startTransition(async () => {
+                                            try {
+                                              await resetStudentAttemptsAction(course.id, group.testId, enrollment.userId);
+                                              showAlert("Attempts reset successfully!", false, "Success");
+                                              window.location.reload();
+                                            } catch (err: any) {
+                                              showAlert(err.message || "Failed to reset attempts.");
+                                            }
+                                          });
+                                        }
+                                      );
+                                    }}
+                                    disabled={isPending}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 text-[9px] text-rose-400 hover:text-rose-350 hover:bg-rose-500/10 rounded px-1.5 uppercase font-bold"
+                                  >
+                                    Reset
+                                  </Button>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -849,7 +948,7 @@ export function CourseDashboardClient({
             setActiveQuizTest(null);
           }}
           onRefresh={() => {
-            window.location.reload();
+            router.refresh();
           }}
         />
       )}

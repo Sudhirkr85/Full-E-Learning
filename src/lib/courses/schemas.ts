@@ -58,11 +58,23 @@ export const lessonFormSchema = z
     thumbnailUrl: optionalUrl,
     transcriptUrl: optionalUrl,
     durationSeconds: z.coerce.number().int().min(0).max(100_000).optional(),
+    quizTimeLimit: z.preprocess(
+      (val) => (val === "" || val === undefined || val === null ? undefined : Number(val)),
+      z.number().int().min(1, "Quiz time limit must be at least 1 minute").optional()
+    ),
+    quizAttemptLimit: z.preprocess(
+      (val) => (val === "" || val === undefined || val === null ? undefined : Number(val)),
+      z.number().int().min(1, "Quiz attempt limit must be at least 1").optional()
+    ),
     isPreview: z.coerce.boolean().optional(),
     isPublished: z.coerce.boolean().optional(),
     scheduledAt: z.string().optional()
   })
   .superRefine((value, ctx) => {
+    if (value.contentType === "QUIZ" && !value.quizTimeLimit) {
+      ctx.addIssue({ code: "custom", path: ["quizTimeLimit"], message: "Quiz time limit in minutes is mandatory." });
+    }
+
     if (value.contentType === "VIDEO" && !value.youtubeUrl) {
       ctx.addIssue({ code: "custom", path: ["youtubeUrl"], message: "YouTube URL is required for video lessons." });
     }

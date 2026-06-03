@@ -117,10 +117,8 @@ export function QuizEditorModal({
 
   // Options for MCQ
   const [mcqOptions, setMcqOptions] = useState<Array<{ id?: string; label: string; isCorrect: boolean }>>([
-    { label: "Option 1", isCorrect: true },
-    { label: "Option 2", isCorrect: false },
-    { label: "Option 3", isCorrect: false },
-    { label: "Option 4", isCorrect: false }
+    { label: "", isCorrect: true },
+    { label: "", isCorrect: false }
   ]);
 
   // Options for Fill in the Blank (alternative answers)
@@ -162,10 +160,8 @@ export function QuizEditorModal({
     setQuestionExplanation("");
     setIsCaseSensitive(false);
     setMcqOptions([
-      { label: "Option A", isCorrect: true },
-      { label: "Option B", isCorrect: false },
-      { label: "Option C", isCorrect: false },
-      { label: "Option D", isCorrect: false }
+      { label: "", isCorrect: true },
+      { label: "", isCorrect: false }
     ]);
     setFitbAnswers([""]);
     setIsEditorOpen(true);
@@ -587,10 +583,27 @@ export function QuizEditorModal({
                                     newOpts[idx].label = e.target.value;
                                     setMcqOptions(newOpts);
                                   }} 
-                                  className="bg-white/5 border border-white/10 text-white text-xs h-9.5 rounded-xl" 
-                                  placeholder={`Option ${String.fromCharCode(65 + idx)}`} 
+                                  className="bg-white/5 border border-white/10 text-white text-xs h-9.5 rounded-xl flex-1" 
+                                  placeholder="Add option text..." 
                                   required 
                                 />
+                                {mcqOptions.length > 2 && (
+                                  <Button 
+                                    type="button" 
+                                    onClick={() => {
+                                      const wasCorrect = opt.isCorrect;
+                                      const filtered = mcqOptions.filter((_, oIdx) => oIdx !== idx);
+                                      if (wasCorrect && filtered.length > 0) {
+                                        filtered[0].isCorrect = true;
+                                      }
+                                      setMcqOptions(filtered);
+                                    }} 
+                                    variant="ghost" 
+                                    className="h-9 w-9 text-rose-400 hover:text-rose-350 p-0 hover:bg-rose-500/10 rounded-xl"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </div>
                             ))}
                           </div>

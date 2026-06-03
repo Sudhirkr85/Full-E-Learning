@@ -60,6 +60,8 @@ type LessonExtras = {
   publishDate?: string;
   isPreview?: boolean;
   scheduledAt?: string;
+  quizTimeLimit?: number;
+  quizAttemptLimit?: number;
 };
 
 export async function createLessonAction(
@@ -76,6 +78,10 @@ export async function createLessonAction(
 
   if (!title.trim()) {
     return { error: "Lesson title is required." };
+  }
+
+  if (contentType === "QUIZ" && !extras?.quizTimeLimit) {
+    return { error: "Quiz time limit is mandatory." };
   }
 
   try {
@@ -114,6 +120,8 @@ export async function createLessonAction(
           slug: `${slug}-quiz-${Date.now()}`,
           type: "QUIZ",
           passingScore: 70,
+          timeLimitMinutes: extras?.quizTimeLimit ?? 60,
+          attemptLimit: extras?.quizAttemptLimit ?? null,
           isPublished: true
         }
       });

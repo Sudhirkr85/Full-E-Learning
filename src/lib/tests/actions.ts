@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { testSettingsSchema } from "./schemas";
 import { slugify } from "@/lib/courses/slug";
+import { syncCourseProgress } from "@/lib/courses/actions";
 
 function redirectWithError(path: string, error: string) {
   redirect(`${path}?error=${error}`);
@@ -584,3 +585,58 @@ export async function startClassroomAttemptAction(courseId: string, testId: stri
 
   redirect(`/courses/${test.course.slug}/learn?lesson=${lessonSlug}&attemptId=${attempt.id}`);
 }
+
+export async function resetStudentAttemptsAction(courseId: string, testId: string, userId: string) {
+  const staff = await requireRole([UserRole.TEACHER, UserRole.ADMIN]);
+
+  // Assert access
+  if (staff.role !== UserRole.ADMIN) {
+    await assertTeacherCourseAccess(courseId, staff.id);
+  }
+
+  // Delete all attempts for this user and test
+  await prisma.attempt.deleteMany({
+    where: {
+      testId,
+      userId,
+    },
+  });
+
+  // Also remove related lesson completion progress if it exists to allow proper completion flow tracking
+  const lesson = await prisma.lesson.findFirst({
+    where: {
+      metadata: {
+        path: ["testId"],
+        equals: testId,
+      },
+    },
+  });
+
+  if (lesson) {
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId,
+          courseId,
+        },
+      },
+    });
+
+    if (enrollment) {
+      await prisma.lessonProgress.deleteMany({
+        where: {
+          enrollmentId: enrollment.id,
+          lessonId: lesson.id,
+        },
+      });
+
+      // Recalculate progress
+      await syncCourseProgress(enrollment.id, courseId, null);
+    }
+  }
+
+  revalidatePath(`/admin/courses/${courseId}`);
+  revalidatePath(`/teacher/courses/${courseId}`);
+  return { success: true };
+}
+

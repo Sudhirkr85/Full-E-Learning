@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { submitAttemptAction, startClassroomAttemptAction } from "@/lib/tests/actions";
 import { QuestionType, AttemptStatus } from "@prisma/client";
+import { CustomPopup } from "@/components/courses/custom-popup";
 
 type OptionData = {
   id: string;
@@ -107,6 +108,50 @@ export default function ClassroomQuizPortal({
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Custom Popup state
+  const [popup, setPopup] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "alert" | "confirm";
+    confirmText?: string;
+    isError?: boolean;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "alert",
+    onConfirm: () => {}
+  });
+
+  const showAlert = (message: string, isError = true, title = "Quiz Portal Notification") => {
+    setPopup({
+      isOpen: true,
+      title,
+      message,
+      type: "alert",
+      isError,
+      onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+    });
+  };
+
+  const showConfirm = (message: string, onConfirm: () => void, title = "Please Confirm") => {
+    setPopup({
+      isOpen: true,
+      title,
+      message,
+      type: "confirm",
+      confirmText: "Submit",
+      onConfirm: () => {
+        onConfirm();
+        setPopup(prev => ({ ...prev, isOpen: false }));
+      },
+      onCancel: () => setPopup(prev => ({ ...prev, isOpen: false }))
+    });
+  };
+
   // Load timer for active taking
   useEffect(() => {
     if (phase !== "taking" || !activeAttempt || !test.timeLimitMinutes) return;
@@ -165,29 +210,31 @@ export default function ClassroomQuizPortal({
 
   const handleManualSubmit = async () => {
     if (!activeAttempt) return;
-    if (!confirm("Are you sure you want to submit your answers and complete this attempt?")) {
-      return;
-    }
+    showConfirm(
+      "Are you sure you want to submit your answers and complete this attempt?",
+      async () => {
+        startTransition(async () => {
+          try {
+            const submissionPayload = questions.map((q) => {
+              const ans = answers[q.id];
+              return {
+                questionId: q.id,
+                selectedOptionId: ans?.selectedOptionId || null,
+                selectedOptionIds: ans?.selectedOptionIds || null,
+                answerText: ans?.answerText || null,
+              };
+            });
 
-    startTransition(async () => {
-      try {
-        const submissionPayload = questions.map((q) => {
-          const ans = answers[q.id];
-          return {
-            questionId: q.id,
-            selectedOptionId: ans?.selectedOptionId || null,
-            selectedOptionIds: ans?.selectedOptionIds || null,
-            answerText: ans?.answerText || null,
-          };
+            await submitAttemptAction(activeAttempt.id, submissionPayload);
+            router.push(`/courses/${courseSlug}/learn?lesson=${lessonSlug}&attemptId=${activeAttempt.id}`);
+            onRefresh();
+          } catch (err: any) {
+            setError(err.message || "Failed to submit answers.");
+          }
         });
-
-        await submitAttemptAction(activeAttempt.id, submissionPayload);
-        router.push(`/courses/${courseSlug}/learn?lesson=${lessonSlug}&attemptId=${activeAttempt.id}`);
-        onRefresh();
-      } catch (err: any) {
-        setError(err.message || "Failed to submit answers.");
-      }
-    });
+      },
+      "Submit Quiz"
+    );
   };
 
   const handleMCQSelect = (questionId: string, optionId: string) => {
@@ -340,7 +387,10 @@ export default function ClassroomQuizPortal({
         <div className="p-4 rounded-xl border border-white/5 bg-[#0a0a14]/60 backdrop-blur-md flex items-center justify-between gap-4">
           <div className="space-y-0.5">
             <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Timed Assessment Attempt</span>
-            <h4 className="text-xs font-bold text-white leading-none">Attempt #{activeAttempt.attemptNumber}</h4>
+            <h4 className="text-xs font-bold text-white leading-none">
+              Attempt #{activeAttempt.attemptNumber}
+              <span className="text-[10px] text-slate-400 font-mono font-normal ml-3">Started At: {new Date(activeAttempt.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            </h4>
           </div>
 
           <div className="flex items-center gap-3">
@@ -466,6 +516,16 @@ export default function ClassroomQuizPortal({
             </CardContent>
           </Card>
         </div>
+        <CustomPopup
+          isOpen={popup.isOpen}
+          title={popup.title}
+          message={popup.message}
+          type={popup.type}
+          onConfirm={popup.onConfirm}
+          onCancel={popup.onCancel}
+          confirmText={popup.confirmText}
+          isError={popup.isError}
+        />
       </div>
     );
   }

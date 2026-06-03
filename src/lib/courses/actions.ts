@@ -223,7 +223,7 @@ function getFirstPublishedLesson(course: {
   return null;
 }
 
-async function syncCourseProgress(enrollmentId: string, courseId: string, lessonId?: string | null) {
+export async function syncCourseProgress(enrollmentId: string, courseId: string, lessonId?: string | null) {
   const totalLessonsCount = await prisma.lesson.count({
     where: {
       section: {
@@ -1053,6 +1053,8 @@ export async function createLessonAction(formData: FormData) {
         slug: `${slug}-quiz-${Date.now()}`,
         type: "QUIZ",
         passingScore: 70,
+        timeLimitMinutes: data.quizTimeLimit ?? 60,
+        attemptLimit: data.quizAttemptLimit ?? null,
         isPublished: true
       }
     });

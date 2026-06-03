@@ -594,7 +594,7 @@ export function QuizEditorModal({
                                     setMcqOptions(newOpts);
                                   }} 
                                   className="bg-white/5 border border-white/10 text-white text-xs h-9.5 rounded-xl flex-1" 
-                                  placeholder={`Option ${String.fromCharCode(65 + idx)}`} 
+                                  placeholder="Add option text..." 
                                   required 
                                 />
                                 {mcqOptions.length > 2 && (

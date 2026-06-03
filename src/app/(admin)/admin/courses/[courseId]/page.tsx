@@ -54,9 +54,23 @@ export default async function AdminCourseDetailPage({ params }: CourseDetailPage
           include: {
             user: {
               select: {
+                id: true,
                 name: true,
                 email: true,
                 phone: true
+              }
+            },
+            attempts: {
+              include: {
+                test: {
+                  select: {
+                    title: true,
+                    attemptLimit: true
+                  }
+                }
+              },
+              orderBy: {
+                attemptNumber: "asc"
               }
             }
           },

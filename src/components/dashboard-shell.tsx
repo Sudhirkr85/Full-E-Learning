@@ -22,9 +22,11 @@ import {
   ShoppingBag,
   Lock,
   BookOpen,
-  GraduationCap
+  GraduationCap,
+  Heart
 } from "lucide-react";
 import { LogoutModal } from "@/components/navbar/logout-modal";
+import { useWishlistStore } from "@/store/wishlist-store";
 
 type NavItem = {
   label: string;
@@ -43,6 +45,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
   const pathname = usePathname();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { count } = useWishlistStore();
 
   const labelText =
     role === "ADMIN" ? "ADMIN PANEL" :
@@ -62,6 +65,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
     if (l.includes("store") || l.includes("order")) return <ShoppingBag className="h-4 w-4 shrink-0" />;
     if (l.includes("ticket") || l.includes("support")) return <ShieldQuestion className="h-4 w-4 shrink-0" />;
     if (l.includes("password")) return <Lock className="h-4 w-4 shrink-0" />;
+    if (l.includes("wishlist")) return <Heart className="h-4 w-4 shrink-0" />;
     return <LayoutDashboard className="h-4 w-4 shrink-0" />;
   };
 
@@ -78,6 +82,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
 
     const renderLink = (item: { href: string; label: string }) => {
       const isActive = pathname === item.href && (item.href !== "/admin/dashboard" || item.label === "Overview");
+      const isWishlist = item.label === "Wishlist";
       return (
         <Link
           key={`${item.label}-${item.href}`}
@@ -89,7 +94,13 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
             {getNavIcon(item.label)}
             {item.label}
           </span>
-          <ChevronRight className={cn("h-3 w-3 opacity-60 transition duration-300", isActive ? "translate-x-0.5" : "")} />
+          {isWishlist && count > 0 ? (
+            <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+              {count}
+            </span>
+          ) : (
+            <ChevronRight className={cn("h-3 w-3 opacity-60 transition duration-300", isActive ? "translate-x-0.5" : "")} />
+          )}
         </Link>
       );
     };
@@ -124,6 +135,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         { label: "My Profile", href: "/student/profile" },
         { label: "My Courses", href: "/student/courses" },
         { label: "My Library", href: "/student/library" },
+        { label: "Wishlist", href: "/student/wishlist" },
         { label: "My Orders", href: "/student/orders" }
       ];
       return (

@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   Zap,
   Bookmark,
-  Radio
+  Radio,
+  Heart
 } from "lucide-react";
 
 function getLessonHref(enrollment: any) {
@@ -83,6 +84,23 @@ export default async function StudentDashboardPage() {
           course: {
             select: { title: true, slug: true }
           }
+        }
+      }
+    }
+  });
+
+  const recentWishlists = await prisma.wishlist.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+    include: {
+      course: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          coverImageUrl: true,
+          priceCents: true
         }
       }
     }
@@ -265,6 +283,58 @@ export default async function StudentDashboardPage() {
           </div>
         </div>
       ) : null}
+
+      {/* Recently Wishlisted Section */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#090d20]/30 p-5 md:p-6 space-y-4 text-left">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-rose-400">
+            <Heart className="h-5 w-5 text-rose-500 fill-rose-500/20" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200">Recently Wishlisted</h2>
+          </div>
+          <Link href="/student/wishlist" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition">
+            View All
+          </Link>
+        </div>
+
+        {recentWishlists.length === 0 ? (
+          <div className="flex items-center justify-between py-2 text-slate-500 text-xs">
+            <span>No saved courses yet</span>
+            <Link href="/courses" className="text-indigo-400 hover:text-indigo-300 font-semibold transition">
+              Browse Courses
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {recentWishlists.map(({ course }) => {
+              const price = course.priceCents !== null ? Math.round(course.priceCents / 100) : 0;
+              return (
+                <div key={course.id} className="p-3 rounded-xl border border-white/5 bg-slate-950/40 hover:bg-slate-950/60 transition flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-10 w-14 rounded-lg overflow-hidden bg-slate-800 shrink-0">
+                      {course.coverImageUrl ? (
+                        <img src={course.coverImageUrl} alt={course.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-indigo-950 to-slate-900" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-white line-clamp-1">{course.title}</h4>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                        {price === 0 ? "Free" : `₹${price.toLocaleString("en-IN")}`}
+                      </p>
+                    </div>
+                  </div>
+                  <Button asChild size="sm" variant="ghost" className="h-8 text-[10px] font-bold uppercase hover:bg-white/5 text-indigo-400 hover:text-indigo-300 shrink-0">
+                    <Link href={`/courses/${course.slug}`}>
+                      View
+                    </Link>
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Directory Action Footer Card */}
       <div className="rounded-2xl border border-white/5 bg-[#090d20]/50 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">

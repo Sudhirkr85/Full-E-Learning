@@ -19,9 +19,11 @@ import {
   FolderOpen,
   ShoppingBag,
   Tag,
-  Lock
+  Lock,
+  Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWishlistStore } from "@/store/wishlist-store";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -39,6 +41,7 @@ interface MobileDrawerProps {
 export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick }: MobileDrawerProps) {
   const pathname = usePathname();
   const drawerRef = useRef<HTMLDivElement>(null);
+  const { count } = useWishlistStore();
 
   // Close on Escape key press, handle body scroll lock
   useEffect(() => {
@@ -112,6 +115,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
         return [
           { label: "My Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
           { label: "My Learning", href: "/student/courses", icon: BookOpen },
+          { label: "Wishlist", href: "/student/wishlist", icon: Heart },
           { label: "Certificates", href: "/student/courses", icon: Award },
           { label: "Orders", href: "/student/orders", icon: History },
           { label: "Settings", href: "/profile", icon: Settings },
@@ -264,6 +268,11 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                     >
                       <Icon className="h-4 w-4 text-slate-500 shrink-0" />
                       {item.label}
+                      {item.label === "Wishlist" && count > 0 && (
+                        <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                          {count}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

@@ -62,16 +62,19 @@ The application contains the following fully implemented production modules:
 *   **Category Desk**: Complete CRUD panel to manage learning categories via interactive dropdowns.
 *   **Enrollment & Orders Desk**: Full platform-wide student enrollment viewer with search, filter by status, progress bars, and metric cards. Features a **Total Platform Revenue** card tracking Course and Store sales together with clear sub-breakdowns (avoiding double-counting). Separate Store Orders tab showing only PDF, Physical, Bundle, and Membership purchases (strictly excluding `COURSE_ACCESS` orders) with payment status, product type icons, amount paid in ₹ INR, and dedicated empty states.
 *   **Coupon Management Desk**: Robust admin dashboard at `/admin/coupons` with KPI metric counters (Total Coupons, Active Promos, Expired, Total Redemptions), full CRUD creation forms with alphanumeric sanitization, starts/ends date formatting wrappers, and usage tracking tables.
+*   **Overview Metrics Upgrade**: Displays 'Wishlisted' total count cards for the specific course so admins can track learner interest metrics.
 
 ### Teacher Workspace
 *   **Teacher Overview Dashboard**: Full Overview at `/teacher/dashboard` featuring welcome panels, aggregate metric charts (Total Courses, Students, Active Seats, Avg Completion), responsive Recharts visual Area/Donut timelines, tabbed live activity feeds, and owned course shell listings.
 *   **My Students Directory**: Course-scoped enrollment viewer at `/teacher/enrollments` showing only students enrolled in the teacher's own courses (excluding payment/revenue data).
 *   **Course Details Dashboard**: Teacher course details page (`/teacher/courses/[courseId]`) fully mirroring the Admin Workspace's cinematic Course Details tabbed UI (Overview, Curriculum, Students, Analytics, Settings) featuring the "Teacher Workspace Desk" badge label. Teachers can edit course metadata, configure curriculum sections and lessons, design graded timed quizzes using the Quiz Assessment Designer, manage co-teachers, and view assigned students, with all operations securely guarded via teacher-scoped session permissions and executed via `@/lib/courses/actions.ts`.
 *   **Live Classes Management**: Create, update, and schedule live interactive class lessons (using YouTube Live stream URLs) with specific execution dates, Indian Standard Time zone displays, and automated status tracking (Upcoming, Live, Ended).
+*   **Overview Metrics Upgrade**: Displays 'Wishlisted' total count cards showing how many prospective learners saved the course.
 
 ### Student Dashboard & Secure Library
-*   **Dashboard Portal**: Quick access links, enrolled courses progress bars, continue-learning shortcuts, transaction receipt logs, and a dedicated **Upcoming Live Classes** section.
+*   **Dashboard Portal**: Quick access links, enrolled courses progress bars, continue-learning shortcuts, transaction receipt logs, a dedicated **Upcoming Live Classes** section, and a **Recently Wishlisted** panel.
 *   **Upcoming Live Classes**: Displays up to 3 upcoming scheduled live classes for enrolled courses with real-time countdown clocks, IST formatted timings, custom `.ics` calendar appointment downloads, and quick-joining actions.
+*   **My Wishlist Dashboard**: Dedicated wishlist dashboard page at `/student/wishlist` allowing students to browse and manage saved courses with enrollments triggers, discount ratios, and empty states.
 *   **My Library Bookshelf**: Located at `/student/library`. Displays all purchased digital playbooks and resources (type `DIGITAL_RESOURCE`) with cover thumbnail grids, purchase dates, and description cards.
 *   **Secure PDF online Reader**: Embedded secure PDF viewer desk at `/student/orders/[orderId]/pdf-viewer`. Integrates strict UUID validation checks on parameters to prevent PostgreSQL database casting faults and protects PDF materials by streaming document data securely from Cloudflare R2 storage without exposing direct file downloads.
 
@@ -88,6 +91,7 @@ The application contains the following fully implemented production modules:
 *   **Sticky Purchase Cards**: Responsive sticky sidebar purchase cards on details pages featuring localized comma separations (e.g. `Buy Now — ₹4,999` instead of raw integers) and subtotal checks displaying original line-through prices correctly.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly. Upgraded to a premium, distraction-free **Plyr Custom Video Player** that streams YouTube assets securely via CDN assets (zero local package bloat). It overlays beautiful, customized dark Indigo playback controls, hides native ads, branding overlays, and recommends, and implements native mobile **Landscape Screen Orientation locking** programmatically when full-screen triggers.
 *   **Live Class Streaming**: Supports live lesson streams (`LIVE` type) using YouTube Live integrations. Renders countdown widgets, dynamic live status badges, automated schedule checking, and fallback recorded player widgets.
+*   **Wishlist Button Integration**: Embedded heart toggle button overlays on both the public course catalog cards and details sticky purchase panels supporting client-side optimistic Zustand sync states.
 *   **Verified Review Self-Editing Flow (PUT Integration)**:
     *   Secure Multi-Method API: PUT handler inside `/api/courses/reviews` endpoint validates sessions and active student course enrollments, updating ratings and comments securely.
     *   Pulsing Edit CTAs: When an enrolled student has already published a review, the header triggers an animated "Edit Your Review" action that pre-fills values and lets them edit their review.
@@ -157,6 +161,8 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 *   `POST /api/courses/enroll/verify` — Cryptographically verifies course checkout signatures and unlocks course access.
 *   `POST /api/courses/enroll/fail` — Callback logging telemetry details for abandoned payment attempts.
 *   `POST | PUT /api/courses/reviews` — Creates or edits student course review feedback under secure session checks.
+*   `GET /api/wishlist` — Retrieves list of wishlisted courses for the currently logged in student.
+*   `POST /api/wishlist` — Toggles the wishlisted state of a course for the student.
 
 ### Store Management & Uploads
 *   `GET /api/store/products/[id]` — Retrieves digital store product detailed metadata.

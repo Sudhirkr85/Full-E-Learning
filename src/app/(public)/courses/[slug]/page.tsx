@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 import { EnrollButton } from "./enroll-button";
+import { WishlistButton } from "@/components/wishlist-button";
 import { makeMetadata } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, UserCircle2 } from "lucide-react";
@@ -130,6 +131,17 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
     : null;
 
   const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED"));
+
+  const userWishlisted = session?.user?.id && session.user.role === "STUDENT"
+    ? await prisma.wishlist.findUnique({
+        where: {
+          userId_courseId: {
+            userId: session.user.id,
+            courseId: course.id
+          }
+        }
+      }).then(w => !!w)
+    : false;
 
   let hasReviewed = false;
   let userReviewData = null;
@@ -299,6 +311,14 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
                 userName={dbUser?.name || session?.user?.name || ""}
                 isLoggedIn={Boolean(session?.user)}
                 originalPrice={originalPrice}
+              />
+
+              <WishlistButton
+                courseId={course.id}
+                initialWishlisted={userWishlisted}
+                isLoggedIn={Boolean(session?.user)}
+                size="lg"
+                showLabel={true}
               />
 
               <div className="flex flex-col gap-2 text-sm text-slate-300 border-t border-white/10 pt-4 mt-2">

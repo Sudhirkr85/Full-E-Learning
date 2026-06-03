@@ -8,6 +8,7 @@ import { getCourseCategories, getPublishedCourses } from "@/lib/courses/queries"
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { EnrollButton } from "./[slug]/enroll-button";
+import { WishlistButton } from "@/components/wishlist-button";
 
 export const metadata: Metadata = makeMetadata({
   title: "Courses - Learning Paths",
@@ -39,7 +40,7 @@ function categoryGradient(categoryName?: string) {
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   const params = searchParams ? await searchParams : undefined;
   const session = await auth();
-  const [courses, categories, enrolledCourseIds] = await Promise.all([
+  const [courses, categories, enrolledCourseIds, userWishlistedIds] = await Promise.all([
     getPublishedCourses(params?.category),
     getCourseCategories(),
     session?.user
@@ -52,6 +53,14 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
             select: { courseId: true }
           })
           .then((e) => e.map((x) => x.courseId))
+      : Promise.resolve([] as string[]),
+    session?.user?.id && session.user.role === "STUDENT"
+      ? prisma.wishlist
+          .findMany({
+            where: { userId: session.user.id },
+            select: { courseId: true }
+          })
+          .then((w) => w.map((x) => x.courseId))
       : Promise.resolve([] as string[])
   ]);
 
@@ -147,6 +156,16 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
                     {/* Dark gradient overlay on top */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+
+                    {/* Wishlist Button absolute top-right */}
+                    <div className="absolute top-3.5 right-3.5 z-20">
+                      <WishlistButton
+                        courseId={course.id}
+                        initialWishlisted={userWishlistedIds.includes(course.id)}
+                        isLoggedIn={Boolean(session?.user)}
+                        size="sm"
+                      />
+                    </div>
 
                     {/* Translucent category badge top-left */}
                     <span className="absolute top-3.5 left-3.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">

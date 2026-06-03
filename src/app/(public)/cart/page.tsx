@@ -6,7 +6,13 @@ import { useCartStore } from "@/store/cart-store";
 import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Ticket, Lock, X, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
-import { ProductType } from "@prisma/client";
+const ProductType = {
+  COURSE_ACCESS: "COURSE_ACCESS" as const,
+  DIGITAL_RESOURCE: "DIGITAL_RESOURCE" as const,
+  BUNDLE: "BUNDLE" as const,
+  MEMBERSHIP: "MEMBERSHIP" as const,
+  PHYSICAL: "PHYSICAL" as const,
+};
 import { Button } from "@/components/ui/button";
 
 export default function MobileCartPage() {

@@ -13,7 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
-import { Product, ProductType } from "@prisma/client";
+import type { Product, ProductType as PrismaProductType } from "@prisma/client";
+
+const ProductType = {
+  COURSE_ACCESS: "COURSE_ACCESS" as const,
+  DIGITAL_RESOURCE: "DIGITAL_RESOURCE" as const,
+  BUNDLE: "BUNDLE" as const,
+  MEMBERSHIP: "MEMBERSHIP" as const,
+  PHYSICAL: "PHYSICAL" as const,
+};
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
@@ -581,7 +589,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     return product.productType === selectedType && matchesSearch;
   });
 
-  const getProductIcon = (type: ProductType) => {
+  const getProductIcon = (type: PrismaProductType) => {
     switch (type) {
       case ProductType.COURSE_ACCESS:
         return <GraduationCap className="h-4 w-4" />;
@@ -613,7 +621,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
 
       {/* Modern Jumbotron/Banner */}
       <div className="relative py-12 md:py-16 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800 text-white">
-        <div className="absolute inset-0 opacity-[0.03]" style={{
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
           backgroundImage: "radial-gradient(circle, #f59e0b 1px, transparent 1px)",
           backgroundSize: "24px 24px"
         }} />

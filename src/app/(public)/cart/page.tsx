@@ -76,6 +76,7 @@ export default function MobileCartPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean | null>(null);
 
   // Address Modal States
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -96,7 +97,11 @@ export default function MobileCartPage() {
   const syncProfileAddress = async () => {
     try {
       const res = await fetch("/api/profile", { cache: "no-store" });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setIsUserLoggedIn(false);
+        return;
+      }
+      setIsUserLoggedIn(true);
       const data = await res.json();
       if (data?.user) {
         const u = data.user;
@@ -136,6 +141,11 @@ export default function MobileCartPage() {
   }, []);
 
   const openEditAddressModal = () => {
+    if (isUserLoggedIn === false) {
+      toast.error("Please login to save your contact information.");
+      router.push(`/login?callbackUrl=/cart`);
+      return;
+    }
     setAddressForm({
       fullName: fullName,
       mobileNumber: shippingPhone1 || billingPhone,
@@ -177,6 +187,12 @@ export default function MobileCartPage() {
           country: "India"
         })
       });
+
+      if (res.status === 401) {
+        toast.error("Your session has expired. Please login again.");
+        router.push("/login?callbackUrl=/cart");
+        return;
+      }
 
       if (!res.ok) {
         const errData = await res.json();
@@ -271,6 +287,12 @@ export default function MobileCartPage() {
     e.preventDefault();
     if (isSubmitting || submittingRef.current) return;
     if (cart.length === 0) return;
+
+    if (isUserLoggedIn === false) {
+      toast.error("Please login to proceed with your order.");
+      router.push(`/login?callbackUrl=/cart`);
+      return;
+    }
 
     if (!billingEmail || !billingEmail.includes('@')) {
       toast.error("Please enter a valid billing email address.");
@@ -639,6 +661,11 @@ export default function MobileCartPage() {
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Processing...
+                </>
+              ) : isUserLoggedIn === false ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  Login to Proceed
                 </>
               ) : (
                 <>

@@ -233,6 +233,7 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean | null>(!!profileUser);
   const [checkoutError, setCheckoutError] = useState("");
 
   // Subtotal in cents
@@ -242,7 +243,11 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   const syncProfileAddress = async () => {
     try {
       const res = await fetch("/api/profile", { cache: "no-store" });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setIsUserLoggedIn(false);
+        return;
+      }
+      setIsUserLoggedIn(true);
       const data = await res.json();
       if (data?.user) {
         const u = data.user;
@@ -282,6 +287,11 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
   }, []);
 
   const openEditAddressModal = () => {
+    if (isUserLoggedIn === false) {
+      toast.error("Please login to save your contact information.");
+      router.push(`/login?callbackUrl=/store`);
+      return;
+    }
     setAddressForm({
       fullName: fullName || profileUser?.name || "",
       mobileNumber: shippingPhone1 || billingPhone || profileUser?.phone ? formatPhoneNumber(profileUser?.phone || "") : "",
@@ -323,6 +333,12 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
           country: "India"
         })
       });
+
+      if (res.status === 401) {
+        toast.error("Your session has expired. Please login again.");
+        router.push("/login?callbackUrl=/store");
+        return;
+      }
 
       if (!res.ok) {
         const errData = await res.json();
@@ -420,6 +436,12 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     if (isSubmitting || submittingRef.current) return;
     setCheckoutError("");
     
+    if (isUserLoggedIn === false) {
+      toast.error("Please login to proceed with your order.");
+      router.push(`/login?callbackUrl=/store`);
+      return;
+    }
+
     await validateCartItems();
     if (cart.length === 0) {
       const emptyError = ERROR_MESSAGES.ALL_ITEMS_INVALID;
@@ -1037,6 +1059,11 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Processing...
+                      </>
+                    ) : isUserLoggedIn === false ? (
+                      <>
+                        <Lock className="w-4 h-4" />
+                        Login to Proceed
                       </>
                     ) : (
                       <>

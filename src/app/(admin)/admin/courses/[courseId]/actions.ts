@@ -59,13 +59,14 @@ type LessonExtras = {
   liveDateTime?: string;
   publishDate?: string;
   isPreview?: boolean;
+  scheduledAt?: string;
 };
 
 export async function createLessonAction(
   courseId: string,
   sectionId: string,
   title: string,
-  contentType: "VIDEO" | "ARTICLE" | "RESOURCE" | "QUIZ",
+  contentType: "VIDEO" | "ARTICLE" | "RESOURCE" | "QUIZ" | "LIVE",
   extras?: LessonExtras
 ) {
   const session = await auth();
@@ -132,6 +133,7 @@ export async function createLessonAction(
         isPreview: extras?.isPreview ?? false,
         isPublished: true,
         metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        scheduledAt: contentType === "LIVE" && extras?.scheduledAt ? new Date(extras.scheduledAt) : null
       }
     });
 

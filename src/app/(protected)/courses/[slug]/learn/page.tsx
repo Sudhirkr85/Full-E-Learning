@@ -7,24 +7,24 @@ import { makeMetadata } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  PlayCircle, 
-  CheckCircle2, 
-  Circle, 
-  Award, 
-  ChevronLeft, 
-  ChevronRight, 
-  BookOpen, 
-  User, 
-  ArrowLeft,
-  Star,
-  HelpCircle
-} from "lucide-react";
 import { toggleLessonCompletionAction } from "@/lib/courses/actions";
 import { revalidatePath } from "next/cache";
 import { getYoutubeEmbedUrl, getYoutubeVideoId } from "@/lib/utils";
 import { CustomYoutubePlayer } from "@/components/custom-youtube-player";
 import ClassroomQuizPortal from "./classroom-quiz-portal";
+import {
+  ArrowLeft,
+  HelpCircle,
+  Radio,
+  BookOpen,
+  PlayCircle,
+  ChevronLeft,
+  ChevronRight,
+  Award,
+  Star,
+  CheckCircle2,
+  Circle
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -348,7 +348,50 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
               )
             ) : (
               <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl">
-                {activeLesson.youtubeUrl && getYoutubeVideoId(activeLesson.youtubeUrl) ? (
+                {activeLesson.contentType === "LIVE" ? (
+                  (() => {
+                    const scheduledAt = activeLesson.scheduledAt ? new Date(activeLesson.scheduledAt) : null;
+                    if (!scheduledAt) {
+                      return (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-400 p-6 text-center">
+                          <Radio className="h-12 w-12 text-indigo-400" />
+                          <h3 className="text-lg font-bold">Live Class Link Coming Soon</h3>
+                          <p className="text-sm text-slate-500">The stream link will be added closer to the class time.</p>
+                        </div>
+                      );
+                    }
+                    const isUpcoming = scheduledAt.getTime() > Date.now();
+                    if (isUpcoming) {
+                      return (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">
+                          <Radio className="h-12 w-12 text-rose-500 animate-pulse" />
+                          <h3 className="text-lg font-bold">Upcoming Live Class</h3>
+                          <p className="text-sm text-slate-400">
+                            Scheduled: {scheduledAt.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "long", timeStyle: "short" })} IST
+                          </p>
+                          <Button asChild className="bg-indigo-600 hover:bg-indigo-500 mt-2">
+                            <Link href={`/courses/${course.slug}/lessons/${activeLesson.slug}`}>Go to Live Stream Player</Link>
+                          </Button>
+                        </div>
+                      );
+                    }
+                    const videoId = activeLesson.youtubeUrl ? getYoutubeVideoId(activeLesson.youtubeUrl) : null;
+                    if (videoId) {
+                      return (
+                        <CustomYoutubePlayer 
+                          videoId={videoId} 
+                          title={activeLesson.title} 
+                        />
+                      );
+                    }
+                    return (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-500">
+                        <Radio className="h-12 w-12" />
+                        <span>No stream link active yet.</span>
+                      </div>
+                    );
+                  })()
+                ) : activeLesson.youtubeUrl && getYoutubeVideoId(activeLesson.youtubeUrl) ? (
                   <CustomYoutubePlayer 
                     videoId={getYoutubeVideoId(activeLesson.youtubeUrl)!} 
                     title={activeLesson.title} 
@@ -502,10 +545,42 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                         <div className="flex items-center gap-2.5 min-w-0">
                           {isLessonCompleted ? (
                             <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                          ) : lesson.contentType === "LIVE" ? (
+                            <Radio className="h-4 w-4 text-rose-400 shrink-0 animate-pulse" />
                           ) : (
                             <Circle className="h-4 w-4 text-slate-600 shrink-0" />
                           )}
-                          <span className="text-xs line-clamp-1">{lesson.title}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs line-clamp-1">{lesson.title}</span>
+                            {lesson.contentType === "LIVE" && (() => {
+                              if (!lesson.scheduledAt) return null;
+                              const sched = new Date(lesson.scheduledAt);
+                              const now = new Date();
+                              if (sched > now) {
+                                const formattedTime = sched.toLocaleString("en-IN", {
+                                  timeZone: "Asia/Kolkata",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                  hour12: true
+                                });
+                                return (
+                                  <span className="text-[10px] text-slate-400 mt-0.5">
+                                    {formattedTime} IST
+                                  </span>
+                                );
+                              } else if (now.getTime() - sched.getTime() <= 4 * 60 * 60 * 1000) {
+                                return (
+                                  <span className="text-[10px] text-rose-400 font-bold mt-0.5 flex items-center gap-1">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
+                                    Live Now
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
                         </div>
                         <span className="text-[9px] uppercase font-mono text-slate-600 shrink-0">
                           {lesson.contentType.toLowerCase()}

@@ -59,11 +59,21 @@ export const lessonFormSchema = z
     transcriptUrl: optionalUrl,
     durationSeconds: z.coerce.number().int().min(0).max(100_000).optional(),
     isPreview: z.coerce.boolean().optional(),
-    isPublished: z.coerce.boolean().optional()
+    isPublished: z.coerce.boolean().optional(),
+    scheduledAt: z.string().optional()
   })
   .superRefine((value, ctx) => {
     if (value.contentType === "VIDEO" && !value.youtubeUrl) {
       ctx.addIssue({ code: "custom", path: ["youtubeUrl"], message: "YouTube URL is required for video lessons." });
+    }
+
+    if (value.contentType === "LIVE") {
+      if (!value.youtubeUrl) {
+        ctx.addIssue({ code: "custom", path: ["youtubeUrl"], message: "YouTube Live URL is required for live classes." });
+      }
+      if (!value.scheduledAt || isNaN(Date.parse(value.scheduledAt))) {
+        ctx.addIssue({ code: "custom", path: ["scheduledAt"], message: "A valid scheduled date and time is required for live classes." });
+      }
     }
 
     if (value.contentType === "RESOURCE" && !value.r2AssetUrl) {

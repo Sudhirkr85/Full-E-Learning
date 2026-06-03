@@ -28,6 +28,7 @@ type LearningLesson = {
   thumbnailUrl: string | null;
   transcriptUrl: string | null;
   durationSeconds: number | null;
+  scheduledAt: Date | null;
   resources: LearningResource[];
 };
 
@@ -139,6 +140,7 @@ async function fetchLearningCourseBySlug(slug: string, includeUnpublished = fals
                 thumbnailUrl: true,
                 transcriptUrl: true,
                 durationSeconds: true,
+                scheduledAt: true,
                 resources: {
                   orderBy: { orderIndex: "asc" },
                   select: {
@@ -205,6 +207,7 @@ async function fetchLearningCourseBySlug(slug: string, includeUnpublished = fals
               thumbnailUrl: true,
               transcriptUrl: true,
               durationSeconds: true,
+              scheduledAt: true,
               resources: {
                 orderBy: { orderIndex: "asc" },
                 select: {

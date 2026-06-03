@@ -30,7 +30,8 @@ import {
   Loader2,
   Tag,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  Radio
 } from "lucide-react";
 import { 
   createSectionAction, 
@@ -141,12 +142,13 @@ export function CourseDashboardClient({
 
   // Lesson Forms state
   const [showAddContentSectionId, setShowAddContentSectionId] = useState<string | null>(null);
-  const [contentType, setContentType] = useState<"VIDEO" | "ARTICLE" | "QUIZ" | null>(null);
+  const [contentType, setContentType] = useState<"VIDEO" | "ARTICLE" | "QUIZ" | "LIVE" | null>(null);
   const [newContentTitle, setNewContentTitle] = useState("");
   const [newContentDesc, setNewContentDesc] = useState("");
   const [youtubeVideoId, setYoutubeVideoId] = useState("");
   const [pdfUrl, setPdfUrl] = useState("");
   const [accessType, setAccessType] = useState<"FREE" | "PAID">("PAID");
+  const [liveScheduledAt, setLiveScheduledAt] = useState("");
 
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [showAddSection, setShowAddSection] = useState(false);
@@ -212,12 +214,14 @@ export function CourseDashboardClient({
     }
 
     let youtubeUrl: string | undefined;
-    if (contentType === "VIDEO" && youtubeVideoId.trim()) {
+    if ((contentType === "VIDEO" || contentType === "LIVE") && youtubeVideoId.trim()) {
       let videoId = youtubeVideoId.trim();
       if (videoId.includes("youtu.be/")) {
         videoId = videoId.split("youtu.be/")[1]?.split("?")[0] ?? videoId;
       } else if (videoId.includes("v=")) {
         videoId = videoId.split("v=")[1]?.split("&")[0] ?? videoId;
+      } else if (videoId.includes("youtube.com/live/")) {
+        videoId = videoId.split("youtube.com/live/")[1]?.split("?")[0] ?? videoId;
       }
       youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
     }
@@ -236,6 +240,9 @@ export function CourseDashboardClient({
     if (contentType === "ARTICLE" && pdfUrl.trim()) {
       fd.append("r2AssetUrl", pdfUrl.trim());
     }
+    if (contentType === "LIVE" && liveScheduledAt) {
+      fd.append("scheduledAt", liveScheduledAt);
+    }
     fd.append("isPreview", String(accessType === "FREE"));
     fd.append("isPublished", "true");
 
@@ -247,6 +254,7 @@ export function CourseDashboardClient({
         setYoutubeVideoId("");
         setPdfUrl("");
         setAccessType("PAID");
+        setLiveScheduledAt("");
         setShowAddContentSectionId(null);
         setContentType(null);
       } catch (err: any) {
@@ -501,7 +509,7 @@ export function CourseDashboardClient({
                             {!contentType ? (
                               <div className="space-y-3">
                                 <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Select Content Type</p>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                   <button type="button" onClick={() => setContentType("VIDEO")} className="flex flex-col items-center justify-center p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-indigo-400 transition text-xs font-bold uppercase tracking-wider gap-2">
                                     <Video className="h-5 w-5" /> Video Lesson
                                   </button>
@@ -510,6 +518,9 @@ export function CourseDashboardClient({
                                   </button>
                                   <button type="button" onClick={() => setContentType("QUIZ")} className="flex flex-col items-center justify-center p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-amber-400 transition text-xs font-bold uppercase tracking-wider gap-2">
                                     <HelpCircle className="h-5 w-5" /> Quiz Lesson
+                                  </button>
+                                  <button type="button" onClick={() => setContentType("LIVE")} className="flex flex-col items-center justify-center p-3 rounded-lg border border-white/10 bg-[#e11d48]/5 hover:bg-[#e11d48]/10 text-[#e11d48] border-[#e11d48]/20 transition text-xs font-bold uppercase tracking-wider gap-2">
+                                    <Radio className="h-5 w-5 text-rose-400 animate-pulse" /> Live Stream
                                   </button>
                                 </div>
                                 <Button type="button" onClick={() => setShowAddContentSectionId(null)} variant="ghost" className="text-slate-400 text-xs mt-2 rounded-lg">Cancel</Button>
@@ -521,6 +532,7 @@ export function CourseDashboardClient({
                                     {contentType === "VIDEO" && <Video className="h-4 w-4 text-indigo-400" />}
                                     {contentType === "ARTICLE" && <FileText className="h-4 w-4 text-emerald-400" />}
                                     {contentType === "QUIZ" && <HelpCircle className="h-4 w-4 text-amber-400" />}
+                                    {contentType === "LIVE" && <Radio className="h-4 w-4 text-rose-400 animate-pulse" />}
                                     Add {contentType} Content
                                   </h4>
                                   <Button type="button" onClick={() => setContentType(null)} variant="ghost" className="text-slate-400 text-[10px] uppercase font-bold p-1 h-6">Change Type</Button>
@@ -530,8 +542,15 @@ export function CourseDashboardClient({
                                   <Input value={newContentTitle} onChange={(e) => setNewContentTitle(e.target.value)} placeholder="Lesson Title" className="bg-white/5 border-white/10 text-white" required />
                                   <Input value={newContentDesc} onChange={(e) => setNewContentDesc(e.target.value)} placeholder="Description (Optional)" className="bg-white/5 border-white/10 text-white" />
                                   
-                                  {contentType === "VIDEO" && (
-                                    <Input value={youtubeVideoId} onChange={(e) => setYoutubeVideoId(e.target.value)} placeholder="YouTube Video ID (e.g. dQw4w9WgXcQ)" className="bg-white/5 border-white/10 text-white" required />
+                                  {(contentType === "VIDEO" || contentType === "LIVE") && (
+                                    <Input value={youtubeVideoId} onChange={(e) => setYoutubeVideoId(e.target.value)} placeholder={contentType === "LIVE" ? "YouTube Live URL (e.g. https://youtube.com/live/xxxxx)" : "YouTube Video ID (e.g. dQw4w9WgXcQ)"} className="bg-white/5 border-white/10 text-white" required />
+                                  )}
+
+                                  {contentType === "LIVE" && (
+                                    <div className="space-y-2 text-left">
+                                      <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Scheduled Date & Time (IST)</label>
+                                      <Input type="datetime-local" value={liveScheduledAt} onChange={(e) => setLiveScheduledAt(e.target.value)} className="bg-[#0a0f24] border-white/10 text-white" required />
+                                    </div>
                                   )}
                                   
                                   {contentType === "ARTICLE" && (
@@ -594,7 +613,7 @@ export function CourseDashboardClient({
 
                                 <div className="flex gap-2">
                                   <Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs h-10 px-5">
-                                    {contentType === "QUIZ" ? "Add Quiz" : contentType === "VIDEO" ? "Add Video" : contentType === "ARTICLE" ? "Add PDF" : "Add Lesson"}
+                                    {contentType === "QUIZ" ? "Add Quiz" : contentType === "VIDEO" ? "Add Video" : contentType === "ARTICLE" ? "Add PDF" : contentType === "LIVE" ? "Add Live Class" : "Add Lesson"}
                                   </Button>
                                   <Button type="button" onClick={() => { setShowAddContentSectionId(null); setContentType(null); }} variant="ghost" className="rounded-xl text-xs h-10 px-5 text-slate-400">Cancel</Button>
                                 </div>
@@ -615,6 +634,8 @@ export function CourseDashboardClient({
                                         <HelpCircle className="h-4 w-4 text-amber-400" />
                                       ) : lesson.contentType === "ARTICLE" ? (
                                         <FileText className="h-4 w-4 text-emerald-400" />
+                                      ) : lesson.contentType === "LIVE" ? (
+                                        <Radio className="h-4 w-4 text-rose-400 animate-pulse" />
                                       ) : (
                                         <Video className="h-4 w-4 text-indigo-400" />
                                       )}
@@ -639,6 +660,25 @@ export function CourseDashboardClient({
                                         Edit Quiz Assessment
                                       </Button>
                                     )}
+                                    {lesson.contentType === "LIVE" && (() => {
+                                      if (!lesson.scheduledAt) {
+                                        return <Badge variant="outline" className="border-yellow-500/20 text-yellow-400 text-[8px] tracking-wider uppercase font-bold px-1.5 py-0.5">Unscheduled</Badge>;
+                                      }
+                                      const sched = new Date(lesson.scheduledAt);
+                                      const now = new Date();
+                                      if (sched > now) {
+                                        const formattedTime = sched.toLocaleString("en-US", {
+                                          month: "short",
+                                          day: "numeric",
+                                          hour: "numeric",
+                                          minute: "2-digit",
+                                          hour12: true
+                                        });
+                                        return <span className="text-[10px] text-rose-400 font-bold">{formattedTime}</span>;
+                                      } else {
+                                        return <Badge className="bg-slate-800 text-slate-400 text-[8px] tracking-wider uppercase font-bold px-1.5 py-0.5">Ended</Badge>;
+                                      }
+                                    })()}
                                     {lesson.isPreview && (
                                       <Badge variant="outline" className="border-emerald-500/20 text-emerald-300 text-[8px] tracking-wider uppercase font-bold px-1.5 py-0.5">Free</Badge>
                                     )}

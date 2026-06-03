@@ -24,7 +24,9 @@ import {
   Minimize2,
   ChevronDown,
   ChevronRight,
-  Menu
+  Menu,
+  Radio,
+  Calendar
 } from "lucide-react";
 import { toggleLessonCompletionAction } from "@/lib/courses/actions";
 import { cn, getYoutubeEmbedUrl, getYoutubeVideoId } from "@/lib/utils";
@@ -52,6 +54,70 @@ export function LessonPlayerClient({
   const [isMobileSyllabusOpen, setIsMobileSyllabusOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [timeLeft, setTimeLeft] = useState("");
+
+  const scheduledAt = bundle.lesson.scheduledAt ? new Date(bundle.lesson.scheduledAt) : null;
+
+  useEffect(() => {
+    if (!scheduledAt || scheduledAt.getTime() <= Date.now()) return;
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const difference = scheduledAt.getTime() - now;
+
+      if (difference <= 0) {
+        setTimeLeft("");
+        clearInterval(interval);
+        window.location.reload();
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [bundle.lesson.scheduledAt]);
+
+  const downloadIcs = () => {
+    if (!scheduledAt) return;
+    const startStr = scheduledAt.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const end = new Date(scheduledAt.getTime() + 60 * 60 * 1000);
+    const endStr = end.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const title = bundle.lesson.title;
+    const description = `${bundle.course.title} - Live Class stream. URL: ${window.location.href}`;
+    
+    const icsContent = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//E-Learning Platform//Live Classes//EN",
+      "BEGIN:VEVENT",
+      `UID:${bundle.lesson.id}`,
+      `DTSTART:${startStr}`,
+      `DTEND:${endStr}`,
+      `SUMMARY:${title}`,
+      `DESCRIPTION:${description}`,
+      "STATUS:CONFIRMED",
+      "END:VEVENT",
+      "END:VCALENDAR"
+    ].join("\n");
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${bundle.lesson.slug}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -149,6 +215,8 @@ export function LessonPlayerClient({
                             <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
                           ) : lesson.contentType === "QUIZ" ? (
                             <Sparkles className="h-4 w-4 text-violet-400 shrink-0" />
+                          ) : lesson.contentType === "LIVE" ? (
+                            <Radio className={cn("h-4 w-4 shrink-0 animate-pulse text-rose-400")} />
                           ) : (
                             <PlayCircle className="h-4 w-4 text-slate-500 shrink-0" />
                           )}
@@ -272,7 +340,86 @@ export function LessonPlayerClient({
 
             {/* Media Player Container */}
             <div className="relative z-10">
-              {bundle.lesson.youtubeUrl && getYoutubeVideoId(bundle.lesson.youtubeUrl) ? (
+              {bundle.lesson.contentType === "LIVE" ? (
+                (() => {
+                  if (!scheduledAt) {
+                    return (
+                      <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.01] p-10 text-center flex flex-col items-center justify-center min-h-[300px]">
+                        <div className="h-12 w-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mb-4">
+                          <Calendar className="h-6 w-6 text-indigo-400" />
+                        </div>
+                        <h4 className="text-slate-200 font-bold text-sm">Live Class Link Coming Soon</h4>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed mt-2">
+                          The instructor will add the stream link closer to the date.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  const isUpcoming = scheduledAt.getTime() > Date.now();
+                  if (isUpcoming) {
+                    return (
+                      <div className="rounded-xl border border-white/10 bg-slate-950/40 p-8 text-center flex flex-col items-center justify-center min-h-[300px] backdrop-blur-md">
+                        <div className="h-12 w-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4 animate-pulse">
+                          <Radio className="h-6 w-6" />
+                        </div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full">
+                          Live Class Starting Soon
+                        </span>
+                        <h4 className="text-white font-extrabold text-lg mt-4">{bundle.lesson.title}</h4>
+                        <p className="text-xs text-slate-400 mt-2">
+                          Scheduled: {scheduledAt.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "long", timeStyle: "short" })} IST
+                        </p>
+                        
+                        <div className="mt-6 text-2xl font-black font-mono tracking-widest text-indigo-400 bg-white/5 border border-white/5 px-6 py-3 rounded-2xl">
+                          {timeLeft || "Loading..."}
+                        </div>
+
+                        <Button 
+                          onClick={downloadIcs}
+                          type="button" 
+                          variant="outline" 
+                          className="mt-6 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl h-10 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+                        >
+                          <Calendar className="h-4 w-4" />
+                          Add to Calendar
+                        </Button>
+                      </div>
+                    );
+                  }
+
+                  const isLive = Date.now() - scheduledAt.getTime() <= 4 * 60 * 60 * 1000;
+                  const videoId = bundle.lesson.youtubeUrl ? getYoutubeVideoId(bundle.lesson.youtubeUrl) : null;
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        {isLive ? (
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-0.5 rounded animate-pulse">
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                            ● LIVE
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded">
+                            Recording Available
+                          </span>
+                        )}
+                      </div>
+                      {videoId ? (
+                        <CustomYoutubePlayer 
+                          videoId={videoId} 
+                          title={bundle.lesson.title} 
+                        />
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.01] p-10 text-center flex flex-col items-center justify-center min-h-[300px]">
+                          <PlayCircle className="h-12 w-12 text-slate-600 mb-2" />
+                          <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">No stream link active yet.</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              ) : bundle.lesson.youtubeUrl && getYoutubeVideoId(bundle.lesson.youtubeUrl) ? (
                 <CustomYoutubePlayer 
                   videoId={getYoutubeVideoId(bundle.lesson.youtubeUrl)!} 
                   title={bundle.lesson.title} 

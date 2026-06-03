@@ -1074,7 +1074,8 @@ export async function createLessonAction(formData: FormData) {
       durationSeconds: data.durationSeconds ?? null,
       isPreview: data.isPreview ?? false,
       isPublished: data.isPublished ?? true,
-      metadata: metadata ? metadata : undefined
+      metadata: metadata ? metadata : undefined,
+      scheduledAt: data.contentType === "LIVE" && data.scheduledAt ? new Date(data.scheduledAt) : null
     }
   });
 
@@ -1114,7 +1115,8 @@ export async function updateLessonAction(formData: FormData) {
       transcriptUrl: lessonData.transcriptUrl ?? null,
       durationSeconds: lessonData.durationSeconds ?? null,
       isPreview: lessonData.isPreview ?? false,
-      isPublished: lessonData.isPublished ?? true
+      isPublished: lessonData.isPublished ?? true,
+      scheduledAt: lessonData.contentType === "LIVE" && lessonData.scheduledAt ? new Date(lessonData.scheduledAt) : null
     }
   });
 

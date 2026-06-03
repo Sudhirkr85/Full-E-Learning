@@ -67,9 +67,11 @@ The application contains the following fully implemented production modules:
 *   **Teacher Overview Dashboard**: Full Overview at `/teacher/dashboard` featuring welcome panels, aggregate metric charts (Total Courses, Students, Active Seats, Avg Completion), responsive Recharts visual Area/Donut timelines, tabbed live activity feeds, and owned course shell listings.
 *   **My Students Directory**: Course-scoped enrollment viewer at `/teacher/enrollments` showing only students enrolled in the teacher's own courses (excluding payment/revenue data).
 *   **Course Details Dashboard**: Teacher course details page (`/teacher/courses/[courseId]`) fully mirroring the Admin Workspace's cinematic Course Details tabbed UI (Overview, Curriculum, Students, Analytics, Settings) featuring the "Teacher Workspace Desk" badge label. Teachers can edit course metadata, configure curriculum sections and lessons, design graded timed quizzes using the Quiz Assessment Designer, manage co-teachers, and view assigned students, with all operations securely guarded via teacher-scoped session permissions and executed via `@/lib/courses/actions.ts`.
+*   **Live Classes Management**: Create, update, and schedule live interactive class lessons (using YouTube Live stream URLs) with specific execution dates, Indian Standard Time zone displays, and automated status tracking (Upcoming, Live, Ended).
 
 ### Student Dashboard & Secure Library
-*   **Dashboard Portal**: Quick access links, enrolled courses progress bars, continue-learning shortcuts, and transaction receipt logs.
+*   **Dashboard Portal**: Quick access links, enrolled courses progress bars, continue-learning shortcuts, transaction receipt logs, and a dedicated **Upcoming Live Classes** section.
+*   **Upcoming Live Classes**: Displays up to 3 upcoming scheduled live classes for enrolled courses with real-time countdown clocks, IST formatted timings, custom `.ics` calendar appointment downloads, and quick-joining actions.
 *   **My Library Bookshelf**: Located at `/student/library`. Displays all purchased digital playbooks and resources (type `DIGITAL_RESOURCE`) with cover thumbnail grids, purchase dates, and description cards.
 *   **Secure PDF online Reader**: Embedded secure PDF viewer desk at `/student/orders/[orderId]/pdf-viewer`. Integrates strict UUID validation checks on parameters to prevent PostgreSQL database casting faults and protects PDF materials by streaming document data securely from Cloudflare R2 storage without exposing direct file downloads.
 
@@ -85,6 +87,7 @@ The application contains the following fully implemented production modules:
 *   **Courses Catalog**: Cinematic public grid at `/courses` displaying active categories, visual filters, INR prices, strikethrough original prices, and direct enroll/continue learning buttons.
 *   **Sticky Purchase Cards**: Responsive sticky sidebar purchase cards on details pages featuring localized comma separations (e.g. `Buy Now — ₹4,999` instead of raw integers) and subtotal checks displaying original line-through prices correctly.
 *   **Lesson Player & Progress Tracking**: Immersive video/article lesson interface that registers completed and paused states, updating course progress percentages instantly. Upgraded to a premium, distraction-free **Plyr Custom Video Player** that streams YouTube assets securely via CDN assets (zero local package bloat). It overlays beautiful, customized dark Indigo playback controls, hides native ads, branding overlays, and recommends, and implements native mobile **Landscape Screen Orientation locking** programmatically when full-screen triggers.
+*   **Live Class Streaming**: Supports live lesson streams (`LIVE` type) using YouTube Live integrations. Renders countdown widgets, dynamic live status badges, automated schedule checking, and fallback recorded player widgets.
 *   **Verified Review Self-Editing Flow (PUT Integration)**:
     *   Secure Multi-Method API: PUT handler inside `/api/courses/reviews` endpoint validates sessions and active student course enrollments, updating ratings and comments securely.
     *   Pulsing Edit CTAs: When an enrolled student has already published a review, the header triggers an animated "Edit Your Review" action that pre-fills values and lets them edit their review.
@@ -108,7 +111,7 @@ The database is built on **PostgreSQL** and managed using **Prisma ORM**. The sc
 *   **`Category`**: Parent-child nested hierarchy categories mapping courses.
 *   **`Course`**: Root learning course outlines containing lessons, reviews, and test sheets.
 *   **`CourseSection`**: Syllabus modules organizing lesson play scopes.
-*   **`Lesson`**: Singular video or text content. Links progress states and lesson resources.
+*   **`Lesson`**: Singular video, article, resource, quiz, or live class content. Supports `VIDEO`, `ARTICLE`, `RESOURCE`, `QUIZ`, and `LIVE` content types with `scheduledAt` datetime tracking.
 *   **`LessonResource`**: Supplemental downloadable files (hosted on Cloudflare R2) or external links.
 *   **`Enrollment`**: Mapped table connecting users to courses, containing Razorpay transaction records.
 *   **`CourseProgress`**: Real-time progress monitoring (percentage completion, lessons completed).

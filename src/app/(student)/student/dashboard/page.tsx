@@ -6,6 +6,7 @@ import { makeMetadata } from "@/lib/site";
 import { requireRole } from "@/lib/auth";
 import { getStudentCourseEnrollments } from "@/lib/courses/access";
 import { EnrollmentStatus } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { 
   GraduationCap, 
   Sparkles, 
@@ -15,7 +16,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
-  Bookmark
+  Bookmark,
+  Radio
 } from "lucide-react";
 
 function getLessonHref(enrollment: any) {
@@ -61,6 +63,31 @@ export default async function StudentDashboardPage() {
   const continueHref = continueEnrollment ? getLessonHref(continueEnrollment) : null;
   const continueLabel = continueEnrollment?.status === EnrollmentStatus.PAUSED ? "Resume Enrollment" : "Resume Learning";
 
+  const upcomingLiveClasses = await prisma.lesson.findMany({
+    where: {
+      contentType: "LIVE",
+      scheduledAt: { gt: new Date() },
+      section: {
+        course: {
+          enrollments: {
+            some: { userId: user.id }
+          }
+        }
+      }
+    },
+    orderBy: { scheduledAt: "asc" },
+    take: 3,
+    include: {
+      section: {
+        include: {
+          course: {
+            select: { title: true, slug: true }
+          }
+        }
+      }
+    }
+  });
+
   return (
     <div className="space-y-8 text-left">
       {/* Welcome Banner */}
@@ -93,6 +120,50 @@ export default async function StudentDashboardPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Upcoming Live Classes Section */}
+      <div className="relative overflow-hidden rounded-2xl border border-rose-500/10 bg-[#0c0813]/40 p-6 space-y-4 text-left">
+        <div className="flex items-center gap-2 text-rose-400">
+          <Radio className="h-5 w-5 text-rose-500" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200">Upcoming Live Classes</h2>
+        </div>
+        
+        {upcomingLiveClasses.length === 0 ? (
+          <p className="text-xs text-slate-500 italic py-2">No upcoming live classes scheduled</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {upcomingLiveClasses.map((liveClass) => {
+              const sched = liveClass.scheduledAt ? new Date(liveClass.scheduledAt) : new Date();
+              const formattedTime = sched.toLocaleString("en-IN", {
+                timeZone: "Asia/Kolkata",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true
+              });
+              return (
+                <div key={liveClass.id} className="p-4 rounded-xl border border-white/5 bg-slate-950/40 hover:bg-slate-950/60 transition flex flex-col justify-between gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wide block">
+                      {liveClass.section.course.title}
+                    </span>
+                    <h4 className="text-sm font-bold text-white line-clamp-1">{liveClass.title}</h4>
+                    <p className="text-xs text-slate-400 font-mono mt-1">
+                      {formattedTime} IST
+                    </p>
+                  </div>
+                  <Button asChild size="sm" className="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg w-full">
+                    <Link href={`/courses/${liveClass.section.course.slug}/lessons/${liveClass.slug}`}>
+                      Join
+                    </Link>
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Metrics Widgets Grid */}

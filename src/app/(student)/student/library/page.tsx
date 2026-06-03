@@ -6,11 +6,11 @@ import { prisma } from "@/lib/prisma";
 import { makeMetadata } from "@/lib/site";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ShoppingBag, ExternalLink, Calendar } from "lucide-react";
+import { BookOpen, ShoppingBag, Calendar, Package } from "lucide-react";
 
 export const metadata: Metadata = makeMetadata({
   title: "My Library | Bookshelf",
-  description: "Browse and read your unlocked secure PDF books directly online.",
+  description: "Browse and read your unlocked secure PDF books and learning resources.",
   path: "/student/library",
   noIndex: true
 });
@@ -25,14 +25,22 @@ export default async function StudentLibraryPage() {
     redirect("/login");
   }
 
-  // Fetch all purchased PDF items (DIGITAL_RESOURCE) for the user from successful orders
+  // Fetch all purchased book/resource items (DIGITAL_RESOURCE or PHYSICAL) for the user from successful orders
   const purchasedBooks = await prisma.orderItem.findMany({
     where: {
       order: {
         userId: session.user.id,
         status: "PAID"
       },
-      productType: "DIGITAL_RESOURCE"
+      OR: [
+        { productType: "DIGITAL_RESOURCE" },
+        { productType: "PHYSICAL" },
+        {
+          product: {
+            assetUrl: { not: null }
+          }
+        }
+      ]
     },
     include: {
       product: true,
@@ -65,7 +73,7 @@ export default async function StudentLibraryPage() {
       {/* Page Header */}
       <div className="space-y-1">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-white">My Library</h1>
-        <p className="text-sm text-slate-400">Your secure bookshelf of purchased digital PDF books and learning resources.</p>
+        <p className="text-sm text-slate-400">Your secure bookshelf of purchased digital PDF books and physical learning resources.</p>
       </div>
 
       {purchasedBooks.length === 0 ? (
@@ -102,34 +110,42 @@ export default async function StudentLibraryPage() {
             });
 
             const hasCoverImage = !!product?.coverImageUrl;
+            const isPhysical = item.productType === "PHYSICAL";
+            const hasDigitalAsset = !!product?.assetUrl;
 
             return (
-              <Card 
-                key={item.id} 
+              <Card
+                key={item.id}
                 className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl backdrop-blur-md flex flex-col justify-between hover:scale-[1.02] transition-all duration-300 group"
               >
                 <div>
                   {/* Visual Premium Book Spine / Thumbnail */}
                   <div className={`h-48 w-full ${hasCoverImage ? "" : `bg-gradient-to-br ${coverGradient}`} relative p-5 flex flex-col justify-between overflow-hidden shadow-inner`}>
                     {hasCoverImage && (
-                      <img 
-                        src={product.coverImageUrl!} 
-                        alt={item.productName} 
+                      <img
+                        src={product.coverImageUrl!}
+                        alt={item.productName}
                         className="absolute inset-0 w-full h-full object-cover z-0 group-hover:scale-105 transition-transform duration-500"
                       />
                     )}
-                    {/* Gloss / Light reflection overlay / Shadow for readability */}
+                    {/* Gloss / Light reflection overlay */}
                     <div className={`absolute inset-0 ${hasCoverImage ? "bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-black/20" : "bg-gradient-to-tr from-transparent via-white/5 to-white/10"} z-0 pointer-events-none`}></div>
-                    
+
                     <div className="flex justify-between items-start z-10">
-                      <span className="bg-white/10 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full border border-white/10 tracking-widest uppercase">
-                        Secure PDF
+                      <span className={`backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full border tracking-widest uppercase ${isPhysical ? "bg-amber-500/20 border-amber-400/30 text-amber-300" : "bg-white/10 border-white/10"}`}>
+                        {isPhysical ? "Physical Book" : "Secure PDF"}
                       </span>
-                      <BookOpen className="h-5 w-5 text-white/60 group-hover:scale-110 transition duration-300" />
+                      {isPhysical ? (
+                        <Package className="h-5 w-5 text-amber-400/60 group-hover:scale-110 transition duration-300" />
+                      ) : (
+                        <BookOpen className="h-5 w-5 text-white/60 group-hover:scale-110 transition duration-300" />
+                      )}
                     </div>
-                    
+
                     <div className="z-10 space-y-1">
-                      <p className="text-white font-mono text-[9px] tracking-wider uppercase opacity-60">Digital Resource</p>
+                      <p className="text-white font-mono text-[9px] tracking-wider uppercase opacity-60">
+                        {isPhysical ? "Physical Resource" : "Digital Resource"}
+                      </p>
                       <h3 className="text-white text-base font-extrabold tracking-tight leading-tight line-clamp-2 drop-shadow-md">
                         {item.productName}
                       </h3>
@@ -143,22 +159,30 @@ export default async function StudentLibraryPage() {
                     </p>
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
                       <Calendar className="h-3.5 w-3.5" />
-                      <span>Unlocked: {purchaseDate}</span>
+                      <span>{isPhysical ? "Purchased" : "Unlocked"}: {purchaseDate}</span>
                     </div>
                   </CardContent>
                 </div>
 
-                {/* Read Actions */}
+                {/* Read / Status Actions */}
                 <div className="p-5 pt-0">
-                  <Button 
-                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider h-11 flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.25)] transition duration-300" 
-                    asChild
-                  >
-                    <Link href={`/student/orders/${item.orderId}/pdf-viewer?productId=${item.productId}`}>
-                      <BookOpen className="h-4 w-4" />
-                      Read Book
-                    </Link>
-                  </Button>
+                  {isPhysical && !hasDigitalAsset ? (
+                    /* Physical book with no digital copy — show shipping note */
+                    <div className="w-full bg-amber-500/10 border border-amber-400/20 text-amber-300 rounded-xl text-xs font-semibold h-11 flex items-center justify-center gap-1.5 px-4">
+                      <Package className="h-4 w-4 shrink-0" />
+                      <span>Physical copy — check My Orders for shipping</span>
+                    </div>
+                  ) : (
+                    <Button
+                      className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider h-11 flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.25)] transition duration-300"
+                      asChild
+                    >
+                      <Link href={`/student/orders/${item.orderId}/pdf-viewer?productId=${item.productId}`}>
+                        <BookOpen className="h-4 w-4" />
+                        Read Book
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </Card>
             );

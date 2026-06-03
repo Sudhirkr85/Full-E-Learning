@@ -209,6 +209,14 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                   My Courses
                 </Link>
                 <Link
+                  href="/student/library"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                >
+                  <LayoutDashboard className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
+                  My Library
+                </Link>
+                <Link
                   href="/student/wishlist"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"

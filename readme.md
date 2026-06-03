@@ -48,6 +48,15 @@ The application contains the following fully implemented production modules:
 
 ### Authentication & Role Isolation
 *   **Auth.js Engine**: Enforces STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware.
+
+### Store & Checkout
+*   **Wishlist System**: Integrated wishlist management with persistent storage and instant toggle (Add/Remove) functionality across product cards and detail pages.
+*   **Smart Storefront**: Unified product listing supporting "In Your Cart" status detection and interactive "Buy Now" triggers.
+*   **Secure Checkout Pipeline**: Multi-stage order processor with client-side validation, server-side inventory checks (ACTIVE/PUBLISHED status), and Razorpay payment fulfillment. Supports role-based access for course specific links.
+
+### Student Experience
+*   **Certificate Mastery**: Advanced certificate previewer with multi-directional scroll, dynamic zoom levels, and authenticated verification links.
+*   **Immersive Detail Designs**: Course and Store Detail pages featuring cinematic gradients, shimmer-effect CTA buttons, and high-conversion "Express Checkout" buttons.
 *   **Role Redirect Protection**: Strict Middleware containment path routing. Students are isolated to `/student/*`, Teachers to `/teacher/*`, and Admins to `/admin/*`. Accessing incorrect portals triggers automatic redirection back to the user's correct home dashboard to avoid cross-workspace breaches.
 *   **Credentials & OAuth 2.0**: Email-only credential accounts utilizing salted `bcryptjs` encryption, alongside Google and GitHub OAuth 2.0 logins with allowDangerousEmailAccountLinking support.
 *   **Interactive Authentication UI**:

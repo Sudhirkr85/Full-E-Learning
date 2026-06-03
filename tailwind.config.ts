@@ -40,6 +40,19 @@ const config: Config = {
       },
       boxShadow: {
         soft: "0 20px 60px -30px rgba(15, 23, 42, 0.45)"
+      },
+      keyframes: {
+        shimmer: {
+          "100%": { transform: "translateX(300%)" }
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" }
+        }
+      },
+      animation: {
+        shimmer: "shimmer 2s infinite",
+        "bounce-subtle": "bounce-subtle 1.5s infinite"
       }
     }
   },

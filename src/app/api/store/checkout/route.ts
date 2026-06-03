@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const validItems = [];
     for (const item of items) {
       const product = await prisma.product.findUnique({ where: { id: item.productId } });
-      if (!product || product.status !== "PUBLISHED") continue;
+      if (!product || (product.status !== "PUBLISHED" && product.status !== "ACTIVE")) continue;
       validItems.push({ product, quantity: item.quantity });
     }
 

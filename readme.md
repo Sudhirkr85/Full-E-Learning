@@ -17,6 +17,20 @@ This platform represents a modern fusion of an advanced Educational portal and a
 
 ---
 
+## 2. Recent Improvements & Fixes (June 2026)
+
+*   **UI/UX Refinements**:
+    *   **Interactive Certificates**: Added 3-step dynamic zoom (Off, 1.5x, 2.5x) and 2D overflow scrolling to the public certificate verification page for better mobile inspection.
+    *   **Futuristic CTAs**: Redesigned "Buy Now" and "Add to Cart" buttons across the platform with a high-fidelity shimmer effect, interactive hover states, and premium gradients to drive conversion.
+    *   **Classroom Consistency**: Normalized student navigation buttons to high-quality outline variants with coordinated indigo/slate palettes for a cohesive learning experience.
+    *   **Mobile Experience**: Refined the wishlist count indicator in the mobile drawer with a vibrant pink-rose gradient badge and glow effect.
+
+*   **Bug Fixes & System Stability**:
+    *   **Checkout Validation**: Fixed a logic error where the checkout API would reject valid items added from the homepage. The system now correctly validates both `PUBLISHED` and `ACTIVE` product states.
+    *   **Guest Session Safety**: Implemented protective guards on the Cart and Checkout pages. Guests are now gracefully redirected to login with `callbackUrl` persistence instead of encountering "Unauthorized" errors.
+    *   **Wishlist Logic**: Fixed the wishlist toggle behavior to correctly perform add/remove operations in a single click-cycle.
+    *   **Link Integrity**: Removed dead support links (404) from the storefront.
+
 ## 2. Tech Stack
 
 The architecture leverages modern, industry-standard technologies selected for performance, type-safety, and production scalability:

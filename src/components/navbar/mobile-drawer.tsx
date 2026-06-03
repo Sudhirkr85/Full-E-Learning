@@ -269,7 +269,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                       <Icon className="h-4 w-4 text-slate-500 shrink-0" />
                       {item.label}
                       {item.label === "Wishlist" && count > 0 && (
-                        <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                        <span className="ml-auto bg-gradient-to-br from-rose-500 to-pink-600 text-white text-[9px] font-black rounded-full h-5 w-5 flex items-center justify-center shadow-[0_0_10px_rgba(244,63,94,0.35)] border border-white/20">
                           {count}
                         </span>
                       )}

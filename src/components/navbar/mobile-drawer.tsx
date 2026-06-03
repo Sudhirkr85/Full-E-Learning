@@ -209,21 +209,6 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                   </span>
                 </div>
               </div>
-
-              {/* Notification bell trigger */}
-              <Link
-                href={notificationLink}
-                onClick={onClose}
-                className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-slate-950/40 text-slate-400 hover:text-white transition-colors"
-                aria-label="View notifications"
-              >
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-600 px-1 text-[8px] font-black text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </Link>
             </div>
           ) : (
             <p className="text-xs text-slate-400 italic">Welcome to the Platform</p>

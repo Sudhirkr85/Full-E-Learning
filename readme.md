@@ -1,6 +1,6 @@
-# E-Learning Platform — LMS + Digital Store (Premium Futuristic AI EdTech)
+# E-Learning Platform — LMS + Digital Store (Premium Futuristic EdTech)
 
-A production-grade, highly scalable, and SEO-optimized Learning Management System (LMS) combined with an integrated Digital & Physical Products Store. Built on Next.js 16 App Router, React 19, TypeScript, PostgreSQL, Prisma, Razorpay, Cloudflare R2, Brevo Email, Zustand, SWR, and Sonner, this platform features an immersive cinematic dark visual architecture tailored for Indian software engineering students and career-oriented learners.
+A production-grade, highly scalable, and SEO-optimized Learning Management System (LMS) combined with an integrated Digital & Physical Products Store. Built on Next.js 16 App Router, React 19, TypeScript, PostgreSQL, Prisma, Razorpay, Cloudflare R2, Brevo Email, Zustand, SWR, and Sonner, this platform features an immersive cinematic dark visual architecture for students, professionals, and career-oriented learners worldwide.
 
 ---
 
@@ -10,7 +10,9 @@ This platform represents a modern fusion of an advanced Educational portal and a
 
 *   **Advanced LMS Ecosystem**: Student dashboards, lesson player modules, interactive assessments, real-world coding sandboxes, automatic course progress trackers, and public blockchain-verified digital certificates.
 *   **Digital & Physical Products Store**: A built-in storefront catalog capable of processing independent digital downloads (PDF playbooks, code repositories), physical merchandise (vouchers, dashboard UI kits), course access keys, and complex product bundles.
-*   **Indian Career Integration**: Immersive visual interfaces highlighting salary outcome statistics (₹45 LPA highest package, ₹12.4 LPA average package), live placement tickers, and simulated tech interviewer panels.
+*   **Platform Metrics & Outcomes**: Immersive visual interfaces highlighting learner outcome statistics (completion rate, average rating, career growth, time-to-certificate), platform trust banners, and configurable social proof sections.
+
+> **Homepage Content is Configurable**: All homepage text — hero headline, stats, feature highlights, skill tags, trust banner companies, outcome metrics, testimonials, certificate mockup, and CTA copy — is driven from a single central config file: [`src/lib/site.ts`](src/lib/site.ts). Edit the `siteConfig` object there to update the entire homepage without touching JSX.
 
 ---
 

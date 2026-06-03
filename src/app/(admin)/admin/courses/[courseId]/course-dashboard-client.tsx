@@ -500,7 +500,7 @@ export function CourseDashboardClient({
                                   <Input value={newContentDesc} onChange={(e) => setNewContentDesc(e.target.value)} placeholder="Description (Optional)" className="bg-white/5 border-white/10 text-white" />
                                   
                                   {(contentType === "VIDEO" || contentType === "LIVE") && (
-                                    <Input value={youtubeVideoId} onChange={(e) => setYoutubeVideoId(e.target.value)} placeholder={contentType === "LIVE" ? "YouTube Live URL (e.g. https://youtube.com/live/xxxxx)" : "YouTube Video ID (e.g. dQw4w9WgXcQ)"} className="bg-white/5 border-white/10 text-white" required />
+                                    <Input value={youtubeVideoId} onChange={(e) => setYoutubeVideoId(e.target.value)} placeholder="YouTube URL (e.g. https://youtube.com/watch?v=xxxxx)" className="bg-white/5 border-white/10 text-white" required />
                                   )}
 
                                   {contentType === "LIVE" && (

@@ -221,11 +221,11 @@ export function AddLessonForm({ courseId, sectionId }: { courseId: string; secti
 
           {/* YouTube Video ID */}
           <div className="space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">YouTube Video ID or Short Link</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">YouTube URL</p>
             <div className="relative">
               <Video className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
               <Input
-                placeholder="e.g. dQw4w9WgXcQ or youtu.be/dQw4w9WgXcQ"
+                placeholder="e.g. https://youtube.com/watch?v=dQw4w9WgXcQ"
                 className="pl-9 bg-white/5 border-white/10 text-white placeholder-slate-500 focus-visible:ring-indigo-500 text-xs"
                 value={youtubeVideoId}
                 onChange={(e) => setYoutubeVideoId(e.target.value)}

@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('STUDENT', 'TEACHER', 'ADMIN');
 
@@ -14,13 +11,13 @@ CREATE TYPE "CourseLevel" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'ALL_
 CREATE TYPE "AssetProvider" AS ENUM ('YOUTUBE', 'CLOUDFLARE_R2', 'EXTERNAL');
 
 -- CreateEnum
-CREATE TYPE "LessonContentType" AS ENUM ('VIDEO', 'ARTICLE', 'RESOURCE', 'QUIZ');
+CREATE TYPE "LessonContentType" AS ENUM ('VIDEO', 'ARTICLE', 'RESOURCE', 'QUIZ', 'LIVE');
 
 -- CreateEnum
 CREATE TYPE "ResourceType" AS ENUM ('VIDEO', 'PDF', 'IMAGE', 'FILE', 'LINK');
 
 -- CreateEnum
-CREATE TYPE "EnrollmentStatus" AS ENUM ('ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED');
+CREATE TYPE "EnrollmentStatus" AS ENUM ('ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED', 'PENDING', 'FAILED');
 
 -- CreateEnum
 CREATE TYPE "ReviewStatus" AS ENUM ('PENDING', 'PUBLISHED', 'HIDDEN');
@@ -35,16 +32,19 @@ CREATE TYPE "QuestionType" AS ENUM ('SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FA
 CREATE TYPE "AttemptStatus" AS ENUM ('IN_PROGRESS', 'SUBMITTED', 'GRADED', 'ABANDONED');
 
 -- CreateEnum
-CREATE TYPE "ProductType" AS ENUM ('COURSE_ACCESS', 'DIGITAL_RESOURCE', 'BUNDLE', 'MEMBERSHIP');
+CREATE TYPE "ProductType" AS ENUM ('COURSE_ACCESS', 'DIGITAL_RESOURCE', 'BUNDLE', 'MEMBERSHIP', 'PHYSICAL');
 
 -- CreateEnum
-CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'ACTIVE', 'ARCHIVED');
+CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'ACTIVE', 'ARCHIVED', 'PUBLISHED');
 
 -- CreateEnum
 CREATE TYPE "CouponType" AS ENUM ('PERCENTAGE', 'FIXED_AMOUNT');
 
 -- CreateEnum
 CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAID', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED');
+
+-- CreateEnum
+CREATE TYPE "ShippingStatus" AS ENUM ('PENDING', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED');
 
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED');
@@ -64,20 +64,17 @@ CREATE TYPE "TicketStatus" AS ENUM ('OPEN', 'IN_PROGRESS', 'WAITING_ON_USER', 'R
 -- CreateEnum
 CREATE TYPE "TicketPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
 
--- CreateEnum
-CREATE TYPE "AuditAction" AS ENUM ('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'PUBLISH', 'ARCHIVE');
-
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "name" TEXT,
     "email" TEXT NOT NULL,
+    "phone" TEXT,
     "emailVerified" TIMESTAMP(3),
     "image" TEXT,
     "passwordHash" TEXT NOT NULL,
     "firstName" TEXT,
     "lastName" TEXT,
-    "phone" TEXT,
     "locale" TEXT,
     "timezone" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'STUDENT',
@@ -191,6 +188,7 @@ CREATE TABLE "lessons" (
     "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "scheduledAt" TIMESTAMP(3),
 
     CONSTRAINT "lessons_pkey" PRIMARY KEY ("id")
 );
@@ -227,6 +225,14 @@ CREATE TABLE "enrollments" (
     "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "razorpayOrderId" TEXT,
+    "razorpayPaymentId" TEXT,
+    "paymentStatus" TEXT DEFAULT 'FREE',
+    "amountPaid" INTEGER DEFAULT 0,
+    "failureReason" TEXT,
+    "failedAt" TIMESTAMP(3),
+    "paidAt" TIMESTAMP(3),
+    "emailSentAt" TIMESTAMP(3),
 
     CONSTRAINT "enrollments_pkey" PRIMARY KEY ("id")
 );
@@ -389,9 +395,16 @@ CREATE TABLE "products" (
     "title" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
+    "shortDescription" TEXT,
+    "fullDescription" TEXT,
+    "stockQuantity" INTEGER,
+    "shippingRequired" BOOLEAN DEFAULT false,
+    "dispatchNotes" TEXT,
+    "bundleItems" JSONB,
     "productType" "ProductType" NOT NULL DEFAULT 'DIGITAL_RESOURCE',
     "status" "ProductStatus" NOT NULL DEFAULT 'DRAFT',
     "priceCents" INTEGER NOT NULL DEFAULT 0,
+    "originalPriceCents" INTEGER,
     "currency" TEXT NOT NULL DEFAULT 'USD',
     "assetUrl" TEXT,
     "assetProvider" "AssetProvider",
@@ -414,16 +427,33 @@ CREATE TABLE "coupons" (
     "couponType" "CouponType" NOT NULL DEFAULT 'PERCENTAGE',
     "discountValue" INTEGER NOT NULL,
     "minimumOrderAmountCents" INTEGER,
+    "maxDiscountCents" INTEGER,
     "maxRedemptions" INTEGER,
+    "perUserLimit" INTEGER DEFAULT 1,
     "redeemedCount" INTEGER NOT NULL DEFAULT 0,
     "startsAt" TIMESTAMP(3),
     "endsAt" TIMESTAMP(3),
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "appliesTo" TEXT NOT NULL DEFAULT 'ALL',
+    "appliesToIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "coupons_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "coupon_usages" (
+    "id" UUID NOT NULL,
+    "couponId" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "orderId" UUID,
+    "enrollmentId" UUID,
+    "discountCents" INTEGER NOT NULL DEFAULT 0,
+    "usedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "coupon_usages_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -444,6 +474,19 @@ CREATE TABLE "orders" (
     "placedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "failureReason" TEXT,
+    "failedAt" TIMESTAMP(3),
+    "emailSentAt" TIMESTAMP(3),
+    "paidAt" TIMESTAMP(3),
+    "billingPhone" TEXT,
+    "orderNotes" TEXT,
+    "discount" INTEGER NOT NULL DEFAULT 0,
+    "subtotal" INTEGER NOT NULL DEFAULT 0,
+    "courierName" TEXT,
+    "trackingNumber" TEXT,
+    "shippingStatus" "ShippingStatus" NOT NULL DEFAULT 'PENDING',
+    "shippedAt" TIMESTAMP(3),
+    "deliveredAt" TIMESTAMP(3),
 
     CONSTRAINT "orders_pkey" PRIMARY KEY ("id")
 );
@@ -542,31 +585,27 @@ CREATE TABLE "certificates" (
 );
 
 -- CreateTable
-CREATE TABLE "audit_logs" (
+CREATE TABLE "cart_items" (
     "id" UUID NOT NULL,
-    "userId" UUID,
-    "action" "AuditAction" NOT NULL,
-    "entityType" TEXT NOT NULL,
-    "entityId" TEXT NOT NULL,
-    "beforeState" JSONB,
-    "afterState" JSONB,
-    "ipAddress" TEXT,
-    "userAgent" TEXT,
-    "metadata" JSONB,
+    "userId" UUID NOT NULL,
+    "productId" UUID NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "cart_items_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "platform_configs" (
-    "id" TEXT NOT NULL DEFAULT 'singleton',
-    "siteName" TEXT NOT NULL DEFAULT 'E-Learning Academy',
-    "supportEmail" TEXT NOT NULL DEFAULT 'support@yourapp.com',
-    "maintenance" BOOLEAN NOT NULL DEFAULT false,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+CREATE TABLE "reviews" (
+    "id" UUID NOT NULL,
+    "productId" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "rating" INTEGER NOT NULL,
+    "comment" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "platform_configs_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "reviews_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -794,15 +833,6 @@ CREATE UNIQUE INDEX "certificates_verificationCode_key" ON "certificates"("verif
 -- CreateIndex
 CREATE INDEX "certificates_issuedAt_idx" ON "certificates"("issuedAt");
 
--- CreateIndex
-CREATE INDEX "audit_logs_userId_idx" ON "audit_logs"("userId");
-
--- CreateIndex
-CREATE INDEX "audit_logs_entityType_entityId_idx" ON "audit_logs"("entityType", "entityId");
-
--- CreateIndex
-CREATE INDEX "audit_logs_action_idx" ON "audit_logs"("action");
-
 -- AddForeignKey
 ALTER TABLE "categories" ADD CONSTRAINT "categories_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -888,6 +918,9 @@ ALTER TABLE "attempt_answers" ADD CONSTRAINT "attempt_answers_selectedOptionId_f
 ALTER TABLE "products" ADD CONSTRAINT "products_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "courses"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "coupon_usages" ADD CONSTRAINT "coupon_usages_couponId_fkey" FOREIGN KEY ("couponId") REFERENCES "coupons"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "orders" ADD CONSTRAINT "orders_couponId_fkey" FOREIGN KEY ("couponId") REFERENCES "coupons"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -915,5 +948,7 @@ ALTER TABLE "support_tickets" ADD CONSTRAINT "support_tickets_reporterId_fkey" F
 ALTER TABLE "certificates" ADD CONSTRAINT "certificates_enrollmentId_fkey" FOREIGN KEY ("enrollmentId") REFERENCES "enrollments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "reviews" ADD CONSTRAINT "reviews_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "reviews" ADD CONSTRAINT "reviews_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

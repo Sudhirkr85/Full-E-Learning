@@ -42,6 +42,7 @@ import {
 } from "./actions";
 import { QuizEditorModal } from "./quiz-editor-modal";
 import { LessonEditorModal } from "./lesson-editor-modal";
+import { BannerUploadField } from "@/components/courses/banner-upload-field";
 import { CustomPopup } from "@/components/courses/custom-popup";
 
 type TabType = "overview" | "curriculum" | "students" | "analytics" | "settings";
@@ -160,18 +161,10 @@ export function CourseDashboardClient({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState("");
 
-  const handleUpdateCourse = async (e: React.FormEvent) => {
+  const handleUpdateCourse = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData();
+    const formData = new FormData(e.currentTarget);
     formData.append("courseId", course.id);
-    formData.append("title", title);
-    formData.append("subtitle", subtitle);
-    formData.append("description", description);
-    formData.append("excerpt", excerpt);
-    formData.append("level", level);
-    formData.append("language", language);
-    formData.append("priceInRupees", String(priceInRupees));
-    formData.append("originalPriceInRupees", String(originalPriceInRupees));
 
     startTransition(async () => {
       await updateAction(formData);
@@ -316,28 +309,28 @@ export function CourseDashboardClient({
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Course Title</label>
-                      <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" required />
+                      <Input name="title" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" required />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Subtitle</label>
-                      <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
+                      <Input name="subtitle" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Course Description</label>
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-32 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:ring-1 focus:ring-indigo-500" required />
+                    <textarea name="description" value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-32 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:ring-1 focus:ring-indigo-500" required />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-300">SEO Excerpt</label>
-                    <Input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
+                    <Input name="excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Level</label>
-                      <select value={level} onChange={(e) => setLevel(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-[#0a0f24] px-4 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                      <select name="level" value={level} onChange={(e) => setLevel(e.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-[#0a0f24] px-4 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
                         <option value="BEGINNER">Beginner</option>
                         <option value="INTERMEDIATE">Intermediate</option>
                         <option value="ADVANCED">Advanced</option>
@@ -346,20 +339,22 @@ export function CourseDashboardClient({
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Language</label>
-                      <Input value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
+                      <Input name="language" value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
                     </div>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Course Price (₹)</label>
-                      <Input type="number" value={priceInRupees} onChange={(e) => setPriceInRupees(Number(e.target.value))} className="bg-white/5 border-white/10 text-white h-11 text-xs" required />
+                      <Input name="priceInRupees" type="number" value={priceInRupees} onChange={(e) => setPriceInRupees(Number(e.target.value))} className="bg-white/5 border-white/10 text-white h-11 text-xs" required />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Original Price (₹)</label>
-                      <Input type="number" value={originalPriceInRupees} onChange={(e) => setOriginalPriceInRupees(Number(e.target.value))} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
+                      <Input name="originalPriceInRupees" type="number" value={originalPriceInRupees} onChange={(e) => setOriginalPriceInRupees(Number(e.target.value))} className="bg-white/5 border-white/10 text-white h-11 text-xs" />
                     </div>
                   </div>
+
+                  <BannerUploadField initialImageUrl={course.coverImageUrl} courseTitle={course.title} />
 
                   <Button type="submit" disabled={isPending} className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 text-xs px-6 font-bold uppercase tracking-wider">
                     {isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : "Save Changes"}

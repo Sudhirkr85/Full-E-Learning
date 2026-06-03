@@ -89,7 +89,7 @@ export function WishlistButton({
       case "md":
         return "h-9 w-9 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95";
       case "lg":
-        return "w-full h-11 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white transition duration-300 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]";
+        return "w-full h-11 rounded-xl border border-white/5 bg-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200 transition duration-300 flex items-center justify-center gap-2 active:scale-95";
     }
   };
 

@@ -306,9 +306,9 @@ export function EnrollButton({
             <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
           </div>
         )}
-        <div className="flex justify-between items-center text-sm font-bold text-white pt-2 border-t border-white/5">
-          <span>Payable Total</span>
-          <span className="text-xl text-violet-400 font-mono">₹{finalPayablePrice.toLocaleString("en-IN")}</span>
+        <div className="flex justify-between items-center text-sm font-bold text-white pt-3 border-t border-white/10">
+          <span className="text-slate-200">Payable Total</span>
+          <span className="text-2xl text-white font-mono tracking-tight drop-shadow-sm">₹{finalPayablePrice.toLocaleString("en-IN")}</span>
         </div>
         <div className="text-[10px] text-emerald-400 font-semibold">
           ✓ Tax included
@@ -320,7 +320,7 @@ export function EnrollButton({
   const renderEnrollmentButton = () => {
     const btnClass = variant === "card"
       ? "w-full h-11 rounded-xl font-extrabold text-xs uppercase tracking-normal flex items-center justify-center gap-1 transition shadow-md bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/10 border border-transparent"
-      : "w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-all animate-none";
+      : "w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02]";
 
     // 1. Not logged in
     if (!isLoggedIn) {

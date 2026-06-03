@@ -525,15 +525,15 @@ export function LessonPlayerClient({
 
                 <div className="flex flex-col gap-2">
                   {bundle.nextLesson && (
-                    <Button asChild className="w-full bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-xl h-10 text-xs font-extrabold uppercase tracking-wider">
+                    <Button asChild variant="outline" className="w-full bg-white/5 hover:bg-indigo-600 hover:text-white border-white/10 text-white rounded-xl h-10 text-xs font-extrabold uppercase tracking-wider transition-all duration-300">
                       <Link href={getLessonHref(bundle.nextLesson.slug)} className="flex items-center justify-center gap-1.5">
                         Next Lesson
-                        <ArrowRight className="h-3.5 w-3.5 animate-pulse" />
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
                     </Button>
                   )}
                   {bundle.previousLesson && (
-                    <Button asChild variant="outline" className="w-full border-white/5 text-slate-400 hover:text-white rounded-xl h-10 text-xs font-bold uppercase tracking-wider">
+                    <Button asChild variant="outline" className="w-full bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white rounded-xl h-10 text-xs font-bold uppercase tracking-wider transition-all duration-300">
                       <Link href={getLessonHref(bundle.previousLesson.slug)} className="flex items-center justify-center gap-1.5">
                         <ArrowLeft className="h-3.5 w-3.5" />
                         Previous Lesson
@@ -617,7 +617,7 @@ export function LessonPlayerClient({
 
                 <div className="grid grid-cols-2 gap-2">
                   {bundle.previousLesson && (
-                    <Button asChild variant="outline" className="border-white/5 text-slate-400 rounded-xl h-10 text-[10px] font-bold uppercase tracking-wider">
+                    <Button asChild variant="outline" className="bg-white/5 border-white/10 text-slate-400 hover:text-white rounded-xl h-10 text-[10px] font-bold uppercase tracking-wider transition-all">
                       <Link href={getLessonHref(bundle.previousLesson.slug)} className="flex items-center gap-1 justify-center">
                         <ArrowLeft className="h-3 w-3" />
                         Prev
@@ -625,7 +625,7 @@ export function LessonPlayerClient({
                     </Button>
                   )}
                   {bundle.nextLesson && (
-                    <Button asChild className="bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-xl h-10 text-[10px] font-extrabold uppercase tracking-wider">
+                    <Button asChild variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-indigo-600 rounded-xl h-10 text-[10px] font-extrabold uppercase tracking-wider transition-all">
                       <Link href={getLessonHref(bundle.nextLesson.slug)} className="flex items-center gap-1 justify-center">
                         Next
                         <ArrowRight className="h-3 w-3" />

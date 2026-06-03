@@ -447,7 +447,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
             {/* Curriculum Chronological Navigation */}
             <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-4">
               {previousLesson ? (
-                <Button asChild variant="outline" className="border-white/5 bg-slate-950/40 text-slate-300 hover:text-white rounded-xl">
+                <Button asChild variant="outline" className="border-white/10 bg-white/5 text-slate-400 hover:text-white rounded-xl transition-all">
                   <Link href={`/courses/${course.slug}/learn?lesson=${previousLesson.slug}`} className="flex items-center gap-1.5">
                     <ChevronLeft className="h-4 w-4" /> Prev Lesson
                   </Link>
@@ -456,7 +456,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                 <div />
               )}
               {nextLesson ? (
-                <Button asChild variant="outline" className="border-white/5 bg-slate-950/40 text-slate-300 hover:text-white rounded-xl">
+                <Button asChild variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-indigo-600 rounded-xl transition-all">
                   <Link href={`/courses/${course.slug}/learn?lesson=${nextLesson.slug}`} className="flex items-center gap-1.5">
                     Next Lesson <ChevronRight className="h-4 w-4" />
                   </Link>

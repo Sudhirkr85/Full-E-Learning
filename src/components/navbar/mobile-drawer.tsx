@@ -112,7 +112,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
         return [
           { label: "My Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
           { label: "My Learning", href: "/student/courses", icon: BookOpen },
-          { label: "Certificates", href: "/certificates", icon: Award },
+          { label: "Certificates", href: "/student/courses", icon: Award },
           { label: "Orders", href: "/student/orders", icon: History },
           { label: "Settings", href: "/profile", icon: Settings },
         ];
@@ -252,7 +252,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.href}
+                      key={item.label}
                       href={item.href}
                       onClick={onClose}
                       className={cn(

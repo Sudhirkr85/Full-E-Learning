@@ -172,44 +172,150 @@ export function TeacherEnrollmentsClient({ enrollments, metrics }: TeacherEnroll
       </div>
 
       {/* Enrollments Table */}
-      <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#090d20]/30 shadow-[0_15px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-white/5 bg-white/[0.01] text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-              <th className="p-4">Student</th>
-              <th className="p-4">Course</th>
-              <th className="p-4">Mobile</th>
-              <th className="p-4">Progress</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Enrolled On</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5 text-slate-300 font-medium">
-            {filteredEnrollments.length > 0 ? (
-              filteredEnrollments.map((e) => {
-                const progress = e.progress?.progressPercent ?? 0;
-                const isCompleted = progress === 100;
-                return (
-                  <tr key={e.id} className="hover:bg-white/[0.01] transition-colors duration-150">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(e.user.name || e.user.email)}`}>
-                          {getInitials(e.user.name, e.user.email)}
+      <div>
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-white/5 bg-[#090d20]/30 shadow-[0_15px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-white/5 bg-white/[0.01] text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <th className="p-4">Student</th>
+                <th className="p-4">Course</th>
+                <th className="p-4">Mobile</th>
+                <th className="p-4">Progress</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Enrolled On</th>
+                <th className="p-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-slate-300 font-medium">
+              {filteredEnrollments.length > 0 ? (
+                filteredEnrollments.map((e) => {
+                  const progress = e.progress?.progressPercent ?? 0;
+                  const isCompleted = progress === 100;
+                  const isNew = daysSince(e.createdAt) < 7;
+                  return (
+                    <tr key={e.id} className="hover:bg-white/[0.01] transition-colors duration-150">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(e.user.name || e.user.email)}`}>
+                            {getInitials(e.user.name, e.user.email)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white">{e.user.name || "Student"}</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">{e.user.email}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-white">{e.user.name || "Student"}</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{e.user.email}</p>
-                        </div>
+                      </td>
+                      <td className="p-4 font-semibold text-slate-200">{e.course.title}</td>
+                      <td className="p-4 text-slate-400">{e.user.phone || <span className="text-slate-600 italic">Not set</span>}</td>
+                      <td className="p-4 w-40">
+                        {progress === 0 && daysSince(e.createdAt) < 7 ? (
+                          <Badge className="bg-slate-500/10 text-slate-400 border-slate-500/20 font-bold text-[9px] uppercase tracking-widest">Not started</Badge>
+                        ) : (
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 font-extrabold">
+                              <span>{progress}%</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-300 ${isCompleted ? "bg-purple-500" : "bg-emerald-500"}`} 
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        {isCompleted ? (
+                          <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 font-bold text-[9px] uppercase tracking-widest">Completed</Badge>
+                        ) : (
+                          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold text-[9px] uppercase tracking-widest">Active</Badge>
+                        )}
+                      </td>
+                      <td className="p-4 text-slate-400">
+                        {new Date(e.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric"
+                        })}
+                      </td>
+                      <td className="p-4 text-center">
+                        <Link href={`/teacher/courses/${e.course.id}/sections`}>
+                          <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-bold border-indigo-500/20 text-indigo-400 hover:text-white bg-indigo-500/5 hover:bg-indigo-500/10 uppercase tracking-wider gap-1">
+                            View
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-500 italic">
+                    No students enrolled in your courses yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Stacked Card View */}
+        <div className="block md:hidden space-y-4">
+          {filteredEnrollments.length > 0 ? (
+            filteredEnrollments.map((e) => {
+              const progress = e.progress?.progressPercent ?? 0;
+              const isCompleted = progress === 100;
+              const isNew = daysSince(e.createdAt) < 7;
+              return (
+                <div key={e.id} className="bg-[#090d20]/30 border border-white/5 p-5 rounded-2xl space-y-4 hover:border-white/10 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(e.user.name || e.user.email)}`}>
+                      {getInitials(e.user.name, e.user.email)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white text-xs">{e.user.name || "Student"}</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">{e.user.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 py-3 border-y border-white/5 text-xs">
+                    <div className="space-y-1 col-span-2">
+                      <span className="text-slate-400 font-medium block text-[10px]">Course</span>
+                      <span className="text-slate-200 font-semibold leading-relaxed block">{e.course.title}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-slate-400 font-medium block text-[10px]">Mobile</span>
+                      <span className="text-slate-300 font-mono">{e.user.phone || <span className="text-slate-600 italic">Not set</span>}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-slate-400 font-medium block text-[10px]">Status</span>
+                      <div>
+                        {isCompleted ? (
+                          <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 font-bold text-[9px] uppercase tracking-widest py-0.5">Completed</Badge>
+                        ) : (
+                          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold text-[9px] uppercase tracking-widest py-0.5">Active</Badge>
+                        )}
                       </div>
-                    </td>
-                    <td className="p-4 font-semibold text-slate-200">{e.course.title}</td>
-                    <td className="p-4 text-slate-400">{e.user.phone || <span className="text-slate-600 italic">Not set</span>}</td>
-                    <td className="p-4 w-40">
-                      {progress === 0 && daysSince(e.createdAt) < 7 ? (
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <span className="text-slate-400 font-medium block text-[10px]">Enrolled On</span>
+                      <span className="text-slate-300">
+                        {new Date(e.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric"
+                        })}
+                      </span>
+                    </div>
+                    <div className="col-span-2 space-y-1.5 pt-1">
+                      <span className="text-slate-400 font-medium block text-[10px]">Progress</span>
+                      {progress === 0 && isNew ? (
                         <Badge className="bg-slate-500/10 text-slate-400 border-slate-500/20 font-bold text-[9px] uppercase tracking-widest">Not started</Badge>
                       ) : (
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-extrabold">
+                          <div className="flex items-center justify-between text-[9px] text-slate-400 font-extrabold">
                             <span>{progress}%</span>
                           </div>
                           <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
@@ -220,33 +326,24 @@ export function TeacherEnrollmentsClient({ enrollments, metrics }: TeacherEnroll
                           </div>
                         </div>
                       )}
-                    </td>
-                    <td className="p-4">
-                      {isCompleted ? (
-                        <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 font-bold text-[9px] uppercase tracking-widest">Completed</Badge>
-                      ) : (
-                        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold text-[9px] uppercase tracking-widest">Active</Badge>
-                      )}
-                    </td>
-                    <td className="p-4 text-slate-400">
-                      {new Date(e.createdAt).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric"
-                      })}
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500 italic">
-                  No students enrolled in your courses yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end pt-1">
+                    <Link href={`/teacher/courses/${e.course.id}/sections`} className="w-full">
+                      <Button size="sm" variant="outline" className="w-full h-10 rounded-xl text-[10px] font-bold border-indigo-500/20 text-indigo-400 hover:text-white bg-indigo-500/5 hover:bg-indigo-500/10 uppercase tracking-wider gap-1.5 flex items-center justify-center">
+                        View Curriculum
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-center py-10 text-slate-500 italic text-xs">No students enrolled in your courses yet.</p>
+          )}
+        </div>
       </div>
     </div>
   );

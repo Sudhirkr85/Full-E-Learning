@@ -1043,6 +1043,22 @@ export async function createLessonAction(formData: FormData) {
     async (candidate) => Boolean(await prisma.lesson.findFirst({ where: { sectionId: section.id, slug: candidate }, select: { id: true } }))
   );
 
+  let metadata: any = undefined;
+  if (data.contentType === "QUIZ") {
+    const test = await prisma.test.create({
+      data: {
+        courseId: section.courseId,
+        sectionId: section.id,
+        title: data.title,
+        slug: `${slug}-quiz-${Date.now()}`,
+        type: "QUIZ",
+        passingScore: 70,
+        isPublished: true
+      }
+    });
+    metadata = { testId: test.id };
+  }
+
   await prisma.lesson.create({
     data: {
       sectionId: section.id,
@@ -1057,7 +1073,8 @@ export async function createLessonAction(formData: FormData) {
       transcriptUrl: data.transcriptUrl ?? null,
       durationSeconds: data.durationSeconds ?? null,
       isPreview: data.isPreview ?? false,
-      isPublished: data.isPublished ?? true
+      isPublished: data.isPublished ?? true,
+      metadata: metadata ? metadata : undefined
     }
   });
 

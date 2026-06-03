@@ -132,7 +132,7 @@ export default async function TeacherCoursesPage({ searchParams }: TeacherCourse
                       return (
                         <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
                           <td className="px-4 py-3.5 font-semibold text-white">
-                            <Link href={`/teacher/courses/${c.id}/sections`} className="hover:underline hover:text-indigo-400 transition">
+                            <Link href={`/teacher/courses/${c.id}`} className="hover:underline hover:text-indigo-400 transition">
                               {c.title}
                             </Link>
                           </td>
@@ -163,7 +163,7 @@ export default async function TeacherCoursesPage({ searchParams }: TeacherCourse
                           <td className="px-4 py-3.5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <Button asChild variant="ghost" size="sm" className="text-indigo-400 hover:text-white hover:bg-white/5 rounded-xl">
-                                <Link href={`/teacher/courses/${c.id}/sections`}>Manage</Link>
+                                <Link href={`/teacher/courses/${c.id}`}>Manage</Link>
                               </Button>
                               <Button asChild variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl">
                                 <Link href={`/teacher/courses/${c.id}`}>Edit</Link>
@@ -185,7 +185,7 @@ export default async function TeacherCoursesPage({ searchParams }: TeacherCourse
                   return (
                     <div key={c.id} className="bg-white/[0.02] border border-white/5 p-4 rounded-xl space-y-4">
                       <div>
-                        <Link href={`/teacher/courses/${c.id}/sections`} className="font-semibold text-white hover:text-indigo-400 transition leading-tight block text-sm">
+                        <Link href={`/teacher/courses/${c.id}`} className="font-semibold text-white hover:text-indigo-400 transition leading-tight block text-sm">
                           {c.title}
                         </Link>
                         <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -218,7 +218,7 @@ export default async function TeacherCoursesPage({ searchParams }: TeacherCourse
 
                       <div className="flex items-center justify-end gap-2 pt-1">
                         <Button asChild variant="ghost" size="sm" className="text-indigo-400 hover:text-white hover:bg-white/5 rounded-xl text-xs h-9 px-3">
-                          <Link href={`/teacher/courses/${c.id}/sections`}>Manage</Link>
+                          <Link href={`/teacher/courses/${c.id}`}>Manage</Link>
                         </Button>
                         <Button asChild variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl text-xs h-9 px-3">
                           <Link href={`/teacher/courses/${c.id}`}>Edit</Link>

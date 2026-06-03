@@ -24,6 +24,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Futuristic CTAs**: Redesigned "Buy Now" and "Add to Cart" buttons across the platform with a high-fidelity shimmer effect, interactive hover states, and premium gradients to drive conversion.
     *   **Classroom Navigation**: Added dedicated "Back to Courses" and "Home" navigation header in the lesson player for easy course navigation.
     *   **Mobile Experience**: Refined the wishlist count indicator in the mobile drawer with a vibrant pink-rose gradient badge and glow effect.
+    *   **Navigation Synchronization**: Added the **"My Library"** link to the top-right profile avatar dropdown menu to perfectly align with the Student Sidebar navigation.
     *   **Professional Invoice Design**: Completely redesigned order confirmation invoices with:
       - **Dark text on light backgrounds** for excellent readability
       - **Customer billing & delivery details** clearly visible with proper labels
@@ -35,6 +36,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
       - **Professional banking-style layout** with clear visual hierarchy
 
 *   **Bug Fixes & System Stability**:
+    *   **My Library Content Restrictions**: Restricted the student bookshelf query to strictly load `DIGITAL_RESOURCE` products, ensuring physical purchases do not mistakenly appear in the digital PDF library space.
     *   **Checkout Validation**: Fixed a logic error where the checkout API would reject valid items added from the homepage. The system now correctly validates both `PUBLISHED` and `ACTIVE` product states.
     *   **Guest Session Safety**: Implemented protective guards on the Cart and Checkout pages. Guests are now gracefully redirected to login with `callbackUrl` persistence instead of encountering "Unauthorized" errors.
     *   **Wishlist Logic**: Fixed the wishlist toggle behavior to correctly perform add/remove operations in a single click-cycle.
@@ -237,14 +239,14 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 
 ---
 
-## 6. Recent Updates / Changelog
-
 *   **Secure Student Bookshelf**: Added `/student/library` and secure PDF iframe viewer to stream books directly from Cloudflare R2 with UUID injection guard checks.
 *   **Direct Checkout Engine**: Bypasses intermediate screens during checkout to launch Razorpay modals directly from Zustand cart drawer or full-screen mobile `/cart` pages.
 *   **Admin Coupons Module**: Integrated dashboard CRUD screens at `/admin/coupons` allowing granular discounts configuration with alphanumeric sanitization rules.
 *   **Course Feedback PUT integration**: Upgraded `/api/courses/reviews` endpoint to accept `PUT` requests, allowing students to modify ratings or reviews without duplicated records.
 *   **Verified Course Certificates**: Auto-generate cryptographically signed certificates of completion upon 100% course progress with A4 landscape PDF downloads, student certificates desk, admin revoke panel, and public verification pages.
 *   **Plyr Custom Video Controls**: Replaced native playback blocks with a lightweight CDN player providing customized color palettes and mobile landscape locking structures.
+*   **Student Profile Menu Update**: Synchronized the top-right profile dropdown menu links with the sidebar navigation system by introducing the "My Library" page route.
+*   **Secure Digital Library Filtering**: Confined the library query strictly to items of type `DIGITAL_RESOURCE` so that physical product purchases do not render in the bookshelf library area.
 
 ---
 

@@ -39,7 +39,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
   const { courseId } = await params;
 
   // Query course by ID, including sections, lessons, teachers, categories, and enrolled student details
-  const [course, allCategories, allTeachers, tests] = await Promise.all([
+  const [course, allCategories, allTeachers, tests, certificateCount] = await Promise.all([
     prisma.course.findUnique({
       where: { id: courseId },
       include: {
@@ -104,6 +104,13 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
           orderBy: { orderIndex: "asc" }
         }
       }
+    }),
+    prisma.certificate.count({
+      where: {
+        enrollment: {
+          courseId
+        }
+      }
     })
   ]);
 
@@ -131,6 +138,7 @@ export default async function CourseEditorPage({ params }: CourseEditorPageProps
         allCategories={allCategories}
         allTeachers={allTeachers}
         tests={tests}
+        certificateCount={certificateCount}
         updateAction={updateCourseAction}
         toggleStatusAction={toggleCourseStatusAction}
         attachCategoryAction={attachCategoryToCourseAction}

@@ -60,7 +60,15 @@ export async function issueCertificateAction(enrollmentId: string) {
       where: { id: enrollmentId },
       include: {
         user: true,
-        course: true,
+        course: {
+          include: {
+            teachers: {
+              include: {
+                teacher: true
+              }
+            }
+          }
+        },
         progress: true,
         certificate: true,
       },
@@ -93,6 +101,17 @@ export async function issueCertificateAction(enrollmentId: string) {
     const randomHex = Math.random().toString(16).substring(2, 10).toUpperCase().padEnd(8, "F");
     const verificationCode = `CERT-${year}-${randomHex}`;
 
+    const studentName = enrollment.user.name || 
+      `${enrollment.user.firstName || ""} ${enrollment.user.lastName || ""}`.trim() || 
+      enrollment.user.email.split("@")[0];
+
+    const courseName = enrollment.course.title;
+
+    const primaryTeacher = enrollment.course.teachers.find(t => t.isPrimary) || enrollment.course.teachers[0];
+    const instructorName = primaryTeacher?.teacher.name || 
+      `${primaryTeacher?.teacher.firstName || ""} ${primaryTeacher?.teacher.lastName || ""}`.trim() ||
+      "Course Instructor";
+
     // 6. Create certificate
     const certificate = await prisma.certificate.create({
       data: {
@@ -100,6 +119,9 @@ export async function issueCertificateAction(enrollmentId: string) {
         verificationCode,
         scorePercent: avgScore,
         metadata: {
+          studentName,
+          courseName,
+          instructorName,
           courseTitle: enrollment.course.title,
           courseSlug: enrollment.course.slug,
           issuedToId: enrollment.userId,
@@ -111,7 +133,6 @@ export async function issueCertificateAction(enrollmentId: string) {
 
     // Non-blocking background email dispatch
     const { sendCertificateEmail, dispatchEmailBackground } = await import("@/lib/email");
-    const studentName = enrollment.user.name || enrollment.user.email.split("@")[0];
     const studentEmail = enrollment.user.email;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -228,3 +249,34 @@ export async function verifyCertificateAction(verificationCode: string) {
     };
   }
 }
+
+/**
+ * Revokes a certificate by its unique database ID.
+ * Restricted to ADMIN role.
+ */
+export async function revokeCertificateAction(certificateId: string) {
+  try {
+    const { requireRole } = await import("@/lib/auth");
+    const { UserRole } = await import("@prisma/client");
+    await requireRole([UserRole.ADMIN]);
+
+    await prisma.certificate.delete({
+      where: { id: certificateId }
+    });
+
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/admin/certificates");
+
+    return {
+      success: true,
+      message: "Certificate revoked successfully."
+    };
+  } catch (err: any) {
+    console.error("[REVOKE_CERTIFICATE_ERROR]", err);
+    return {
+      success: false,
+      error: err.message ?? "Failed to revoke certificate."
+    };
+  }
+}
+

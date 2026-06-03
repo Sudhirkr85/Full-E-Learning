@@ -77,6 +77,7 @@ The application contains the following fully implemented production modules:
 *   **My Wishlist Dashboard**: Dedicated wishlist dashboard page at `/student/wishlist` allowing students to browse and manage saved courses with enrollments triggers, discount ratios, and empty states.
 *   **My Library Bookshelf**: Located at `/student/library`. Displays all purchased digital playbooks and resources (type `DIGITAL_RESOURCE`) with cover thumbnail grids, purchase dates, and description cards.
 *   **Secure PDF online Reader**: Embedded secure PDF viewer desk at `/student/orders/[orderId]/pdf-viewer`. Integrates strict UUID validation checks on parameters to prevent PostgreSQL database casting faults and protects PDF materials by streaming document data securely from Cloudflare R2 storage without exposing direct file downloads.
+*   **Verified Course Certificates**: Auto-generates a cryptographic certificate of completion upon 100% course syllabus progress, downloadable as a styled A4 landscape PDF and shareable via public `/verify/[certificateId]` routes.
 
 ### Store & Checkout System
 *   **Cinematic Dark Glassmorphic Product Cards**: Store product cards upgraded with high-end glassmorphic visuals featuring beautiful green `% OFF` discount badges calculated dynamically from metadata.
@@ -171,6 +172,10 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 *   `POST /api/profile/avatar` — Uploads and updates student profile images in Cloudflare R2.
 *   `POST /api/profile` — Saves student details (First name, Last name, Phone).
 
+### Certificates & Verifications
+*   `GET /api/certificates/[certificateId]/download` — Renders and downloads student certificate of completion as a styled PDF.
+*   `GET /api/certificates/[certificateId]/verify` — Publicly verifies the authenticity of a certificate verification code and returns data JSON.
+
 ### Coupons & Promos
 *   `POST /api/coupons/validate` — Validates coupon codes against user, scopes, date range, and usage limits.
 *   `POST /api/admin/coupons` — Admin coupon creation endpoint.
@@ -198,6 +203,7 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 *   **Direct Checkout Engine**: Bypasses intermediate screens during checkout to launch Razorpay modals directly from Zustand cart drawer or full-screen mobile `/cart` pages.
 *   **Admin Coupons Module**: Integrated dashboard CRUD screens at `/admin/coupons` allowing granular discounts configuration with alphanumeric sanitization rules.
 *   **Course Feedback PUT integration**: Upgraded `/api/courses/reviews` endpoint to accept `PUT` requests, allowing students to modify ratings or reviews without duplicated records.
+*   **Verified Course Certificates**: Auto-generate cryptographically signed certificates of completion upon 100% course progress with A4 landscape PDF downloads, student certificates desk, admin revoke panel, and public verification pages.
 *   **Plyr Custom Video Controls**: Replaced native playback blocks with a lightweight CDN player providing customized color palettes and mobile landscape locking structures.
 
 ---

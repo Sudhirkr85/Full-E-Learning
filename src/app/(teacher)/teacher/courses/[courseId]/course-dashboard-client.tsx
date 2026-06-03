@@ -31,7 +31,8 @@ import {
   Tag,
   ShieldAlert,
   Sparkles,
-  Radio
+  Radio,
+  Award
 } from "lucide-react";
 import { 
   createSectionAction, 
@@ -56,6 +57,7 @@ type CourseDashboardClientProps = {
   assignTeacherAction: (formData: FormData) => Promise<any>;
   removeTeacherAction: (formData: FormData) => Promise<any>;
   deleteCourseAction: (formData: FormData) => Promise<any>;
+  certificateCount: number;
 };
 
 export function CourseDashboardClient({
@@ -63,6 +65,7 @@ export function CourseDashboardClient({
   allCategories,
   allTeachers,
   tests,
+  certificateCount,
   updateAction,
   toggleStatusAction,
   attachCategoryAction,
@@ -760,7 +763,7 @@ export function CourseDashboardClient({
 
         {/* TAB 4: ANALYTICS */}
         {activeTab === "analytics" && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enrolled Learners</span>
               <p className="text-3xl font-black text-white mt-2">{course._count.enrollments}</p>
@@ -772,6 +775,13 @@ export function CourseDashboardClient({
             <Card className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mastery Level</span>
               <p className="text-2xl font-black text-white mt-2 capitalize">{level.toLowerCase().replace('_', ' ')}</p>
+            </Card>
+            <Card className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6">
+              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Award className="h-4 w-4 text-amber-400" />
+                Certificates Issued
+              </span>
+              <p className="text-3xl font-black text-white mt-2">{certificateCount}</p>
             </Card>
           </div>
         )}

@@ -23,7 +23,8 @@ import {
   Lock,
   BookOpen,
   GraduationCap,
-  Heart
+  Heart,
+  Award
 } from "lucide-react";
 import { LogoutModal } from "@/components/navbar/logout-modal";
 import { useWishlistStore } from "@/store/wishlist-store";
@@ -66,6 +67,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
     if (l.includes("ticket") || l.includes("support")) return <ShieldQuestion className="h-4 w-4 shrink-0" />;
     if (l.includes("password")) return <Lock className="h-4 w-4 shrink-0" />;
     if (l.includes("wishlist")) return <Heart className="h-4 w-4 shrink-0" />;
+    if (l.includes("certificate")) return <Award className="h-4 w-4 shrink-0" />;
     return <LayoutDashboard className="h-4 w-4 shrink-0" />;
   };
 
@@ -117,7 +119,8 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         { label: "Categories", href: "/admin/categories" },
         { label: "Store", href: "/admin/store" },
         { label: "Store Orders", href: "/admin/store/orders" },
-        { label: "Coupons", href: "/admin/coupons" }
+        { label: "Coupons", href: "/admin/coupons" },
+        { label: "Certificates", href: "/admin/certificates" }
       ];
 
       return (
@@ -136,6 +139,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         { label: "My Courses", href: "/student/courses" },
         { label: "My Library", href: "/student/library" },
         { label: "Wishlist", href: "/student/wishlist" },
+        { label: "Certificates", href: "/student/certificates" },
         { label: "My Orders", href: "/student/orders" }
       ];
       return (

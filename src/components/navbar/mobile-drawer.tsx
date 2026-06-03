@@ -116,7 +116,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
           { label: "My Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
           { label: "My Learning", href: "/student/courses", icon: BookOpen },
           { label: "Wishlist", href: "/student/wishlist", icon: Heart },
-          { label: "Certificates", href: "/student/courses", icon: Award },
+          { label: "Certificates", href: "/student/certificates", icon: Award },
           { label: "Orders", href: "/student/orders", icon: History },
           { label: "Settings", href: "/profile", icon: Settings },
         ];

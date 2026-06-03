@@ -2,14 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { sendShippingDispatchedEmail, sendOrderDeliveredEmail } from "@/lib/email";
-import { NotificationType } from "@prisma/client";
+import { NotificationType, ShippingStatus } from "@prisma/client";
+import { COURIER_LIST } from "@/lib/couriers";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ orderId: string }> }
-) {
+async function handleShippingUpdate(orderId: string, request: Request) {
   try {
-    const { orderId } = await params;
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -26,6 +23,20 @@ export async function PATCH(
       return NextResponse.json({ error: "shippingStatus is required" }, { status: 400 });
     }
 
+    // Validate shipping status is of the correct enum type
+    const validStatuses = Object.values(ShippingStatus);
+    if (!validStatuses.includes(shippingStatus as ShippingStatus)) {
+      return NextResponse.json({ error: `Invalid shipping status. Must be one of: ${validStatuses.join(", ")}` }, { status: 400 });
+    }
+
+    // Validate courierName is from COURIER_LIST values or manually specified if Other/untracked
+    const lowerCourierName = (courierName || "").toLowerCase();
+    const isStandardCourier = COURIER_LIST.some(c => c.value === lowerCourierName || c.label.toLowerCase() === lowerCourierName);
+    if (courierName && courierName !== "Other" && !isStandardCourier) {
+      // If it's not a standard slug, verify if we can accept it
+      console.warn("Adding untracked or custom courier:", courierName);
+    }
+
     // 1. Fetch current order with items and user
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -39,10 +50,14 @@ export async function PATCH(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const currentMetadata: any = order.metadata || {};
-    const oldStatus = currentMetadata.shippingStatus || "PROCESSING";
+    const oldStatus = order.shippingStatus || "PENDING";
 
-    // Merge order metadata
+    // Set timestamps based on status transitions
+    const shippedAt = shippingStatus === "SHIPPED" && !order.shippedAt ? new Date() : order.shippedAt;
+    const deliveredAt = shippingStatus === "DELIVERED" && !order.deliveredAt ? new Date() : order.deliveredAt;
+
+    // Merge metadata for backwards compatibility
+    const currentMetadata: any = order.metadata || {};
     const updatedMetadata = {
       ...currentMetadata,
       shippingStatus,
@@ -55,10 +70,15 @@ export async function PATCH(
 
     // 2. Update order and all physical order items in a transaction
     await prisma.$transaction(async (tx) => {
-      // Update order metadata
+      // Update order dedicated fields + metadata
       await tx.order.update({
         where: { id: order.id },
         data: {
+          courierName: courierName || null,
+          trackingNumber: trackingId || null,
+          shippingStatus: shippingStatus as ShippingStatus,
+          shippedAt,
+          deliveredAt,
           metadata: updatedMetadata
         }
       });
@@ -145,10 +165,26 @@ export async function PATCH(
 
     return NextResponse.json({ success: true, message: "Shipping tracking information updated successfully" });
   } catch (err: any) {
-    console.error("[PATCH_SHIPPING_API_ERROR]", err);
+    console.error("[SHIPPING_API_ERROR]", err);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }
     );
   }
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
+  const { orderId } = await params;
+  return handleShippingUpdate(orderId, request);
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
+  const { orderId } = await params;
+  return handleShippingUpdate(orderId, request);
 }

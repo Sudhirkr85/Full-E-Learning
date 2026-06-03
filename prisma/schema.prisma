@@ -530,6 +530,12 @@ model Order {
   discount       Int       @default(0)
   subtotal       Int       @default(0)
 
+  courierName    String?
+  trackingNumber String?
+  shippingStatus ShippingStatus @default(PENDING)
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+
   @@index([userId])
   @@index([couponId])
   @@index([status])
@@ -743,6 +749,14 @@ enum OrderStatus {
   CANCELLED
   REFUNDED
   PARTIALLY_REFUNDED
+}
+
+enum ShippingStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
 }
 
 enum PaymentStatus {

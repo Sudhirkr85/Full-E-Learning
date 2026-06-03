@@ -63,6 +63,7 @@ The application contains the following fully implemented production modules:
 *   **Enrollment & Orders Desk**: Full platform-wide student enrollment viewer with search, filter by status, progress bars, and metric cards. Features a **Total Platform Revenue** card tracking Course and Store sales together with clear sub-breakdowns (avoiding double-counting). Separate Store Orders tab showing only PDF, Physical, Bundle, and Membership purchases (strictly excluding `COURSE_ACCESS` orders) with payment status, product type icons, amount paid in ₹ INR, and dedicated empty states.
 *   **Coupon Management Desk**: Robust admin dashboard at `/admin/coupons` with KPI metric counters (Total Coupons, Active Promos, Expired, Total Redemptions), full CRUD creation forms with alphanumeric sanitization, starts/ends date formatting wrappers, and usage tracking tables.
 *   **Overview Metrics Upgrade**: Displays 'Wishlisted' total count cards for the specific course so admins can track learner interest metrics.
+*   **Courier Mapping Dropdown**: Admin updates physical orders dispatch records selecting partner carriers directly from a secure standard `COURIER_LIST` drop-down (supporting custom fields fallback).
 
 ### Teacher Workspace
 *   **Teacher Overview Dashboard**: Full Overview at `/teacher/dashboard` featuring welcome panels, aggregate metric charts (Total Courses, Students, Active Seats, Avg Completion), responsive Recharts visual Area/Donut timelines, tabbed live activity feeds, and owned course shell listings.
@@ -78,6 +79,7 @@ The application contains the following fully implemented production modules:
 *   **My Library Bookshelf**: Located at `/student/library`. Displays all purchased digital playbooks and resources (type `DIGITAL_RESOURCE`) with cover thumbnail grids, purchase dates, and description cards.
 *   **Secure PDF online Reader**: Embedded secure PDF viewer desk at `/student/orders/[orderId]/pdf-viewer`. Integrates strict UUID validation checks on parameters to prevent PostgreSQL database casting faults and protects PDF materials by streaming document data securely from Cloudflare R2 storage without exposing direct file downloads.
 *   **Verified Course Certificates**: Auto-generates a cryptographic certificate of completion upon 100% course syllabus progress, downloadable as a styled A4 landscape PDF and shareable via public `/verify/[certificateId]` routes.
+*   **5-Stage Student Shipping Timeline Tracker**: Automatically traces physical order status timelines, drawing custom color pulses on the current transition stage, enabling clipboard-copies, and returning deep-links to tracking systems dynamically.
 
 ### Store & Checkout System
 *   **Cinematic Dark Glassmorphic Product Cards**: Store product cards upgraded with high-end glassmorphic visuals featuring beautiful green `% OFF` discount badges calculated dynamically from metadata.
@@ -129,7 +131,7 @@ The database is built on **PostgreSQL** and managed using **Prisma ORM**. The sc
 *   **`Attempt` & `AttemptAnswer`**: Records student assessment sessions and answers.
 *   **`Product`**: Store item details (shipping checks, PDF downloads, stock metrics).
 *   **`Coupon` & `CouponUsage`**: Global and target applies-to campaign structures.
-*   **`Order` & `OrderItem`**: Commercial transaction records.
+*   **`Order` & `OrderItem`**: Commercial transaction records. `Order` holds dedicated shipment columns (`courierName`, `trackingNumber`, `shippingStatus` enum, `shippedAt`, `deliveredAt`).
 *   **`Payment`**: Captures invoice ledger entries linked to orders.
 *   **`Notification`**: Standardized in-app messages and notifications.
 *   **`Certificate`**: Public blockchain-verified canonical certificate records.

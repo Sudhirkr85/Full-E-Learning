@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { CopyButton } from "@/components/ui/copy-button";
 import { OrderStatusPoller } from "./order-status-poller";
+import { getCourierTrackingUrl, getCourierLabel } from "@/lib/couriers";
 
 export const metadata: Metadata = makeMetadata({
   title: "My Orders | Dashboard",
@@ -189,22 +190,13 @@ export default async function StudentOrdersPage() {
               });
 
               const meta: any = order.metadata || {};
-              const shippingStatus = meta.shippingStatus || "PROCESSING";
-              const courierName = meta.courierName || "";
-              const trackingId = meta.trackingId || "";
-              const trackingUrl = meta.trackingUrl || "";
+              const shippingStatus = order.shippingStatus || meta.shippingStatus || "PENDING";
+              const courierName = order.courierName || meta.courierName || "";
+              const trackingId = order.trackingNumber || meta.trackingId || "";
               
               const hasPhysical = order.items.some(item => item.productType === "PHYSICAL");
               
-              const getCourierDeepLink = (courier: string, trId: string) => {
-                const c = courier.toLowerCase();
-                if (c.includes("delhivery")) return `https://www.delhivery.com/track/package/${trId}`;
-                if (c.includes("bluedart") || c.includes("blue dart")) return `https://www.bluedart.com/tracking?trackid=${trId}`;
-                if (c.includes("india post") || c.includes("speed post")) return `https://www.indiapost.gov.in/`;
-                return null;
-              };
-
-              const activeTrackingUrl = trackingUrl || (trackingId ? getCourierDeepLink(courierName, trackingId) : null);
+              const activeTrackingUrl = getCourierTrackingUrl(courierName, trackingId);
 
               return (
                 <div 
@@ -316,94 +308,122 @@ export default async function StudentOrdersPage() {
                   </div>
 
                   {/* Shipping tracking timeline card for physical items */}
-                  {order.status === "PAID" && hasPhysical && (
-                    <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4">
-                      <div className="flex items-center gap-2 text-xs font-bold text-white">
-                        <Truck className="h-4 w-4 text-indigo-400" />
-                        <span>Shipping Status</span>
+                  {order.status === "PAID" && hasPhysical && (() => {
+                    const statuses = ["PENDING", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"];
+                    const currentIndex = statuses.indexOf(shippingStatus);
+
+                    const getStepState = (stepIndex: number) => {
+                      if (stepIndex < currentIndex) return "completed";
+                      if (stepIndex === currentIndex) return "current";
+                      return "pending";
+                    };
+
+                    const formatDateLabel = (dateStr: Date | null | undefined) => {
+                      if (!dateStr) return "";
+                      return new Date(dateStr).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      });
+                    };
+
+                    // Get display dates from metadata or schema timestamps
+                    const dates = [
+                      order.placedAt, // Order Placed
+                      (order.metadata as any)?.processingAt || order.placedAt, // Processing
+                      order.shippedAt || (order.metadata as any)?.shippedAt, // Shipped
+                      (order.metadata as any)?.outForDeliveryAt, // Out for Delivery
+                      order.deliveredAt || (order.metadata as any)?.deliveredAt // Delivered
+                    ];
+
+                    const timelineSteps = [
+                      { title: "Order Placed", desc: "Paid successfully" },
+                      { title: "Processing", desc: "Items being packed" },
+                      { title: "Shipped", desc: "Dispatched from hub" },
+                      { title: "Out for Delivery", desc: "Couriers in transit" },
+                      { title: "Delivered", desc: "Package dropped off" }
+                    ];
+
+                    return (
+                      <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4">
+                        <div className="flex items-center gap-2 text-xs font-bold text-white">
+                          <Truck className="h-4 w-4 text-indigo-400" />
+                          <span>Shipping Status Timeline</span>
+                        </div>
+                        
+                        {/* Shipping Timeline: horizontal on desktop, vertical on mobile */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
+                          {timelineSteps.map((step, idx) => {
+                            const state = getStepState(idx);
+                            const dateVal = dates[idx];
+
+                            let bulletStyle = "border-white/10 text-slate-500 bg-transparent";
+                            if (state === "completed") {
+                              bulletStyle = "bg-emerald-600 border-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]";
+                            } else if (state === "current") {
+                              bulletStyle = "bg-amber-500 border-amber-400 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse";
+                            }
+
+                            return (
+                              <React.Fragment key={idx}>
+                                <div className="flex items-center gap-2.5">
+                                  <span className={`h-7 w-7 rounded-full flex items-center justify-center border-2 text-[10px] font-bold shrink-0 ${bulletStyle}`}>
+                                    {state === "completed" ? "✓" : idx + 1}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <p className={`text-xs font-bold ${state === "current" ? "text-amber-400" : state === "completed" ? "text-emerald-400" : "text-white"}`}>
+                                      {step.title}
+                                    </p>
+                                    <p className="text-[9px] text-slate-400 truncate leading-normal">
+                                      {state === "completed" && dateVal ? formatDateLabel(dateVal) : step.desc}
+                                    </p>
+                                  </div>
+                                </div>
+                                {idx < timelineSteps.length - 1 && (
+                                  <div className={`hidden sm:block flex-1 h-[2px] mx-2 ${
+                                    idx < currentIndex ? "bg-emerald-500" : "bg-white/10"
+                                  }`} />
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </div>
+
+                        {/* Extra tracking information if dispatched */}
+                        {(currentIndex >= 2) && trackingId && (
+                          <div className="pt-3 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div className="space-y-1">
+                              <p className="text-slate-400">
+                                Courier: <span className="font-semibold text-white">{getCourierLabel(courierName)}</span>
+                              </p>
+                              <div className="text-slate-400 flex items-center flex-wrap gap-1.5">
+                                <span>Tracking ID:</span>
+                                <span className="font-mono text-slate-200 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[11px] font-semibold">{trackingId}</span>
+                                <CopyButton text={trackingId} />
+                              </div>
+                            </div>
+                            
+                            {activeTrackingUrl ? (
+                              <a
+                                href={activeTrackingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-9 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wide flex items-center justify-center gap-1 transition self-start sm:self-center"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                Track Package →
+                              </a>
+                            ) : (
+                              <span className="text-[10px] text-slate-500 italic font-semibold self-start sm:self-center">
+                                Contact courier with tracking number above
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      
-                      {/* Shipping Timeline: horizontal on desktop, vertical on mobile */}
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
-                        {/* Step 1: Processing */}
-                        <div className="flex items-center gap-2.5">
-                          <span className={`h-6 w-6 rounded-full flex items-center justify-center border-2 text-[10px] font-bold ${
-                            shippingStatus === "PROCESSING" || shippingStatus === "SHIPPED" || shippingStatus === "DELIVERED"
-                              ? "bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                              : "bg-transparent border-white/10 text-slate-500"
-                          }`}>
-                            1
-                          </span>
-                          <div>
-                            <p className="text-xs font-bold text-white">Processing</p>
-                            <p className="text-[10px] text-slate-400">Items being packed</p>
-                          </div>
-                        </div>
-
-                        {/* Arrow/Line divider between 1 & 2 */}
-                        <div className="hidden sm:block flex-1 h-[2px] bg-white/10 mx-2" />
-
-                        {/* Step 2: Shipped */}
-                        <div className="flex items-center gap-2.5">
-                          <span className={`h-6 w-6 rounded-full flex items-center justify-center border-2 text-[10px] font-bold ${
-                            shippingStatus === "SHIPPED" || shippingStatus === "DELIVERED"
-                              ? "bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                              : "bg-transparent border-white/10 text-slate-500"
-                          }`}>
-                            2
-                          </span>
-                          <div>
-                            <p className="text-xs font-bold text-white">Shipped</p>
-                            <p className="text-[10px] text-slate-400">Dispatched from hub</p>
-                          </div>
-                        </div>
-
-                        {/* Arrow/Line divider between 2 & 3 */}
-                        <div className="hidden sm:block flex-1 h-[2px] bg-white/10 mx-2" />
-
-                        {/* Step 3: Delivered */}
-                        <div className="flex items-center gap-2.5">
-                          <span className={`h-6 w-6 rounded-full flex items-center justify-center border-2 text-[10px] font-bold ${
-                            shippingStatus === "DELIVERED"
-                              ? "bg-emerald-600 border-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                              : "bg-transparent border-white/10 text-slate-500"
-                          }`}>
-                            3
-                          </span>
-                          <div>
-                            <p className="text-xs font-bold text-white">Delivered</p>
-                            <p className="text-[10px] text-slate-400">Arrived at destination</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Extra tracking information if dispatched */}
-                      {(shippingStatus === "SHIPPED" || shippingStatus === "DELIVERED") && trackingId && (
-                        <div className="pt-3 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                          <div className="space-y-1">
-                            <p className="text-slate-400">
-                              Courier: <span className="font-semibold text-white">{courierName || "Standard Delivery"}</span>
-                            </p>
-                            <p className="text-slate-400 flex items-center flex-wrap gap-1">
-                              Tracking ID: <CopyButton text={trackingId} />
-                            </p>
-                          </div>
-                          
-                          {activeTrackingUrl && (
-                            <a
-                              href={activeTrackingUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="h-9 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wide flex items-center justify-center gap-1 transition self-start sm:self-center"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              Track on Courier Site
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               );
             })}

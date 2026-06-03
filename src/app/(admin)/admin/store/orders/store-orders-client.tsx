@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { COURIER_LIST } from "@/lib/couriers";
 
 type User = {
   id: string;
@@ -49,6 +50,9 @@ type OrderData = {
   billingEmail: string;
   status: string;
   totalCents: number;
+  courierName?: string | null;
+  shippingStatus?: string | null;
+  trackingNumber?: string | null;
   metadata?: any;
   createdAt: Date;
   items: OrderItem[];
@@ -76,7 +80,7 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
   const [customCourier, setCustomCourier] = useState("");
   const [trackingId, setTrackingId] = useState("");
   const [dispatchDate, setDispatchDate] = useState("");
-  const [shippingStatus, setShippingStatus] = useState<"PROCESSING" | "SHIPPED" | "DELIVERED">("SHIPPED");
+  const [shippingStatus, setShippingStatus] = useState<"PENDING" | "PROCESSING" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED">("SHIPPED");
   const [internalNote, setInternalNote] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -106,17 +110,23 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
 
   // Open Modal shipping parameters
   const openShippingDesk = (order: OrderData) => {
-    const meta = order.metadata || {};
-    const hasTracking = !!meta.trackingId;
-    
-    setCourierName(meta.courierName || "Delhivery");
-    setCustomCourier(meta.courierName && !["Delhivery", "BlueDart", "India Post", "DTDC", "Ekart", "Xpressbees"].includes(meta.courierName) ? meta.courierName : "");
-    setTrackingId(meta.trackingId || "");
-    setDispatchDate(meta.dispatchDate || new Date().toISOString().split("T")[0]);
-    setShippingStatus(meta.shippingStatus || (hasTracking ? "SHIPPED" : "SHIPPED"));
-    setInternalNote(meta.internalNote || "");
+    const currentCourier = order.courierName || order.metadata?.courierName || "delhivery";
+    const currentStatus = order.shippingStatus || order.metadata?.shippingStatus || "PENDING";
+    const currentTrackingId = order.trackingNumber || order.metadata?.trackingId || "";
+
+    const standardValues = COURIER_LIST.map(c => c.value);
+    const standardLabelsLower = COURIER_LIST.map(c => c.label.toLowerCase());
+    const isStandard = standardValues.includes(currentCourier.toLowerCase()) || standardLabelsLower.includes(currentCourier.toLowerCase());
+
+    setCourierName(isStandard ? COURIER_LIST.find(c => c.value === currentCourier.toLowerCase() || c.label.toLowerCase() === currentCourier.toLowerCase())?.value || "other" : "other");
+    setCustomCourier(!isStandard && currentCourier !== "Other" ? currentCourier : "");
+    setTrackingId(currentTrackingId);
+    setDispatchDate(order.metadata?.dispatchDate || new Date().toISOString().split("T")[0]);
+    setShippingStatus(currentStatus as any);
+    setInternalNote(order.metadata?.internalNote || "");
     setSelectedOrder(order);
   };
+
 
   const handleSaveShipping = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,6 +158,9 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
           if (o.id === selectedOrder.id) {
             return {
               ...o,
+              courierName: finalCourier,
+              trackingNumber: trackingId.toUpperCase(),
+              shippingStatus: shippingStatus as any,
               metadata: {
                 ...(o.metadata || {}),
                 courierName: finalCourier,
@@ -279,25 +292,29 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
 
   const getStatusBadge = (order: OrderData) => {
     const isPhys = order.items.some(item => item.productType === "PHYSICAL");
-    const shipStatus = (order.metadata || {}).shippingStatus || (isPhys ? "PROCESSING" : "PAID");
+    const shipStatus = order.shippingStatus || (order.metadata || {}).shippingStatus || (isPhys ? "PENDING" : "PAID");
     
     if (order.status === "CANCELLED") {
-      return <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">CANCELLED</span>;
+      return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">CANCELLED</span>;
     }
 
     if (!isPhys) {
-      return <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">PAID (PDF)</span>;
+      return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">PAID (PDF)</span>;
     }
 
     switch (shipStatus) {
+      case "PENDING":
+        return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30">PENDING</span>;
       case "PROCESSING":
-        return <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">PROCESSING</span>;
+        return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">PROCESSING</span>;
       case "SHIPPED":
-        return <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">SHIPPED</span>;
+        return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">SHIPPED</span>;
+      case "OUT_FOR_DELIVERY":
+        return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">OUT FOR DELIVERY</span>;
       case "DELIVERED":
-        return <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">DELIVERED</span>;
+        return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">DELIVERED</span>;
       default:
-        return <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">PAID</span>;
+        return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">{shipStatus}</span>;
     }
   };
 
@@ -646,9 +663,9 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
                   onChange={(e) => setCourierName(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 h-11 text-base text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40"
                 >
-                  {["Delhivery", "BlueDart", "India Post", "DTDC", "Ekart", "Xpressbees", "Other"].map((partner) => (
-                    <option key={partner} value={partner} className="bg-[#0d0d14]">
-                      {partner}
+                  {COURIER_LIST.map((partner) => (
+                    <option key={partner.value} value={partner.value} className="bg-[#0d0d14]">
+                      {partner.label}
                     </option>
                   ))}
                 </select>
@@ -694,7 +711,6 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
                 />
               </div>
 
-              {/* Shipping Status */}
               <div>
                 <label className="text-[10px] text-slate-400 uppercase font-semibold block mb-1">Shipping Status *</label>
                 <select
@@ -703,8 +719,10 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
                   onChange={(e) => setShippingStatus(e.target.value as any)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 h-11 text-base text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40"
                 >
+                  <option value="PENDING" className="bg-[#0d0d14]">PENDING</option>
                   <option value="PROCESSING" className="bg-[#0d0d14]">PROCESSING</option>
                   <option value="SHIPPED" className="bg-[#0d0d14]">SHIPPED</option>
+                  <option value="OUT_FOR_DELIVERY" className="bg-[#0d0d14]">OUT FOR DELIVERY</option>
                   <option value="DELIVERED" className="bg-[#0d0d14]">DELIVERED</option>
                 </select>
               </div>

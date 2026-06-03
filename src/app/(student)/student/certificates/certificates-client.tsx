@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
-import { Award, Download, Eye, Share2, ExternalLink, X, BookOpen } from "lucide-react";
+import { Award, Download, Eye, Share2, ExternalLink, X, BookOpen, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -22,6 +22,12 @@ interface CertificatesClientProps {
 
 export function CertificatesClient({ initialCertificates }: CertificatesClientProps) {
   const [selectedCert, setSelectedCert] = useState<CertificateItem | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 3));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.5));
+  const handleResetZoom = () => setZoom(1);
 
   const handleShare = (verificationCode: string) => {
     const origin = window.location.origin;
@@ -176,12 +182,48 @@ export function CertificatesClient({ initialCertificates }: CertificatesClientPr
           <div className="relative flex flex-col w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-white/10 bg-[#090d20] shadow-2xl">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-white/5 p-4">
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-amber-400" />
-                <span className="text-sm font-bold text-white">Certificate Preview</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Award className="h-5 w-5 text-amber-400" />
+                  <span className="text-sm font-bold text-white">Certificate Preview</span>
+                </div>
+                
+                <div className="hidden sm:flex items-center gap-1 border-l border-white/10 pl-4">
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={handleZoomOut}
+                    className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                  >
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <span className="text-[10px] font-mono text-slate-500 w-12 text-center">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={handleZoomIn}
+                    className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={handleResetZoom}
+                    className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                    title="Reset Zoom"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <button
-                onClick={() => setSelectedCert(null)}
+                onClick={() => {
+                  setSelectedCert(null);
+                  setZoom(1);
+                }}
                 className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white transition"
               >
                 <X className="h-5 w-5" />
@@ -189,57 +231,65 @@ export function CertificatesClient({ initialCertificates }: CertificatesClientPr
             </div>
 
             {/* Certificate Premium HTML Design (matches PDF structure) */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-12 flex items-center justify-center bg-slate-950/40">
-              <div className="w-full max-w-3xl aspect-[1.414/1] border-2 border-amber-600/40 rounded-xl bg-[#060919] p-8 md:p-12 flex flex-col justify-between relative shadow-inner text-center overflow-hidden">
-                {/* Gold ornament lines */}
-                <div className="absolute top-0 inset-x-12 h-1.5 bg-amber-500/80 rounded-b-md" />
-                <div className="absolute bottom-0 inset-x-12 h-1.5 bg-amber-500/80 rounded-t-md" />
+            <div 
+              ref={scrollContainerRef}
+              className="flex-1 overflow-auto p-6 md:p-12 bg-slate-950/40 cursor-grab active:cursor-grabbing"
+            >
+              <div className="flex items-center justify-center min-h-full min-w-max">
+                <div 
+                  style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
+                  className="w-[800px] aspect-[1.414/1] border-2 border-amber-600/40 rounded-xl bg-[#060919] p-8 md:p-12 flex flex-col justify-between relative shadow-2xl text-center overflow-hidden transition-transform duration-200 ease-out"
+                >
+                  {/* Gold ornament lines */}
+                  <div className="absolute top-0 inset-x-12 h-1.5 bg-amber-500/80 rounded-b-md" />
+                  <div className="absolute bottom-0 inset-x-12 h-1.5 bg-amber-500/80 rounded-t-md" />
 
-                {/* Top header */}
-                <div className="space-y-3">
-                  <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">
-                    E-Learning Platform
-                  </p>
-                  <div className="w-24 h-[1px] bg-amber-500/20 mx-auto" />
-                  <h2 className="font-serif text-2xl md:text-3xl font-extrabold uppercase tracking-wider text-amber-400">
-                    Certificate of Completion
-                  </h2>
-                  <p className="text-[11px] md:text-xs text-slate-400 italic font-light">
-                    This certifies that
-                  </p>
-                </div>
-
-                {/* Student Name */}
-                <div className="my-4">
-                  <h3 className="font-serif text-2xl md:text-4xl font-extrabold text-white tracking-wide border-b-2 border-amber-500/40 inline-block px-4 pb-1">
-                    Student Account
-                  </h3>
-                  <p className="text-[11px] md:text-xs text-slate-400 italic mt-3 font-light">
-                    has successfully completed the course
-                  </p>
-                  <h4 className="text-lg md:text-xl font-bold text-indigo-300 mt-2">
-                    {selectedCert.courseTitle}
-                  </h4>
-                  <p className="text-[9px] md:text-[10px] text-slate-500 font-medium mt-3">
-                    on {formatDate(selectedCert.issuedAt)}
-                  </p>
-                </div>
-
-                {/* Bottom signatures & verification details */}
-                <div className="flex items-end justify-between border-t border-white/5 pt-6 mt-2">
-                  <div className="w-1/3 text-left">
-                    <div className="w-28 h-[1px] bg-slate-700 mb-2" />
-                    <p className="text-[9px] md:text-[10px] font-bold text-slate-200">Course Instructor</p>
-                    <p className="text-[8px] text-slate-500">Instructor Signature</p>
-                  </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-500/40 bg-amber-950/20 text-amber-500 text-[10px] font-extrabold tracking-wider">
-                    SEAL
-                  </div>
-                  <div className="w-1/3 text-right">
-                    <p className="text-[8px] text-slate-500">Certificate ID</p>
-                    <p className="text-[9px] md:text-[10px] font-mono font-bold text-amber-400 mt-1">
-                      {selectedCert.verificationCode}
+                  {/* Top header */}
+                  <div className="space-y-3">
+                    <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">
+                      E-Learning Platform
                     </p>
+                    <div className="w-24 h-[1px] bg-amber-500/20 mx-auto" />
+                    <h2 className="font-serif text-2xl md:text-3xl font-extrabold uppercase tracking-wider text-amber-400">
+                      Certificate of Completion
+                    </h2>
+                    <p className="text-[11px] md:text-xs text-slate-400 italic font-light">
+                      This certifies that
+                    </p>
+                  </div>
+
+                  {/* Student Name */}
+                  <div className="my-4">
+                    <h3 className="font-serif text-2xl md:text-4xl font-extrabold text-white tracking-wide border-b-2 border-amber-500/40 inline-block px-4 pb-1">
+                      Student Account
+                    </h3>
+                    <p className="text-[11px] md:text-xs text-slate-400 italic mt-3 font-light">
+                      has successfully completed the course
+                    </p>
+                    <h4 className="text-lg md:text-xl font-bold text-indigo-300 mt-2">
+                      {selectedCert.courseTitle}
+                    </h4>
+                    <p className="text-[9px] md:text-[10px] text-slate-500 font-medium mt-3">
+                      on {formatDate(selectedCert.issuedAt)}
+                    </p>
+                  </div>
+
+                  {/* Bottom signatures & verification details */}
+                  <div className="flex items-end justify-between border-t border-white/5 pt-6 mt-2">
+                    <div className="w-1/3 text-left">
+                      <div className="w-28 h-[1px] bg-slate-700 mb-2" />
+                      <p className="text-[9px] md:text-[10px] font-bold text-slate-200">Course Instructor</p>
+                      <p className="text-[8px] text-slate-500">Instructor Signature</p>
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-500/40 bg-amber-950/20 text-amber-500 text-[10px] font-extrabold tracking-wider">
+                      SEAL
+                    </div>
+                    <div className="w-1/3 text-right">
+                      <p className="text-[8px] text-slate-500">Certificate ID</p>
+                      <p className="text-[9px] md:text-[10px] font-mono font-bold text-amber-400 mt-1">
+                        {selectedCert.verificationCode}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -9,13 +9,7 @@ import {
   XCircle, 
   Clock, 
   Loader2, 
-  ArrowRight, 
-  Calendar, 
-  ShieldAlert, 
-  ExternalLink,
-  MessageSquare,
-  Package,
-  BookOpen
+  ArrowRight 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -135,12 +129,6 @@ export function OrderConfirmationClient({ orderId }: OrderConfirmationClientProp
               <Link href="/student/orders">
                 View My Orders
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="border-white/10 text-slate-300 hover:bg-white/5 rounded-xl h-11 px-6">
-              <Link href="/support" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Contact Support
               </Link>
             </Button>
           </div>
@@ -272,12 +260,6 @@ export function OrderConfirmationClient({ orderId }: OrderConfirmationClientProp
           <Button asChild className="bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl h-11 px-6 transition duration-200">
             <Link href={orderType === "COURSE" && courseSlug ? `/courses/${courseSlug}` : "/store"}>
               Try Again
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="border-white/10 text-slate-300 hover:bg-white/5 rounded-xl h-11 px-6">
-            <Link href="/support" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Contact Support
             </Link>
           </Button>
         </div>

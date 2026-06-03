@@ -42,6 +42,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Wishlist Logic**: Fixed the wishlist toggle behavior to correctly perform add/remove operations in a single click-cycle.
     *   **Link Integrity**: Removed dead support links (404) from the storefront.
     *   **YouTube Thumbnail Fallback**: Added robust fallback for YouTube video thumbnails to prevent 404 errors on missing maxresdefault images.
+    *   **Fallback Product and Course Removal**: Cleaned the public landing page ([page.tsx](file:///d:/Work/E-Learning/src/app/(public)/page.tsx)) to stop rendering fallback items when no active courses or products exist in the database. Instead, the page now displays beautiful, responsive empty-state message containers with custom details encouraging action.
 
 ## 2. Tech Stack
 
@@ -247,6 +248,7 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 *   **Plyr Custom Video Controls**: Replaced native playback blocks with a lightweight CDN player providing customized color palettes and mobile landscape locking structures.
 *   **Student Profile Menu Update**: Synchronized the top-right profile dropdown menu links with the sidebar navigation system by introducing the "My Library" page route.
 *   **Secure Digital Library Filtering**: Confined the library query strictly to items of type `DIGITAL_RESOURCE` so that physical product purchases do not render in the bookshelf library area.
+*   **Fallback Assets Deletion**: Completely removed the legacy `fallbackCourses` and `fallbackProducts` mock arrays from the `siteConfig` file ([site.ts](file:///d:/Work/E-Learning/src/lib/site.ts)) to keep the code footprint clean and production-focused.
 
 ---
 

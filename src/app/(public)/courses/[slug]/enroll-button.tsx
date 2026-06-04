@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { Loader2, PlayCircle, Lock } from "lucide-react";
+import { Loader2, PlayCircle, Lock, X, Ticket } from "lucide-react";
+import { createPortal } from "react-dom";
 
 interface EnrollButtonProps {
   courseId: string;
@@ -38,6 +39,7 @@ export function EnrollButton({
   variant = "detail"
 }: EnrollButtonProps) {
   const [enrollLoading, setEnrollLoading] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const router = useRouter();
 
   // Use SWR exclusively for enrollment status fetching
@@ -110,6 +112,7 @@ export function EnrollButton({
       }
 
       const { razorpayOrderId, enrollmentId, amount } = data;
+      setShowCheckoutModal(false);
 
       if (typeof window === 'undefined' || !(window as any).Razorpay) {
         toast.error("Payment system failed to load. Please refresh and try again.");
@@ -390,19 +393,11 @@ export function EnrollButton({
     // 5. Paid Course
     return (
       <button
-        onClick={handlePaidEnroll}
+        onClick={() => setShowCheckoutModal(true)}
         disabled={enrollLoading}
         className={btnClass}
       >
-        {enrollLoading ? (
-          <>
-            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...
-          </>
-        ) : (
-          <>
-            <Lock className="w-3.5 h-3.5" /> {variant === "card" ? "Enroll" : `Buy Now — ₹${finalPayablePrice.toLocaleString("en-IN")}`}
-          </>
-        )}
+        <Lock className="w-3.5 h-3.5" /> {variant === "card" ? "Buy Now" : `Buy Now — ₹${finalPayablePrice.toLocaleString("en-IN")}`}
       </button>
     );
   };
@@ -456,6 +451,159 @@ export function EnrollButton({
       )}
 
       {renderEnrollmentButton()}
+
+      {/* Checkout Drawer Portal */}
+      {showCheckoutModal && typeof window !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+          {/* Backdrop */}
+          <div 
+            onClick={() => {
+              if (!enrollLoading) {
+                setShowCheckoutModal(false);
+                handleRemoveCoupon();
+              }
+            }}
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" 
+          />
+
+          {/* Drawer Body */}
+          <div className="fixed inset-y-0 right-0 z-50 flex flex-col w-full sm:w-[420px] max-w-full bg-[#0d1117] border-l border-white/10 shadow-2xl animate-in slide-in-from-right duration-250 text-slate-100">
+            {/* Header Sticky */}
+            <div className="sticky top-0 z-10 bg-[#0d1117] border-b border-white/10 px-4 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Lock className="h-5 w-5 text-violet-400" />
+                <h2 className="text-lg font-semibold text-white">Checkout</h2>
+              </div>
+              <button 
+                onClick={() => {
+                  if (!enrollLoading) {
+                    setShowCheckoutModal(false);
+                    handleRemoveCoupon();
+                  }
+                }}
+                className="h-8 w-8 rounded-full text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Drawer Content */}
+            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-6 space-y-6">
+              {/* Product / Course Info */}
+              <div className="space-y-3">
+                <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Course Details</h3>
+                <div className="p-4 flex gap-4 items-center bg-white/5 border border-white/10 rounded-xl">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm text-white leading-snug">{courseName}</h4>
+                    <p className="text-xs text-indigo-400 mt-1">Course Access License</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-3 pt-2">
+                <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Contact Information</h3>
+                <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-2 font-medium">
+                  <div className="text-sm font-bold text-white">
+                    {userName || "Student User"}
+                  </div>
+                  <div className="text-xs text-slate-300 space-y-1">
+                    {userEmail && <p>{userEmail}</p>}
+                    {userPhone && <p>{userPhone}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Coupon Code section */}
+              <div className="space-y-3 pt-2">
+                <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Discount Coupon</h3>
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <Ticket className="h-4 w-4 text-emerald-400" />
+                      <span>Code: {appliedCoupon.code}</span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={handleRemoveCoupon} 
+                      className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors px-2 py-1 hover:bg-emerald-500/10 rounded-lg"
+                    >
+                      [Remove]
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="ENTER COUPON"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleApplyCoupon(e as any);
+                        }
+                      }}
+                      className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono tracking-wider"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleApplyCoupon} 
+                      className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-colors h-9"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+                {couponSuccessMsg && <p className="text-xs text-emerald-400 font-medium">{couponSuccessMsg}</p>}
+                {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
+              </div>
+            </div>
+
+            {/* Sticky Footer */}
+            <div className="p-4 border-t border-white/10 bg-[#0d1117] sticky bottom-0 z-10 space-y-4">
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between text-slate-400">
+                  <span>Subtotal</span>
+                  <span>₹{coursePrice.toLocaleString("en-IN")}</span>
+                </div>
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-400">
+                    <span>Coupon Discount</span>
+                    <span>-₹{(couponDiscount / 100).toLocaleString("en-IN")}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-white/10">
+                  <span>Total Payable</span>
+                  <span className="text-lg font-mono">₹{finalPayablePrice.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="text-[10px] text-emerald-400 font-semibold mt-1">
+                  ✓ Tax included
+                </div>
+              </div>
+
+              <button
+                onClick={handlePaidEnroll}
+                disabled={enrollLoading}
+                className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-violet-600/10"
+              >
+                {enrollLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4" />
+                    Pay with Razorpay
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

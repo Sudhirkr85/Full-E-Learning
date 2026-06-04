@@ -28,6 +28,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Completion Guard**: Hidden the manual "Mark Complete" button for quiz lessons so that students can only pass and complete quiz lessons based on meeting the passing mark criteria.
 
 *   **UI/UX Refinements**:
+    *   **Direct Course Checkout Modal**: Integrated a premium interactive Checkout Modal when clicking 'Buy Now' / 'Enroll' on course cards or course detail sections. This modal allows students to easily review their purchase, input/apply coupon codes, dynamically view secure discount breakdowns, and proceed to Razorpay only when ready, eliminating the need to go to a full cart page first.
     *   **Admin Coupons Table Refinements**: Fixed a typographical error in the voucher campaigns table header (changing "Scope Scope" to "Scope") and styled all target scope badges to use high-contrast indigo colors (`text-indigo-300 bg-indigo-500/10`) for optimal readability against dark dashboard themes.
     *   **Selective Context-Aware Cart Visibility**: Integrated the `HeaderCartButton` component directly into the main navigation header. Enforced route-aware logic ensuring that the cart button is only rendered when there are items in the cart AND the user is browsing public storefront layouts (Home, Courses, Store, Cart), keeping the learning classroom dashboards completely distraction-free.
     *   **Homepage Cleanups**: Removed the duplicate "Featured Products" section markup from the homepage file.

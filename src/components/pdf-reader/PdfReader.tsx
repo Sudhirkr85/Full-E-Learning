@@ -73,15 +73,18 @@ function ThumbnailPage({ pdfDoc, pageNumber, isActive, onClick }: ThumbnailPageP
         if (!active || !canvasRef.current) return;
 
         const originalViewport = page.getViewport({ scale: 1.0 });
-        const scale = 100 / originalViewport.width; // fits width={100} perfectly
-        const viewport = page.getViewport({ scale });
+        const baseScale = 100 / originalViewport.width; // fits width={100} perfectly
+        const dpr = window.devicePixelRatio || 1;
+        const viewport = page.getViewport({ scale: baseScale * dpr });
 
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
 
         if (context) {
-          canvas.height = viewport.height;
           canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.width = `${viewport.width / dpr}px`;
+          canvas.style.height = `${viewport.height / dpr}px`;
 
           const renderTask = page.render({
             canvasContext: context,
@@ -320,13 +323,16 @@ export function PdfReader({
         const page = await pdfDoc.getPage(pageNum);
         if (!active || !canvasRef.current) return;
 
-        const viewport = page.getViewport({ scale });
+        const dpr = window.devicePixelRatio || 1;
+        const viewport = page.getViewport({ scale: scale * dpr });
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
 
         if (context) {
-          canvas.height = viewport.height;
           canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.width = `${viewport.width / dpr}px`;
+          canvas.style.height = `${viewport.height / dpr}px`;
 
           const renderTask = page.render({
             canvasContext: context,
@@ -459,7 +465,8 @@ export function PdfReader({
       const page = await pdfDoc.getPage(pageNum);
       const originalViewport = page.getViewport({ scale: 1.0 });
       const containerWidth = viewerRef.current.clientWidth - 48; // account for margins/paddings
-      const calculatedScale = Math.min(Math.max(containerWidth / originalViewport.width, 0.5), 3.0);
+      const dpr = window.devicePixelRatio || 1;
+      const calculatedScale = Math.min(Math.max((containerWidth / originalViewport.width) / dpr, 0.5), 3.0);
       setScale(calculatedScale);
       toast.success("Adjusted to fit screen width");
     } catch (e) {

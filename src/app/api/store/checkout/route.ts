@@ -91,9 +91,12 @@ export async function POST(req: Request) {
 
     const totalCents = Math.max(subtotalCents - discountCents, 0);
     
-    // For physical items, check if shipping charge applies (e.g. ₹50 shipping if under ₹500/50000 cents)
+    // For physical items, check if shipping charge applies (free shipping for physical items if physical subtotal >= ₹499/49900 cents, else ₹40/4000 cents)
     const hasPhysical = validItems.some(i => i.product.productType === "PHYSICAL" || i.product.shippingRequired);
-    const shippingChargeCents = hasPhysical ? (subtotalCents > 50000 ? 0 : 5000) : 0;
+    const physicalSubtotalCents = validItems
+      .filter(i => i.product.productType === "PHYSICAL" || i.product.shippingRequired)
+      .reduce((sum, i) => sum + (i.product.priceCents * i.quantity), 0);
+    const shippingChargeCents = hasPhysical ? (physicalSubtotalCents >= 49900 ? 0 : 4000) : 0;
     const finalTotalCents = totalCents + shippingChargeCents;
 
     // Create Razorpay order

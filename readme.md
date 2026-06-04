@@ -57,6 +57,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Fallback Product and Course Removal**: Cleaned the public landing page ([page.tsx](file:///d:/Work/E-Learning/src/app/(public)/page.tsx)) to stop rendering fallback items when no active courses or products exist in the database.
     *   **Coupon Discount Cap Enforcement**: Fixed a bug where coupon applications (e.g., `FLAT50` 50% discount coupon) ignored the configured maximum discount limit (`maxDiscountCents`). Enforced the cap in client-side recalculations on both the Cart Page and Store Drawer, as well as in the server-side `validateCouponAction` helper to ensure proper discounts are calculated everywhere.
     *   **Coupon Input Enter-Key Interception**: Intercepted the `Enter` keypress event inside coupon code input fields on the Cart Page and Store Drawer. This prevents the browser from automatically submitting the checkout payment form, and instead applies the coupon seamlessly.
+    *   **Shipping Calculation Alignment**: Resolved an amount mismatch between client-side totals (which charged ₹40 under ₹499 subtotal) and server checkout calculations (which charged ₹50 under ₹500 subtotal) by standardizing all calculations to ₹40 shipping for physical orders under ₹499.
 
 ## 2. Tech Stack
 

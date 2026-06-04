@@ -400,7 +400,7 @@ export default async function StudentOrdersPage() {
                               <div className="text-slate-400 flex items-center flex-wrap gap-1.5">
                                 <span>Tracking ID:</span>
                                 <span className="font-mono text-slate-200 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[11px] font-semibold">{trackingId}</span>
-                                <CopyButton text={trackingId} />
+                                <CopyButton text={trackingId} showText={false} />
                               </div>
                             </div>
                             

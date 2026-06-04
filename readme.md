@@ -61,6 +61,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Post Office Default Courier Option**: Added "Post Office" (India Post) as the default courier partner option on the Admin Shipping Desk and Order Details desk by placing it at the top of the shared courier list configuration. Added full tracking support for Post Office shipments.
     *   **Automatic Shipping Status Initialization**: Configured order fulfillment logic across both Razorpay webhooks (captured/paid) and manual checkouts to automatically transition the shipping status of physical product orders to `"PROCESSING"` upon payment confirmation. This allows immediate shipping desk actions rather than leaving them in a static `"PENDING"` state.
     *   **Razorpay Order/Payment ID Separation**: Resolved a layout label mismatch in the Payment details desk where the Razorpay Order ID (prefixed with `order_`) was displayed under the Payment ID label while the Order ID field showed empty. Mapped Order ID to metadata and fallback order-numbers, and limited Payment ID strictly to actual payment values (prefixed with `pay_` or `sim_pay_`).
+    *   **Duplicate Tracking ID Display**: Resolved a UI issue in the student's order tracking timeline where the tracking ID rendered twice next to the copy icon. Added a `showText` control prop to `<CopyButton>` and disabled the redundant text rendering.
 
 ## 2. Tech Stack
 

@@ -6,9 +6,10 @@ import { toast } from "sonner";
 
 interface CopyButtonProps {
   text: string;
+  showText?: boolean;
 }
 
-export function CopyButton({ text }: CopyButtonProps) {
+export function CopyButton({ text, showText = true }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -31,7 +32,7 @@ export function CopyButton({ text }: CopyButtonProps) {
       title="Click to copy"
     >
       {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3 text-slate-400 hover:text-white" />}
-      <span>{text}</span>
+      {showText && <span>{text}</span>}
     </button>
   );
 }

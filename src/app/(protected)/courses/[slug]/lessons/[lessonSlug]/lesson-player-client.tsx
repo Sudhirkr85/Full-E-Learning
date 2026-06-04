@@ -266,25 +266,25 @@ export function LessonPlayerClient({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 relative z-10">
+    <div className="max-w-[1600px] mx-auto px-3 sm:px-5 xl:px-8 pt-4 md:pt-6 relative z-10 overflow-x-hidden">
       {/* Navigation Header */}
-      <div className="flex items-center justify-between mb-6 md:mb-8">
-        <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center justify-between mb-5 md:mb-7 gap-2">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <Link
             href={quizReviewAttempt ? `/courses/${slug}/lessons/${lessonSlug}` : `/courses/${slug}`}
-            className="flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200"
+            className="flex-shrink-0 flex items-center justify-center h-9 w-9 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200"
             title={quizReviewAttempt ? "Back to Quiz Overview" : "Back to Course"}
           >
-            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
+            <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 p-[1px]">
+          <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
+          <Link href="/" className="flex items-center gap-2 group min-w-0">
+            <div className="relative flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 p-[1px]">
               <div className="flex h-full w-full items-center justify-center rounded-[7px] bg-[#0b0f1e] text-indigo-400 group-hover:bg-transparent group-hover:text-white transition-all duration-300">
-                <Sparkles className="h-3 w-3 md:h-4 md:w-4 fill-indigo-400/20 group-hover:fill-white/20" />
+                <Sparkles className="h-3 w-3 fill-indigo-400/20 group-hover:fill-white/20" />
               </div>
             </div>
-            <span className="font-display text-xs md:text-sm font-bold tracking-tight text-white group-hover:text-indigo-400 transition-colors">
+            <span className="font-display text-xs md:text-sm font-bold tracking-tight text-white group-hover:text-indigo-400 transition-colors hidden sm:block">
               LMS
             </span>
           </Link>
@@ -292,9 +292,9 @@ export function LessonPlayerClient({
 
         <Link
           href={`/courses/${slug}`}
-          className="flex items-center gap-2 px-3 md:px-5 h-9 md:h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-indigo-500/20 hover:border-indigo-500/40 transition-all duration-300 shadow-[0_0_15px_rgba(99,102,241,0.05)]"
+          className="flex-shrink-0 flex items-center gap-1.5 px-3 md:px-4 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-indigo-500/20 hover:border-indigo-500/40 transition-all duration-300"
         >
-          <BookOpen className="h-3.5 w-3.5 md:h-4 md:w-4" />
+          <BookOpen className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Module Overview</span>
         </Link>
       </div>
@@ -361,12 +361,12 @@ export function LessonPlayerClient({
 
       {/* Core Split Screen Layout Grid */}
       <div className={cn(
-        "grid gap-8 transition-all duration-500",
-        isFocusMode ? "grid-cols-1" : "lg:grid-cols-[1fr_320px]"
+        "grid gap-6 transition-all duration-500",
+        isFocusMode ? "grid-cols-1" : "xl:grid-cols-[1fr_300px]"
       )}>
         {/* Left Column: Media Player Workspace */}
-        <div className="space-y-6">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 backdrop-blur-md shadow-2xl relative overflow-hidden group">
+        <div className="space-y-6 min-w-0">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-2xl relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-40 pointer-events-none" />
             
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5 relative z-10">
@@ -535,7 +535,7 @@ export function LessonPlayerClient({
                   title={bundle.lesson.title} 
                 />
               ) : bundle.lesson.r2AssetUrl ? (
-                <div className="w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl h-[75vh]">
+                <div className="w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl" style={{ height: 'clamp(400px, 75vh, 900px)' }}>
                   <PdfReader
                     productId={bundle.course.id}
                     orderId={bundle.enrollment?.id || `lesson-${bundle.lesson.id}`}
@@ -591,9 +591,9 @@ export function LessonPlayerClient({
 
         {/* Right Column: Sidebar (Desktop Only) */}
         {!isFocusMode && (
-          <div className="hidden lg:flex flex-col gap-6">
+          <div className="hidden xl:flex flex-col gap-5">
             {/* Desktop Syllabus Sidebar */}
-            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 shadow-2xl relative overflow-hidden group max-h-[calc(100vh-160px)] overflow-y-auto">
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 shadow-2xl relative overflow-hidden group sticky top-4" style={{ maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-40 pointer-events-none" />
               <div className="relative z-10">
                 {renderSyllabusContent()}

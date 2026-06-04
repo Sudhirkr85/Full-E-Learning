@@ -493,7 +493,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                 {isUploading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Upload className="mr-2 h-3.5 w-3.5" />}
                 {isUploading ? "Uploading..." : "Upload Image"}
               </Button>
-              <p className="text-[9px] text-slate-500 text-center">JPEG, PNG, WebP up to 5 MB.</p>
+              <p className="text-[9px] text-slate-500 text-center">Recommended: 1280x720 pixels (16:9 aspect ratio). JPEG, PNG, WebP up to 5 MB.</p>
               {uploadError ? <p className="text-[10px] font-semibold text-rose-400 text-center">{uploadError}</p> : null}
             </CardContent>
           </Card>

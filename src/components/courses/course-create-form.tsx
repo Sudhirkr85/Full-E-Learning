@@ -352,7 +352,7 @@ export function CourseCreateForm({ categories, backUrl }: CourseCreateFormProps)
                         <Upload className="h-5 w-5 text-indigo-400" />
                       </div>
                       <p className="text-xs font-semibold text-slate-200">Click to upload course banner</p>
-                      <p className="text-[10px] text-slate-500 mt-1">Accepts JPEG, PNG, WebP, GIF up to 5 MB</p>
+                      <p className="text-[10px] text-slate-500 mt-1">Recommended: 1280x720 pixels (16:9 ratio). Accepts JPEG, PNG, WebP, GIF up to 5 MB</p>
                     </>
                   )}
                 </div>

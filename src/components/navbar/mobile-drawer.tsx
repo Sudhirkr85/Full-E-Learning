@@ -91,7 +91,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
     ];
 
     if (!user) {
-      return [...base, { label: "About", href: "/about" }];
+      return base;
     }
 
     switch (user.role) {

@@ -54,7 +54,7 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
     ];
 
     if (!user) {
-      return [...base, { label: "About", href: "/about" }];
+      return base;
     }
 
     switch (user.role) {

@@ -95,7 +95,7 @@ export function BannerUploadField({ initialImageUrl, courseTitle }: BannerUpload
         {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
         {isUploading ? "Uploading..." : "Change thumbnail"}
       </Button>
-      <p className="text-[10px] text-slate-500">JPEG, PNG, WebP, GIF up to 5 MB.</p>
+      <p className="text-[10px] text-slate-500">Recommended: 1280x720 pixels (16:9 aspect ratio). JPEG, PNG, WebP, GIF up to 5 MB.</p>
       {uploadError ? <p className="text-xs font-semibold text-rose-400">{uploadError}</p> : null}
     </div>
   );

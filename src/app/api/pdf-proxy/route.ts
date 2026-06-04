@@ -12,18 +12,46 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const url = searchParams.get("url");
+    const rawUrl = searchParams.get("url");
 
-    if (!url) {
+    if (!rawUrl) {
       return new NextResponse("Bad Request: url parameter is required", { status: 400 });
     }
 
-    // Determine access by checking if the URL is associated with a Product or Lesson
+    // Normalize URL: decode any double-encoding that may happen in query params
+    let normalizedUrl = rawUrl;
+    try {
+      normalizedUrl = decodeURIComponent(rawUrl);
+    } catch {
+      normalizedUrl = rawUrl;
+    }
+
+    // Staff (Admin/Teacher) always have full access — skip DB lookup entirely
+    if (session.user.role === "ADMIN" || session.user.role === "TEACHER") {
+      const response = await fetch(normalizedUrl);
+      if (!response.ok) {
+        return new NextResponse("Failed to fetch document from source storage", { status: response.status });
+      }
+      const buffer = await response.arrayBuffer();
+      return new NextResponse(buffer, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": "inline",
+          "Cache-Control": "private, max-age=3600",
+        },
+      });
+    }
+
     let hasAccess = false;
 
-    // Check if it's a Lesson PDF
+    // Check Lesson PDF — try both raw and normalized URL to handle encoding differences
     const lesson = await prisma.lesson.findFirst({
-      where: { r2AssetUrl: url },
+      where: {
+        OR: [
+          { r2AssetUrl: normalizedUrl },
+          { r2AssetUrl: rawUrl },
+        ]
+      },
       include: {
         section: {
           include: {
@@ -34,11 +62,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (lesson) {
-      const courseId = lesson.section.courseId;
-      // Is staff (Admin/Teacher) or enrolled student
-      if (session.user.role === "ADMIN" || session.user.role === "TEACHER") {
+      // Preview lessons are accessible to any authenticated user
+      if (lesson.isPreview) {
         hasAccess = true;
       } else {
+        const courseId = lesson.section.courseId;
         const enrollment = await prisma.enrollment.findUnique({
           where: {
             userId_courseId: {
@@ -54,36 +82,38 @@ export async function GET(request: NextRequest) {
     } else {
       // Check if it's a Product PDF
       const product = await prisma.product.findFirst({
-        where: { assetUrl: url }
+        where: {
+          OR: [
+            { assetUrl: normalizedUrl },
+            { assetUrl: rawUrl },
+          ]
+        }
       });
 
       if (product) {
-        if (session.user.role === "ADMIN" || session.user.role === "TEACHER") {
-          hasAccess = true;
-        } else {
-          // Check if there is a PAID order containing this product for this user
-          const orderItem = await prisma.orderItem.findFirst({
-            where: {
-              productId: product.id,
-              order: {
-                userId: session.user.id,
-                status: "PAID"
-              }
+        // Check if the user has a PAID order for this product
+        const orderItem = await prisma.orderItem.findFirst({
+          where: {
+            productId: product.id,
+            order: {
+              userId: session.user.id,
+              status: "PAID"
             }
-          });
-          if (orderItem) {
-            hasAccess = true;
           }
+        });
+        if (orderItem) {
+          hasAccess = true;
         }
       }
     }
 
     if (!hasAccess) {
+      console.warn(`[PDF_PROXY] 403 — user ${session.user.id} tried to access: ${normalizedUrl}`);
       return new NextResponse("Unauthorized to access this document", { status: 403 });
     }
 
-    // Fetch the PDF from remote storage
-    const response = await fetch(url);
+    // Fetch the PDF from remote R2 storage
+    const response = await fetch(normalizedUrl);
     if (!response.ok) {
       return new NextResponse("Failed to fetch document from source storage", { status: response.status });
     }
@@ -94,6 +124,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "inline",
+        "Cache-Control": "private, max-age=3600",
       },
     });
   } catch (error) {

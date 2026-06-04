@@ -286,7 +286,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
       {/* Top Navbar */}
       <header className="h-16 border-b border-white/5 bg-[#0a0a12]/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-40 shrink-0">
         <div className="flex items-center gap-3">
-          <Link href={`/courses/${course.slug}`} className="text-slate-400 hover:text-white transition">
+          <Link href={activeAttemptId ? `/courses/${course.slug}/learn?lesson=${activeLesson.slug}` : `/courses/${course.slug}`} className="text-slate-400 hover:text-white transition">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-col">

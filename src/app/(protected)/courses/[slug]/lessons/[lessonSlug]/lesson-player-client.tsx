@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -62,12 +63,24 @@ export function LessonPlayerClient({
   quizReviewAttempt,
   quizQuestions = []
 }: LessonPlayerClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isMobileSyllabusOpen, setIsMobileSyllabusOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [timeLeft, setTimeLeft] = useState("");
+
+  const urlAttemptId = searchParams.get("attemptId");
+
+  // Automatically refresh route data when URL searchParams don't match the current rendered state
+  useEffect(() => {
+    const renderedAttemptId = quizReviewAttempt?.id || quizActiveAttempt?.id || null;
+    if (urlAttemptId !== renderedAttemptId) {
+      router.refresh();
+    }
+  }, [urlAttemptId, quizReviewAttempt?.id, quizActiveAttempt?.id, router]);
 
   const scheduledAt = bundle.lesson.scheduledAt ? new Date(bundle.lesson.scheduledAt) : null;
 
@@ -258,9 +271,9 @@ export function LessonPlayerClient({
       <div className="flex items-center justify-between mb-6 md:mb-8">
         <div className="flex items-center gap-2 md:gap-4">
           <Link
-            href="/courses"
+            href={quizReviewAttempt ? `/courses/${slug}/lessons/${lessonSlug}` : `/courses/${slug}`}
             className="flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200"
-            title="All Courses"
+            title={quizReviewAttempt ? "Back to Quiz Overview" : "Back to Course"}
           >
             <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
           </Link>

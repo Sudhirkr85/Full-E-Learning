@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -96,7 +96,18 @@ export default function ClassroomQuizPortal({
   onRefresh
 }: ClassroomQuizPortalProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+
+  const urlAttemptId = searchParams.get("attemptId");
+
+  // Automatically refresh route data when URL searchParams don't match the current rendered state (handles back/forward buttons)
+  useEffect(() => {
+    const renderedAttemptId = reviewAttempt?.id || activeAttempt?.id || null;
+    if (urlAttemptId !== renderedAttemptId) {
+      router.refresh();
+    }
+  }, [urlAttemptId, reviewAttempt?.id, activeAttempt?.id, router]);
 
   // Active taking states
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -206,7 +217,8 @@ export default function ClassroomQuizPortal({
       });
 
       await submitAttemptAction(activeAttempt.id, submissionPayload);
-      window.location.href = `${window.location.pathname}?attemptId=${activeAttempt.id}`;
+      router.push(`${window.location.pathname}?attemptId=${activeAttempt.id}`);
+      router.refresh();
     } catch (err: any) {
       console.error("Auto submit failed:", err);
     }
@@ -230,7 +242,8 @@ export default function ClassroomQuizPortal({
             });
 
             await submitAttemptAction(activeAttempt.id, submissionPayload);
-            window.location.href = `${window.location.pathname}?attemptId=${activeAttempt.id}`;
+            router.push(`${window.location.pathname}?attemptId=${activeAttempt.id}`);
+            router.refresh();
           } catch (err: any) {
             setError(err.message || "Failed to submit answers.");
           }
@@ -341,7 +354,8 @@ export default function ClassroomQuizPortal({
                         )}
                         <Button 
                           onClick={() => {
-                            window.location.href = `${window.location.pathname}?attemptId=${att.id}`;
+                            router.push(`${window.location.pathname}?attemptId=${att.id}`);
+                            router.refresh();
                           }}
                           size="sm" 
                           variant="outline" 
@@ -592,7 +606,8 @@ export default function ClassroomQuizPortal({
           <CardFooter className="p-5 border-t border-white/5 bg-white/[0.01] flex justify-end">
             <Button 
               onClick={() => {
-                window.location.href = window.location.pathname;
+                router.push(window.location.pathname);
+                router.refresh();
               }} 
               className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs h-9 px-4 font-bold uppercase tracking-wider flex items-center gap-1.5"
             >

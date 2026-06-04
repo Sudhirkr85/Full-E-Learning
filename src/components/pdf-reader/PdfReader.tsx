@@ -491,8 +491,7 @@ export function PdfReader({
       const page = await pdfDoc.getPage(pageNum);
       const originalViewport = page.getViewport({ scale: 1.0 });
       const containerWidth = viewerRef.current.clientWidth - 48; // account for margins/paddings
-      const dpr = window.devicePixelRatio || 1;
-      const calculatedScale = Math.min(Math.max((containerWidth / originalViewport.width) / dpr, 0.5), 3.0);
+      const calculatedScale = Math.min(Math.max(containerWidth / originalViewport.width, 0.5), 3.0);
       setScale(calculatedScale);
       toast.success("Adjusted to fit screen width");
     } catch (e) {

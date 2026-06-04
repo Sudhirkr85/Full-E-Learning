@@ -24,8 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { makeMetadata, siteConfig } from "@/lib/site";
 import { getPublishedCourses } from "@/lib/courses/queries";
-import { StarFireflyCanvas } from "@/components/hero/StarFireflyCanvas";
 import { prisma } from "@/lib/prisma";
+import { HeroSection } from "@/components/home/HeroSection";
 
 export const metadata: Metadata = makeMetadata({
   title: "Home",
@@ -84,149 +84,7 @@ export default async function HomePage() {
       <div className="absolute inset-0 bg-grid-cyber -z-20"></div>
 
       {/* 1. HERO SECTION */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden">
-        {/* Animated particles subtle overlay */}
-        <div className="particles-bg"></div>
-        {/* Night sky twinkling stars & floating fireflies canvas */}
-        <StarFireflyCanvas className="absolute inset-0 w-full h-full z-0 pointer-events-none" />
-
-        {/* Content wrapper sitting cleanly above canvas background */}
-        <div className="relative z-10 w-full">
-          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
-            {/* LEFT: Outcome-focused Copy */}
-            <div className="lg:col-span-7 space-y-6 md:space-y-8 relative z-10 text-left">
-              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-950/40 px-3 py-1.5 text-xs md:text-sm font-semibold text-indigo-300 backdrop-blur-md">
-                <Sparkles className="h-4 w-4 text-indigo-400" />
-                <span>{siteConfig.hero.badge}</span>
-              </div>
-
-              <h1 className="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl leading-[1.1] md:leading-[1.05]">
-                {siteConfig.hero.headline.split(" at ")[0]} <br className="hidden sm:inline" />
-                at <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400">{siteConfig.hero.headline.split(" at ")[1]}</span>
-              </h1>
-
-              <p className="max-w-2xl text-base md:text-lg text-slate-400 leading-relaxed">
-                {siteConfig.hero.subheadline}
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-wrap gap-4 pt-2">
-                <Button asChild className="bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold hover:from-indigo-500 hover:to-cyan-500 rounded-xl px-6 py-6 text-base shadow-[0_0_30px_rgba(99,102,241,0.45)] border border-white/10 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] group">
-                  <Link href="/courses" className="flex items-center gap-2">
-                    Explore Premium Courses
-                    <ArrowRight className="h-5 w-5 transition duration-300 group-hover:translate-x-1" />
-                  </Link>
-                </Button>
-                
-                <Button asChild variant="outline" className="border-white/10 bg-slate-950/40 hover:bg-slate-900/60 text-slate-300 hover:text-white rounded-xl px-6 py-6 text-base backdrop-blur-md transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]">
-                  <Link href="/register">Create Free Account</Link>
-                </Button>
-              </div>
-
-              {/* Statistics Banner */}
-              <div className="pt-8 border-t border-white/5 grid grid-cols-3 gap-4 text-left">
-                {siteConfig.stats.map((stat) => (
-                  <div key={stat.label}>
-                    <p className="font-display text-2xl sm:text-3xl font-extrabold text-white">{stat.value}</p>
-                    <p className="text-xs text-slate-400 mt-1">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* RIGHT: Tech Mastery Preview Card */}
-            <div className="lg:col-span-5 relative z-10 flex justify-center">
-              <div className="relative w-full max-w-[420px] bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] group overflow-hidden flex flex-col justify-between gap-5 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] hover:border-white/20">
-                {/* Decorative border glows */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"></div>
-                <div className="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
-
-                {/* Card Header Content */}
-                <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full bg-rose-500"></div>
-                    <div className="h-3 w-3 rounded-full bg-amber-500"></div>
-                    <div className="h-3 w-3 rounded-full bg-emerald-500"></div>
-                  </div>
-                  <Badge className="bg-indigo-950/60 border-indigo-500/30 text-indigo-300 text-xs px-2.5 py-0.5 rounded-full">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 pulse-dot mr-1.5 inline-block"></span>
-                    Tech Mastery Preview
-                  </Badge>
-                </div>
-
-                {/* Fake code block with typing cursor */}
-                <div className="rounded-xl bg-black/50 p-4 border border-white/5 overflow-hidden text-left relative font-mono text-xs">
-                  <div className="flex items-center gap-1.5 mb-2 opacity-50">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
-                    <span className="text-[9px] ml-1.5">mastery_sandbox.ts</span>
-                  </div>
-                  <div className="space-y-1 text-slate-300">
-                    <div className="text-indigo-400 font-semibold"><span className="text-purple-400">import</span> &#123; AI_CoPilot, NextJS &#125; <span className="text-purple-400">from</span> <span className="text-emerald-400">&quot;academy&quot;</span>;</div>
-                    <div className="text-blue-400"><span className="text-purple-400">const</span> learner = <span className="text-purple-400">new</span> Developer(&quot;{siteConfig.demo.personaName}&quot;);</div>
-                    <div className="text-slate-400 font-medium">learner.startLearning(&#123; goal: &quot;certification&quot; &#125;);</div>
-                    <div className="flex items-center text-cyan-400">
-                      <span>{siteConfig.demo.consoleOutput}</span>
-                      <span className="w-1.5 h-4 ml-1 bg-cyan-400 animate-pulse"></span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feature pill badges */}
-                <div className="flex flex-wrap gap-2 py-1 justify-center">
-                  {siteConfig.highlights.map((highlight, i) => {
-                    const dotColors = [
-                      "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]",
-                      "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]",
-                      "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]",
-                      "bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]",
-                      "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]",
-                    ];
-                    return (
-                      <span key={highlight} className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-200 text-xs px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-white/10">
-                        <span className={`w-1.5 h-1.5 rounded-full ${dotColors[i % dotColors.length]} inline-block`}></span>
-                        {highlight}
-                      </span>
-                    );
-                  })}
-                </div>
-
-                {/* Skills You'll Master section */}
-                <div className="space-y-2.5 text-left">
-                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Skills You&apos;ll Master</h4>
-                  <div className="space-y-2">
-                    {siteConfig.skills.map((skill) => (
-                      <div key={skill.title} className="flex items-center gap-2.5 text-slate-200 text-xs font-medium">
-                        <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
-                        <span>{skill.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Stat chips */}
-                <div className="grid grid-cols-3 gap-2.5 pt-4 border-t border-white/5">
-                  {siteConfig.heroCard.chips.map((chip) => {
-                    const [label, ...rest] = chip.split(" ");
-                    return (
-                      <div key={chip} className="rounded-xl bg-white/5 p-2.5 border border-white/5 text-center transition-all duration-300 hover:bg-white/10">
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">{label}</p>
-                        <p className="text-xs font-bold text-white mt-0.5">{rest.join(" ")}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Glass sheen overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 transform -translate-y-full group-hover:translate-y-full transition-transform duration-1000 pointer-events-none"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+      <HeroSection />
 
       {/* 2. STUDENT TRUST BANNER */}
       <section className="border-y border-white/5 bg-slate-950/40 py-8 relative z-10 backdrop-blur-sm">

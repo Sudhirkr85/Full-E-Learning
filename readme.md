@@ -19,6 +19,14 @@ This platform represents a modern fusion of an advanced Educational portal and a
 
 ## 2. Recent Improvements & Fixes (June 2026)
 
+*   **Hero Section & Particle Canvas Magic**:
+    *   **Magic Particle Canvas System**: Added a `<canvas>` element absolutely positioned behind the hero content with an automated `requestAnimationFrame` loop rendering 100 floating particles, constellation connection lines under 80px distance, 4 drifting radial gradient accent color orbs, and mouse repulsion pushing particles away from the cursor.
+    *   **Interactive Sparkle Trail & Glow Dot**: Triggers cross-shaped falling sparkle trails on mouse movements > 2px, and renders an active purple cursor glow dot inside the canvas.
+    *   **Dynamic Custom Animations**: Added high-fidelity CSS animations for a pulsing badge dot, an animated shimmer gradient text overlay (`.shimmer-text`) cycling through accent colors on the "Your Own Pace" text, and floaty staggered notification badges ("Certificate earned!", "7-day streak").
+    *   **Count-up & Progress Animations**: Fully integrated JS count-up animation for stats cards triggering 400ms after mount, and a smooth transitioning progress bar (0% to 72% over 1.5s) starting 600ms after mount.
+    *   **Full Mobile Responsiveness**: Redesigned layouts to adapt to mobile grids, stacking buttons, wrapping stats, and providing a clean, non-clipped mobile card view.
+    *   **Old Code Cleanup**: Cleaned up the codebase by deleting the unused `StarFireflyCanvas.tsx` component.
+
 *   **LMS Classroom & Assessment Enhancements**:
     *   **Classroom Secure PDF Display**: Re-routed the playbook link in the classroom learning player to render PDF files directly in-page using the secure watermark-embedded `PdfReader` component instead of opening in external browser tabs.
     *   **Grades & Attempts Reset Actions**: Added student attempts reset triggers in both Admin and Teacher dashboards under the course detail "Students" tab to clear and reset quiz attempts, letting students retake quizzes if they failed and exhausted their attempts.

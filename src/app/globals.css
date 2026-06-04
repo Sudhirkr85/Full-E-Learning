@@ -245,4 +245,24 @@ body {
 }
 .table-scroll:hover::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
-}
+}
+
+@keyframes shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-text {
+  background: linear-gradient(110deg, #a89ef5, #5dcaa5, #f0997b, #a89ef5);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+

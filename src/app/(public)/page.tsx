@@ -51,7 +51,9 @@ export default async function HomePage() {
   }> = [];
   try {
     dbProducts = await prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: {
+        status: { in: ["ACTIVE", "PUBLISHED"] }
+      },
       take: 3,
       orderBy: { createdAt: "desc" },
       select: {
@@ -372,145 +374,6 @@ export default async function HomePage() {
                       <Button asChild size="sm" className="bg-indigo-600 text-white font-medium hover:bg-indigo-500 rounded-lg group-hover:shadow-[0_0_12px_rgba(99,102,241,0.4)] transition-all duration-300">
                         <Link href={`/courses/${course.slug}`} className="flex items-center gap-1">
                           View Modules
-                          <ChevronRight className="h-3 w-3" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="text-center pt-4">
-            <Button asChild variant="outline" className="border-white/10 bg-slate-950/40 hover:bg-slate-900/60 text-slate-300 hover:text-white rounded-xl px-6 py-5">
-              <Link href="/courses" className="flex items-center gap-2">
-                Browse Complete Catalog
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* 3b. FEATURED PRODUCTS SECTION */}
-      <section className="py-20 md:py-28 relative z-10 border-t border-white/5 bg-[#02050f]/40 backdrop-blur-sm">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-
-          {/* Section title */}
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <Badge className="bg-violet-950/60 border-violet-500/30 text-violet-300 text-xs px-3 py-1 rounded-full uppercase tracking-wider">
-              Learning Store
-            </Badge>
-            <h2 className="font-display text-3xl font-extrabold text-white sm:text-4xl">
-              Featured{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">
-                Products
-              </span>
-            </h2>
-            <p className="text-sm md:text-base text-slate-400 leading-relaxed">
-              {siteConfig.products.sectionSubheadline}
-            </p>
-          </div>
-
-          {/* Products grid or empty state message */}
-          {featuredProducts.length === 0 ? (
-            <div className="rounded-3xl border border-white/5 bg-[#0a0f21]/40 p-12 text-center max-w-xl mx-auto backdrop-blur-md">
-              <ShoppingBag className="h-10 w-10 text-violet-400/60 mx-auto mb-4" />
-              <h3 className="text-white text-base font-semibold">No products available yet</h3>
-              <p className="text-xs text-slate-500 mt-2">
-                Our inventory shelves are temporarily quiet. Premium study handbooks and companion packs will be added shortly!
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {featuredProducts.map((product) => {
-                const price = Math.round(product.priceCents / 100);
-                const origCents = product.originalPriceCents ?? null;
-                const originalPrice = origCents !== null ? Math.round(origCents / 100) : null;
-                const hasDiscount = originalPrice !== null && originalPrice > price && price > 0;
-                const discountPercent = hasDiscount
-                  ? Math.round(((originalPrice - price) / originalPrice) * 100)
-                  : 0;
-
-                const productTypeLabel =
-                  product.productType === "DIGITAL_RESOURCE"
-                    ? "Digital Download"
-                    : product.productType === "PHYSICAL"
-                    ? "Physical Product"
-                    : product.productType === "BUNDLE"
-                    ? "Bundle"
-                    : "Product";
-
-                const ProductIcon =
-                  product.productType === "DIGITAL_RESOURCE"
-                    ? Package
-                    : product.productType === "BUNDLE"
-                    ? Archive
-                    : ShoppingBag;
-
-                return (
-                  <div
-                    key={product.id}
-                    className="soft-3d-card relative flex flex-col justify-between rounded-3xl border border-white/5 bg-[#0a0f21]/70 p-6 backdrop-blur-lg transition-all duration-300 group hover:border-violet-500/20"
-                  >
-                    {/* Decorative corner glow */}
-                    <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-violet-500/5 blur-2xl group-hover:bg-violet-500/10 transition-all duration-300" />
-
-                    <div className="space-y-4">
-                      {/* Cover image or gradient placeholder */}
-                      {product.coverImageUrl ? (
-                        <img
-                          src={product.coverImageUrl}
-                          alt={product.title}
-                          className="w-full aspect-video object-cover rounded-xl"
-                        />
-                      ) : (
-                        <div className="w-full aspect-video rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-white/5 flex items-center justify-center">
-                          <ProductIcon className="h-10 w-10 text-violet-400 opacity-60" />
-                        </div>
-                      )}
-
-                      {/* Header: type badge */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-violet-400">
-                          {productTypeLabel}
-                        </span>
-                      </div>
-
-                      {/* Product title */}
-                      <Link href={`/store/${product.slug}`}>
-                        <h3 className="font-display text-lg font-bold text-white hover:text-violet-300 transition duration-300 leading-snug line-clamp-2">
-                          {product.title}
-                        </h3>
-                      </Link>
-
-                      {/* Description */}
-                      <p className="text-xs leading-relaxed text-slate-400 line-clamp-3">
-                        {product.description ?? "Premium learning resource available exclusively in our store."}
-                      </p>
-                    </div>
-
-                    {/* Footer: price + CTA */}
-                    <div className="mt-6 flex items-center justify-between pt-5 border-t border-white/5 relative z-10">
-                      <div>
-                        <p className="text-[10px] text-slate-500">Price</p>
-                        {hasDiscount ? (
-                          <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                            <span className="text-lg font-black text-white">₹{price.toLocaleString("en-IN")}</span>
-                            <span className="line-through text-slate-500 text-xs font-semibold">₹{originalPrice!.toLocaleString("en-IN")}</span>
-                            <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold text-emerald-300 uppercase tracking-wide">
-                              {discountPercent}% OFF
-                            </span>
-                          </div>
-                        ) : (
-                          <p className="text-lg font-black text-white mt-0.5">₹{price.toLocaleString("en-IN")}</p>
-                        )}
-                      </div>
-
-                      <Button asChild size="sm" className="bg-violet-600 text-white font-medium hover:bg-violet-500 rounded-lg group-hover:shadow-[0_0_12px_rgba(139,92,246,0.4)] transition-all duration-300">
-                        <Link href={`/store/${product.slug}`} className="flex items-center gap-1">
-                          View Product
                           <ChevronRight className="h-3 w-3" />
                         </Link>
                       </Button>

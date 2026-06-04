@@ -28,6 +28,8 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Completion Guard**: Hidden the manual "Mark Complete" button for quiz lessons so that students can only pass and complete quiz lessons based on meeting the passing mark criteria.
 
 *   **UI/UX Refinements**:
+    *   **Homepage Cleanups**: Removed the duplicate "Featured Products" section markup from the homepage file.
+    *   **Homepage Products Synchronization**: Synchronized the home page product query status filter from strictly checking for `"ACTIVE"` to matching both `"ACTIVE"` and `"PUBLISHED"` states. This ensures products successfully display on the homepage exactly as they do on the store catalog page.
     *   **Header Navigation Cleanup**: Removed the legacy, unused "About" link from both the desktop and mobile navigation headers.
     *   **Banner Upload Dimension Hints**: Added visual hints indicating recommended image dimensions (1280x720 pixels, 16:9 ratio) and maximum file size (5 MB) in course edit, course create, and store product creation fields to ensure uploaded banners fit properly in card boxes.
     *   **Homepage Course Card Thumbnail**: Rendered the course cover image/thumbnail at the top of the course card on the public homepage grid, matching the layout structure of the product cards.

@@ -206,8 +206,7 @@ export default function ClassroomQuizPortal({
       });
 
       await submitAttemptAction(activeAttempt.id, submissionPayload);
-      router.push(`${window.location.pathname}?attemptId=${activeAttempt.id}`);
-      onRefresh();
+      window.location.href = `${window.location.pathname}?attemptId=${activeAttempt.id}`;
     } catch (err: any) {
       console.error("Auto submit failed:", err);
     }
@@ -231,8 +230,7 @@ export default function ClassroomQuizPortal({
             });
 
             await submitAttemptAction(activeAttempt.id, submissionPayload);
-            router.push(`${window.location.pathname}?attemptId=${activeAttempt.id}`);
-            onRefresh();
+            window.location.href = `${window.location.pathname}?attemptId=${activeAttempt.id}`;
           } catch (err: any) {
             setError(err.message || "Failed to submit answers.");
           }
@@ -341,8 +339,15 @@ export default function ClassroomQuizPortal({
                         ) : (
                           <Badge variant="outline" className="text-amber-400 border-amber-500/25">Draft</Badge>
                         )}
-                        <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg text-slate-300 hover:text-white">
-                          <a href={`/courses/${courseSlug}/learn?lesson=${lessonSlug}&attemptId=${att.id}`}>Review</a>
+                        <Button 
+                          onClick={() => {
+                            window.location.href = `${window.location.pathname}?attemptId=${att.id}`;
+                          }}
+                          size="sm" 
+                          variant="outline" 
+                          className="h-8 rounded-xl border-indigo-500/20 text-indigo-300 bg-indigo-500/5 hover:bg-indigo-600 hover:text-white font-bold transition-all"
+                        >
+                          Review
                         </Button>
                       </div>
                     </div>
@@ -467,7 +472,12 @@ export default function ClassroomQuizPortal({
                   )}
                 </CardContent>
                 <CardFooter className="p-5 border-t border-white/5 bg-white/[0.01] flex justify-between">
-                  <Button onClick={() => setCurrentQuestionIdx(idx => Math.max(0, idx - 1))} disabled={isFirst} variant="outline" className="h-9 text-xs rounded-lg border-white/5 text-slate-300">
+                  <Button 
+                    onClick={() => setCurrentQuestionIdx(idx => Math.max(0, idx - 1))} 
+                    disabled={isFirst} 
+                    variant="outline" 
+                    className="h-9 text-xs rounded-xl border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-20 disabled:bg-transparent disabled:text-slate-500 disabled:border-white/5 transition-all"
+                  >
                     Previous
                   </Button>
                   {isLast ? (
@@ -580,7 +590,12 @@ export default function ClassroomQuizPortal({
             </div>
           </CardContent>
           <CardFooter className="p-5 border-t border-white/5 bg-white/[0.01] flex justify-end">
-            <Button onClick={onRefresh} className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs h-9 px-4 font-bold uppercase tracking-wider flex items-center gap-1">
+            <Button 
+              onClick={() => {
+                window.location.href = window.location.pathname;
+              }} 
+              className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs h-9 px-4 font-bold uppercase tracking-wider flex items-center gap-1.5"
+            >
               <RotateCcw className="h-3.5 w-3.5" />
               Retake / Go Back
             </Button>
@@ -602,11 +617,11 @@ export default function ClassroomQuizPortal({
                   }`}>
                     <CardHeader className="p-5 pb-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline">Q{idx + 1}</Badge>
+                        <Badge className="border-white/10 text-slate-300 bg-white/5">Q{idx + 1}</Badge>
                         <Badge className="bg-white/5 border-white/5 text-slate-400 text-[9px] uppercase font-bold py-0 h-4">
                           {q.kind === "SHORT_ANSWER" ? "Fill In The Blank" : "MCQ"}
                         </Badge>
-                        <span className="text-[10px] font-mono text-slate-500">{q.points} {q.points === 1 ? "point" : "points"}</span>
+                        <span className="text-[10px] font-mono text-slate-400">{q.points} {q.points === 1 ? "point" : "points"}</span>
                         {isCorrect ? (
                           <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] py-0 h-4">✓ Correct</Badge>
                         ) : (
@@ -623,7 +638,7 @@ export default function ClassroomQuizPortal({
                             const selected = ans?.selectedOptionId === opt.id;
                             const correct = opt.isCorrect;
 
-                            let borderClass = "border-white/5 bg-white/[0.01]";
+                            let borderClass = "border-white/5 bg-white/[0.01] text-slate-300";
                             if (correct) {
                               borderClass = "border-emerald-500/20 bg-emerald-500/5 text-white";
                             } else if (selected) {
@@ -634,7 +649,7 @@ export default function ClassroomQuizPortal({
                               <div key={opt.id} className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${borderClass}`}>
                                 <span>{opt.label}</span>
                                 <div className="flex items-center gap-2 shrink-0">
-                                  {selected && <Badge variant="outline" className="text-[9px] h-4 py-0">Your Answer</Badge>}
+                                  {selected && <Badge className="text-[9px] h-4 py-0 border-indigo-500/20 text-indigo-300 bg-indigo-500/5">Your Answer</Badge>}
                                   {correct ? (
                                     <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400" />
                                   ) : selected ? (

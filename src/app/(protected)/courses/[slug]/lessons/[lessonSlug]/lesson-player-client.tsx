@@ -358,8 +358,27 @@ export function LessonPlayerClient({
             
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5 relative z-10">
               <div className="flex items-center gap-2">
-                <PlayCircle className="h-4.5 w-4.5 text-indigo-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Mastery Sandbox Screen</h3>
+                {bundle.lesson.contentType === "QUIZ" ? (
+                  <>
+                    <HelpCircle className="h-4.5 w-4.5 text-indigo-400" />
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Quiz Assessment Desk</h3>
+                  </>
+                ) : bundle.lesson.contentType === "ARTICLE" ? (
+                  <>
+                    <FileText className="h-4.5 w-4.5 text-indigo-400" />
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Syllabus Playbook Reader</h3>
+                  </>
+                ) : bundle.lesson.contentType === "LIVE" ? (
+                  <>
+                    <Radio className="h-4.5 w-4.5 text-indigo-400" />
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Live Masterclass Stream</h3>
+                  </>
+                ) : (
+                  <>
+                    <PlayCircle className="h-4.5 w-4.5 text-indigo-400" />
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Mastery Sandbox Screen</h3>
+                  </>
+                )}
               </div>
 
               {/* Theater Focus Mode Button (Desktop Only) */}

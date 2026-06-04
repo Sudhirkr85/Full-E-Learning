@@ -129,6 +129,7 @@ export function QuizEditorPageClient({
     startTransition(async () => {
       try {
         const payload = {
+          courseId,
           title,
           description,
           type: "QUIZ",

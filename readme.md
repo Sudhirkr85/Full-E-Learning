@@ -55,6 +55,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Link Integrity**: Removed dead support links (404) from the storefront.
     *   **YouTube Thumbnail Fallback**: Added robust fallback for YouTube video thumbnails to prevent 404 errors on missing maxresdefault images.
     *   **Fallback Product and Course Removal**: Cleaned the public landing page ([page.tsx](file:///d:/Work/E-Learning/src/app/(public)/page.tsx)) to stop rendering fallback items when no active courses or products exist in the database.
+    *   **Coupon Discount Cap Enforcement**: Fixed a bug where coupon applications (e.g., `FLAT50` 50% discount coupon) ignored the configured maximum discount limit (`maxDiscountCents`). Enforced the cap in client-side recalculations on both the Cart Page and Store Drawer, as well as in the server-side `validateCouponAction` helper to ensure proper discounts are calculated everywhere.
 
 ## 2. Tech Stack
 

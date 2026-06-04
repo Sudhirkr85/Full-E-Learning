@@ -407,7 +407,10 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
     if (appliedCoupon) {
       let discount = 0;
       if (appliedCoupon.couponType === "PERCENTAGE") {
-        discount = Math.round((subtotalCents * appliedCoupon.discountValue) / 100);
+        const calculated = Math.round((subtotalCents * appliedCoupon.discountValue) / 100);
+        discount = appliedCoupon.maxDiscountCents !== null && appliedCoupon.maxDiscountCents !== undefined
+          ? Math.min(calculated, appliedCoupon.maxDiscountCents)
+          : calculated;
       } else {
         discount = appliedCoupon.discountValue;
       }

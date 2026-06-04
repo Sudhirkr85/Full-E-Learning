@@ -145,7 +145,10 @@ export async function validateCouponAction(code: string, subtotalCents: number) 
     // Compute discount value
     let discountCents = 0;
     if (coupon.couponType === CouponType.PERCENTAGE) {
-      discountCents = Math.round((subtotalCents * coupon.discountValue) / 100);
+      const calculated = Math.round((subtotalCents * coupon.discountValue) / 100);
+      discountCents = coupon.maxDiscountCents !== null
+        ? Math.min(calculated, coupon.maxDiscountCents)
+        : calculated;
     } else {
       discountCents = coupon.discountValue; // Value stored in cents
     }

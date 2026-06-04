@@ -123,8 +123,8 @@ export function CourseReviewsClient({
     }
   };
 
-  if (reviews.length === 0 && !isLoggedIn) {
-    return null; // Hide completely if no reviews and not logged in
+  if (reviews.length === 0 && (!isLoggedIn || !isEnrolled)) {
+    return null; // Hide completely if no reviews and user cannot write a review (not logged in or not enrolled)
   }
 
   const currentAvgRating = reviews.length > 0

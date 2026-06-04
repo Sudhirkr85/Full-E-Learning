@@ -461,6 +461,7 @@ export function EnrollButton({
               if (!enrollLoading) {
                 setShowCheckoutModal(false);
                 handleRemoveCoupon();
+                setShowCouponInput(false);
               }
             }}
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" 
@@ -479,6 +480,7 @@ export function EnrollButton({
                   if (!enrollLoading) {
                     setShowCheckoutModal(false);
                     handleRemoveCoupon();
+                    setShowCouponInput(false);
                   }
                 }}
                 className="h-8 w-8 rounded-full text-white hover:bg-white/10 flex items-center justify-center transition-colors"
@@ -516,47 +518,59 @@ export function EnrollButton({
 
               {/* Coupon Code section */}
               <div className="space-y-3 pt-2">
-                <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Discount Coupon</h3>
-                {appliedCoupon ? (
-                  <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
-                    <div className="flex items-center gap-1.5 font-medium">
-                      <Ticket className="h-4 w-4 text-emerald-400" />
-                      <span>Code: {appliedCoupon.code}</span>
-                    </div>
-                    <button 
-                      type="button" 
-                      onClick={handleRemoveCoupon} 
-                      className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors px-2 py-1 hover:bg-emerald-500/10 rounded-lg"
-                    >
-                      [Remove]
-                    </button>
-                  </div>
+                {!showCouponInput && !appliedCoupon ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponInput(true)}
+                    className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition"
+                  >
+                    Have a Coupon? [Apply Coupon]
+                  </button>
                 ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="ENTER COUPON"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleApplyCoupon(e as any);
-                        }
-                      }}
-                      className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono tracking-wider"
-                    />
-                    <button 
-                      type="button" 
-                      onClick={handleApplyCoupon} 
-                      className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-colors h-9"
-                    >
-                      Apply
-                    </button>
-                  </div>
+                  <>
+                    <h3 className="text-slate-400 text-xs tracking-widest uppercase font-semibold">Discount Coupon</h3>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl p-3 text-sm">
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <Ticket className="h-4 w-4 text-emerald-400" />
+                          <span>Code: {appliedCoupon.code}</span>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={handleRemoveCoupon} 
+                          className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors px-2 py-1 hover:bg-emerald-500/10 rounded-lg"
+                        >
+                          [Remove]
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="ENTER COUPON"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase())}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleApplyCoupon(e as any);
+                            }
+                          }}
+                          className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono tracking-wider"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={handleApplyCoupon} 
+                          className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-colors h-9"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    )}
+                    {couponSuccessMsg && <p className="text-xs text-emerald-400 font-medium">{couponSuccessMsg}</p>}
+                    {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
+                  </>
                 )}
-                {couponSuccessMsg && <p className="text-xs text-emerald-400 font-medium">{couponSuccessMsg}</p>}
-                {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
               </div>
             </div>
 

@@ -42,7 +42,6 @@ import {
   deleteLessonAction 
 } from "@/lib/courses/actions";
 import { resetStudentAttemptsAction } from "@/lib/tests/actions";
-import { QuizEditorModal } from "./quiz-editor-modal";
 import { CustomPopup } from "@/components/courses/custom-popup";
 
 type TabType = "overview" | "curriculum" | "students" | "analytics" | "settings";
@@ -700,9 +699,7 @@ export function CourseDashboardClient({
                                     {lesson.contentType === "QUIZ" && (
                                       <Button 
                                         onClick={() => {
-                                          const associatedTest = tests.find((t: any) => t.id === lesson.metadata?.testId || t.slug.includes(lesson.slug));
-                                          setActiveQuizLesson(lesson);
-                                          setActiveQuizTest(associatedTest);
+                                          router.push(`/teacher/courses/${course.id}/quiz/${lesson.id}`);
                                         }}
                                         variant="outline"
                                         className="h-8 text-[10px] font-bold uppercase tracking-wider rounded-xl border-indigo-500/20 text-indigo-300 bg-indigo-500/5 hover:bg-indigo-600 hover:text-white"
@@ -989,21 +986,6 @@ export function CourseDashboardClient({
           </div>
         )}
       </div>
-
-      {activeQuizLesson && (
-        <QuizEditorModal
-          courseId={course.id}
-          lesson={activeQuizLesson}
-          test={activeQuizTest}
-          onClose={() => {
-            setActiveQuizLesson(null);
-            setActiveQuizTest(null);
-          }}
-          onRefresh={() => {
-            router.refresh();
-          }}
-        />
-      )}
 
       <CustomPopup
         isOpen={popup.isOpen}

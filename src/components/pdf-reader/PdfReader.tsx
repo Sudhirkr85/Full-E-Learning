@@ -184,6 +184,7 @@ export function PdfReader({
 
   // Canvas & Containers Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const textLayerRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const activeRenderTaskRef = useRef<any>(null);
@@ -237,6 +238,14 @@ export function PdfReader({
 
     const loadPdfJs = async () => {
       try {
+        if (!document.getElementById("pdfjs-viewer-css")) {
+          const link = document.createElement("link");
+          link.id = "pdfjs-viewer-css";
+          link.rel = "stylesheet";
+          link.href = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf_viewer.min.css";
+          document.head.appendChild(link);
+        }
+
         if (!(window as any).pdfjsLib) {
           const script = document.createElement("script");
           script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js";
@@ -344,6 +353,24 @@ export function PdfReader({
           
           if (active) {
             activeRenderTaskRef.current = null;
+
+            // Render text layer
+            const cssViewport = page.getViewport({ scale });
+            const textContent = await page.getTextContent();
+            const textLayerDiv = textLayerRef.current;
+            const pdfjsLib = (window as any).pdfjsLib;
+            if (textLayerDiv && pdfjsLib) {
+              textLayerDiv.innerHTML = "";
+              textLayerDiv.style.width = `${cssViewport.width}px`;
+              textLayerDiv.style.height = `${cssViewport.height}px`;
+
+              const textLayerTask = pdfjsLib.renderTextLayer({
+                textContent: textContent,
+                container: textLayerDiv,
+                viewport: cssViewport,
+              });
+              await textLayerTask.promise;
+            }
           }
         }
       } catch (e: any) {
@@ -878,6 +905,12 @@ export function PdfReader({
                   ref={canvasRef} 
                   className="block pointer-events-none select-none"
                   onContextMenu={(e) => e.preventDefault()}
+                />
+
+                {/* Text selection layer overlay */}
+                <div 
+                  ref={textLayerRef}
+                  className="textLayer absolute inset-0 select-text pointer-events-auto"
                 />
 
                 {/* Diagonal Floating Student Security Watermark */}

@@ -132,7 +132,7 @@ export function CourseDetailClient({ slug, description, sections, isEnrolled, ou
                         <div className="self-start sm:self-center shrink-0">
                           {lesson.isPreview ? (
                             <Link
-                              href={`/courses/${slug}/preview/${lesson.id}`}
+                              href={`/courses/${slug}/lessons/${lesson.slug}`}
                               className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
                             >
                               Start Preview
@@ -140,7 +140,7 @@ export function CourseDetailClient({ slug, description, sections, isEnrolled, ou
                             </Link>
                           ) : isEnrolled ? (
                             <Link
-                              href={`/student/courses/${slug}/lessons/${lesson.id}`}
+                              href={`/courses/${slug}/lessons/${lesson.slug}`}
                               className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
                             >
                               Learn Now

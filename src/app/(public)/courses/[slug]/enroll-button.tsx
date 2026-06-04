@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { Loader2, PlayCircle, Lock, X, Ticket } from "lucide-react";
@@ -41,6 +41,7 @@ export function EnrollButton({
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Use SWR exclusively for enrollment status fetching
   const { data: enrollmentStatus, mutate } = useSWR(
@@ -50,6 +51,12 @@ export function EnrollButton({
 
   const status = enrollmentStatus?.status || null;
   const isCurrentlyEnrolled = enrollmentStatus ? (enrollmentStatus.status === "ACTIVE" || enrollmentStatus.status === "COMPLETED") : initialIsEnrolled;
+
+  React.useEffect(() => {
+    if (searchParams && searchParams.get("checkout") === "true" && !isCurrentlyEnrolled && !isFree && isLoggedIn) {
+      setShowCheckoutModal(true);
+    }
+  }, [searchParams, isCurrentlyEnrolled, isFree, isLoggedIn]);
 
   // Free Enrollment Handler
   const handleFreeEnroll = async () => {

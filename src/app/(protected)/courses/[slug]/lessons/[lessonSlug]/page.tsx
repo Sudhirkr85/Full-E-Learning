@@ -100,25 +100,25 @@ export default async function LessonPlayerPage({ params }: LessonPlayerPageProps
               LMS Locked Lesson
             </span>
             <h1 className="text-2xl font-black tracking-wide text-white pt-2">{bundle.lesson.title}</h1>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-sm mx-auto">This lesson requires an active learning path enrollment. Sign up below to unlock all lessons, resources, and earn certificates.</p>
+            <p className="text-sm text-slate-400 leading-relaxed max-w-sm mx-auto">This lesson is locked. Please purchase this course to unlock all lessons and start learning.</p>
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild variant="outline" className="border-white/10 text-slate-300 hover:bg-white/10 hover:text-white rounded-xl h-11 text-xs font-bold uppercase tracking-wider">
-              <Link href={`/courses/${bundle.course.slug}`}>Back to Syllabus</Link>
-            </Button>
+            <button className="px-5 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl h-11 text-xs font-bold uppercase tracking-wider transition-all duration-200">
+              <Link href={`/courses/${bundle.course.slug}`}>Go Back</Link>
+            </button>
 
             {currentUser?.role === "STUDENT" ? (
-              <form action={enrollInCourseAction} className="shrink-0">
-                <input type="hidden" name="courseId" value={bundle.course.id} />
-                <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 text-xs px-6 font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-                  Enroll to Unlock
-                </Button>
-              </form>
+              <Link 
+                href={`/courses/${bundle.course.slug}?checkout=true`}
+                className="inline-flex items-center justify-center w-full sm:w-auto px-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl h-11 text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all duration-200"
+              >
+                Buy Course to Unlock
+              </Link>
             ) : (
-              <Button asChild className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 text-xs px-6 font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+              <button className="px-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl h-11 text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all duration-200">
                 <Link href="/login">Sign in to Enroll</Link>
-              </Button>
+              </button>
             )}
           </div>
         </div>

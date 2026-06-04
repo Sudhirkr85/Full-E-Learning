@@ -28,6 +28,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Completion Guard**: Hidden the manual "Mark Complete" button for quiz lessons so that students can only pass and complete quiz lessons based on meeting the passing mark criteria.
 
 *   **UI/UX Refinements**:
+    *   **Homepage Course Card Thumbnail**: Rendered the course cover image/thumbnail at the top of the course card on the public homepage grid, matching the layout structure of the product cards.
     *   **Curriculum Lesson Detail Editor**: Added support for editing existing lessons (Video, Live Stream, Quiz, PDF Playbook) directly from the curriculum admin dashboard. Admins can update Titles, Descriptions, YouTube Video URLs, PDF materials, Live Scheduled Date/Time, and Free/Paid Preview flags.
     *   **Section Row Click Accordions**: Click anywhere on a section row header (except active action buttons) to toggle section expansion, instead of forcing users to click only on the tiny chevron/arrow.
     *   **Auto-Expanding Sections**: Automatically expand a section when clicking the "+ Content" button, allowing immediate and smooth entry of lesson details.

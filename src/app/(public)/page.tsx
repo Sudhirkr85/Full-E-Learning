@@ -303,6 +303,19 @@ export default async function HomePage() {
                     <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-cyan-500/5 blur-2xl group-hover:bg-cyan-500/10 transition-all duration-300"></div>
 
                     <div className="space-y-4">
+                      {/* Cover image or gradient placeholder */}
+                      {course.coverImageUrl ? (
+                        <img
+                          src={course.coverImageUrl}
+                          alt={course.title}
+                          className="w-full aspect-video object-cover rounded-xl"
+                        />
+                      ) : (
+                        <div className="w-full aspect-video rounded-xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-white/5 flex items-center justify-center">
+                          <GraduationCap className="h-10 w-10 text-cyan-400 opacity-60" />
+                        </div>
+                      )}
+
                       {/* Header tags */}
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">{categoryName}</span>

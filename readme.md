@@ -63,6 +63,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Razorpay Order/Payment ID Separation**: Resolved a layout label mismatch in the Payment details desk where the Razorpay Order ID (prefixed with `order_`) was displayed under the Payment ID label while the Order ID field showed empty. Mapped Order ID to metadata and fallback order-numbers, and limited Payment ID strictly to actual payment values (prefixed with `pay_` or `sim_pay_`).
     *   **Duplicate Tracking ID Display**: Resolved a UI issue in the student's order tracking timeline where the tracking ID rendered twice next to the copy icon. Added a `showText` control prop to `<CopyButton>` and disabled the redundant text rendering.
     *   **Completed Delivery Step Style**: Fixed the Shipping Status Timeline so that the final "Delivered" step renders as a completed green checkmark step (with the delivery date and time) once the order status transitions to `"DELIVERED"`, rather than remaining in the active/pending orange style.
+    *   **Secure PDF Proxy for CORS Fetch Safety**: Created a secure proxy API endpoint at `/api/pdf-proxy` and updated the [`PdfReader`](file:///d:/Work/E-Learning/src/components/pdf-reader/PdfReader.tsx) to fetch PDF files through this local proxy. This completely eliminates "Failed to fetch" (CORS) loading errors when retrieving playbooks and books from external S3/R2 storage, while enforcing active session and purchase/enrollment authorization checks before streaming.
 
 ## 2. Tech Stack
 

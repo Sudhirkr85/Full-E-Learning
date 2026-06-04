@@ -209,8 +209,9 @@ export function PdfReader({
 
         if (!active) return;
 
-        console.log("Loading secure playbook document:", fileUrl);
-        const loadingTask = pdfjsLib.getDocument(fileUrl);
+        const proxiedUrl = `/api/pdf-proxy?url=${encodeURIComponent(fileUrl)}`;
+        console.log("Loading secure playbook document via proxy:", proxiedUrl);
+        const loadingTask = pdfjsLib.getDocument(proxiedUrl);
         const doc = await loadingTask.promise;
 
         if (!active) return;

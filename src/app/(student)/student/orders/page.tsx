@@ -314,7 +314,9 @@ export default async function StudentOrdersPage() {
 
                     const getStepState = (stepIndex: number) => {
                       if (stepIndex < currentIndex) return "completed";
-                      if (stepIndex === currentIndex) return "current";
+                      if (stepIndex === currentIndex) {
+                        return shippingStatus === "DELIVERED" ? "completed" : "current";
+                      }
                       return "pending";
                     };
 

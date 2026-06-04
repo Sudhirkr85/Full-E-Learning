@@ -58,6 +58,8 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Coupon Discount Cap Enforcement**: Fixed a bug where coupon applications (e.g., `FLAT50` 50% discount coupon) ignored the configured maximum discount limit (`maxDiscountCents`). Enforced the cap in client-side recalculations on both the Cart Page and Store Drawer, as well as in the server-side `validateCouponAction` helper to ensure proper discounts are calculated everywhere.
     *   **Coupon Input Enter-Key Interception**: Intercepted the `Enter` keypress event inside coupon code input fields on the Cart Page and Store Drawer. This prevents the browser from automatically submitting the checkout payment form, and instead applies the coupon seamlessly.
     *   **Shipping Calculation Alignment**: Resolved an amount mismatch between client-side totals (which charged ₹40 under ₹499 subtotal) and server checkout calculations (which charged ₹50 under ₹500 subtotal) by standardizing all calculations to ₹40 shipping for physical orders under ₹499.
+    *   **Post Office Default Courier Option**: Added "Post Office" (India Post) as the default courier partner option on the Admin Shipping Desk and Order Details desk by placing it at the top of the shared courier list configuration. Added full tracking support for Post Office shipments.
+    *   **Automatic Shipping Status Initialization**: Configured order fulfillment logic across both Razorpay webhooks (captured/paid) and manual checkouts to automatically transition the shipping status of physical product orders to `"PROCESSING"` upon payment confirmation. This allows immediate shipping desk actions rather than leaving them in a static `"PENDING"` state.
 
 ## 2. Tech Stack
 

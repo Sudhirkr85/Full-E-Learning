@@ -110,7 +110,7 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
 
   // Open Modal shipping parameters
   const openShippingDesk = (order: OrderData) => {
-    const currentCourier = order.courierName || order.metadata?.courierName || "delhivery";
+    const currentCourier = order.courierName || order.metadata?.courierName || "postoffice";
     const currentStatus = order.shippingStatus || order.metadata?.shippingStatus || "PENDING";
     const currentTrackingId = order.trackingNumber || order.metadata?.trackingId || "";
 

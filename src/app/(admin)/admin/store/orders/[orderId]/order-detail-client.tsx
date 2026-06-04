@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { COURIER_LIST } from "@/lib/couriers";
 
 type UserData = {
   id: string;
@@ -60,7 +61,11 @@ type OrderData = {
   id: string;
   orderNumber: string;
   status: string;
+  subtotalCents: number;
+  discountCents: number;
   totalCents: number;
+  billingPhone: string | null;
+  billingEmail: string;
   metadata?: any;
   createdAt: Date | string;
   user: UserData | null;
@@ -147,12 +152,13 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
   const hasTracking = !!shippingMeta.trackingId;
 
   const openShippingDesk = () => {
-    setCourierName(shippingMeta.courierName || "Delhivery");
-    setCustomCourier(
-      shippingMeta.courierName && !["Delhivery", "BlueDart", "India Post", "DTDC", "Ekart", "Xpressbees"].includes(shippingMeta.courierName)
-        ? shippingMeta.courierName
-        : ""
-    );
+    const currentCourier = shippingMeta.courierName || "postoffice";
+    const standardValues = COURIER_LIST.map(c => c.value);
+    const standardLabelsLower = COURIER_LIST.map(c => c.label.toLowerCase());
+    const isStandard = standardValues.includes(currentCourier.toLowerCase()) || standardLabelsLower.includes(currentCourier.toLowerCase());
+
+    setCourierName(isStandard ? COURIER_LIST.find(c => c.value === currentCourier.toLowerCase() || c.label.toLowerCase() === currentCourier.toLowerCase())?.value || "postoffice" : "Other");
+    setCustomCourier(!isStandard && currentCourier !== "Other" ? currentCourier : "");
     setTrackingId(shippingMeta.trackingId || "");
     setDispatchDate(shippingMeta.dispatchDate || new Date().toISOString().split("T")[0]);
     setShippingStatus(shippingMeta.shippingStatus || "SHIPPED");
@@ -202,7 +208,7 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
     const cName = courier.toLowerCase();
     if (cName.includes("delhivery")) return `https://www.delhivery.com/tracking/?ref=${tId}`;
     if (cName.includes("bluedart")) return `https://www.bluedart.com/tracking?trackFor=0&id=${tId}`;
-    if (cName.includes("india post")) return `https://www.indiapost.gov.in/vas/pages/trackconsignment.aspx`;
+    if (cName.includes("india post") || cName.includes("postoffice") || cName.includes("post office")) return `https://www.indiapost.gov.in/vas/pages/trackconsignment.aspx`;
     if (cName.includes("dtdc")) return `https://www.dtdc.in/tracking/tracking_results.asp?Ttype=T&strCnno=${tId}`;
     if (cName.includes("ekart")) return `https://ekartlogistics.com/shipmenttrack/${tId}`;
     return null;
@@ -210,7 +216,7 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
 
   const hasDirectTrackingButton = () => {
     const courier = (shippingMeta.courierName || "").toLowerCase();
-    return ["delhivery", "bluedart", "india post", "dtdc", "ekart"].some(c => courier.includes(c));
+    return ["delhivery", "bluedart", "india post", "postoffice", "post office", "dtdc", "ekart"].some(c => courier.includes(c));
   };
 
   return (
@@ -383,9 +389,31 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
             );
           })}
           
-          <div className="border-t border-white/10 mt-3 pt-3 flex justify-between items-center text-sm font-bold">
-            <span className="text-white font-bold">Total</span>
-            <span className="text-emerald-400 text-base font-extrabold">{formatINR(order.totalCents)}</span>
+          <div className="border-t border-white/10 mt-3 pt-3 space-y-2 text-xs font-semibold">
+            <div className="flex justify-between text-slate-400">
+              <span>Subtotal</span>
+              <span>{formatINR(order.subtotalCents)}</span>
+            </div>
+            {order.discountCents > 0 && (
+              <div className="flex justify-between text-emerald-400">
+                <span>Discount {order.metadata?.couponCode ? `(${order.metadata.couponCode})` : ""}</span>
+                <span>-{formatINR(order.discountCents)}</span>
+              </div>
+            )}
+            {hasPhysical && (
+              <div className="flex justify-between text-slate-400">
+                <span>Shipping Fee</span>
+                <span>
+                  {order.totalCents - (order.subtotalCents - order.discountCents) === 0
+                    ? "FREE"
+                    : formatINR(order.totalCents - (order.subtotalCents - order.discountCents))}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between items-center text-sm font-bold pt-2 border-t border-white/5">
+              <span className="text-white font-bold">Total</span>
+              <span className="text-emerald-400 text-base font-extrabold">{formatINR(order.totalCents)}</span>
+            </div>
           </div>
         </div>
       </Card>
@@ -397,6 +425,29 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
             <Truck className="h-4 w-4 text-slate-400" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Shipping</h2>
           </div>
+
+          {shippingMeta.shippingAddress ? (
+            <div className="mb-5 p-4 rounded-xl border border-white/10 bg-white/5 space-y-2 text-xs text-slate-300">
+              <h3 className="text-slate-400 uppercase text-[9px] tracking-widest font-extrabold">Delivery Address & Contact</h3>
+              <div className="space-y-1">
+                <p className="text-white text-sm font-bold">{shippingMeta.shippingAddress.fullName}</p>
+                <p className="font-semibold text-indigo-400">Phone: {shippingMeta.shippingAddress.primaryPhone || order.billingPhone || "N/A"}</p>
+                {shippingMeta.shippingAddress.secondaryPhone && <p className="text-slate-400">Alt Phone: {shippingMeta.shippingAddress.secondaryPhone}</p>}
+                <p className="text-slate-300 leading-relaxed mt-1">
+                  {shippingMeta.shippingAddress.addressLine1}
+                  {shippingMeta.shippingAddress.addressLine2 ? `, ${shippingMeta.shippingAddress.addressLine2}` : ""}
+                  <br />
+                  {shippingMeta.shippingAddress.city}, {shippingMeta.shippingAddress.state} - {shippingMeta.shippingAddress.postalCode}
+                  <br />
+                  {shippingMeta.shippingAddress.country}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-5 p-4 rounded-xl border border-dashed border-white/10 text-center text-xs text-slate-500">
+              No delivery address details found in order metadata.
+            </div>
+          )}
           
           {!hasTracking || shipStatus === "PROCESSING" ? (
             <div className="py-2 space-y-4">
@@ -588,9 +639,9 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
                   onChange={(e) => setCourierName(e.target.value)}
                   className="w-full bg-[#0d0d14] border border-white/10 rounded-xl px-4 h-11 text-sm text-white focus:outline-none focus:border-indigo-500"
                 >
-                  {["Delhivery", "BlueDart", "India Post", "DTDC", "Ekart", "Xpressbees", "Other"].map((partner) => (
-                    <option key={partner} value={partner}>
-                      {partner}
+                  {COURIER_LIST.map((partner) => (
+                    <option key={partner.value} value={partner.value} className="bg-[#0d0d14]">
+                      {partner.label}
                     </option>
                   ))}
                 </select>

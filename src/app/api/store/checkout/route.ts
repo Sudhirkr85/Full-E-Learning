@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { items, billingEmail, billingPhone, couponCode, orderNotes } = await req.json();
+    const { items, billingEmail, billingPhone, couponCode, orderNotes, shippingAddress } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ message: "Your cart is empty." }, { status: 400 });
@@ -125,6 +125,7 @@ export async function POST(req: Request) {
         metadata: {
           razorpayOrderId: razorpayOrder.id,
           couponCode: couponCode || null,
+          shippingAddress: shippingAddress || null,
         },
         // Populate custom database columns added in migration
         subtotal: Math.floor(subtotalCents / 100),

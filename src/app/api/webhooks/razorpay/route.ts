@@ -80,11 +80,18 @@ export async function POST(req: NextRequest) {
 
       // 5. Execute secure state updates and learning upgrades inside a Prisma transaction
       await prisma.$transaction(async (tx) => {
+        const hasPhysical = order.items.some(item => item.productType === "PHYSICAL");
         // Update Order
         await tx.order.update({
           where: { id: order.id },
           data: {
             status: OrderStatus.PAID,
+            paidAt: new Date(),
+            shippingStatus: hasPhysical ? "PROCESSING" : "PENDING",
+            metadata: {
+              ...(order.metadata as any || {}),
+              shippingStatus: hasPhysical ? "PROCESSING" : undefined
+            }
           },
         });
 

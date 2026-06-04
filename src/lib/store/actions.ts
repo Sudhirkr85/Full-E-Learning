@@ -387,10 +387,19 @@ export async function simulatePaymentSuccessAction(orderId: string) {
     const coursesEnrolled: { title: string; slug: string }[] = [];
 
     await prisma.$transaction(async (tx) => {
+      const hasPhysical = order.items.some(item => item.productType === "PHYSICAL");
       // 1. Update Order status
       await tx.order.update({
         where: { id: order.id },
-        data: { status: OrderStatus.PAID },
+        data: { 
+          status: OrderStatus.PAID,
+          paidAt: new Date(),
+          shippingStatus: hasPhysical ? "PROCESSING" : "PENDING",
+          metadata: {
+            ...(order.metadata as any || {}),
+            shippingStatus: hasPhysical ? "PROCESSING" : undefined
+          }
+        },
       });
 
       // 2. Upsert completed Payment

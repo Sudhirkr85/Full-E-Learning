@@ -1,4 +1,5 @@
 export const COURIER_LIST = [
+  { value: "postoffice", label: "Post Office", url: "https://www.indiapost.gov.in/vas/pages/trackconsignment.aspx?id=" },
   { value: "delhivery",  label: "Delhivery",   url: "https://www.delhivery.com/track/package/" },
   { value: "bluedart",   label: "BlueDart",     url: "https://www.bluedart.com/tracking?trackid=" },
   { value: "dtdc",       label: "DTDC",         url: "https://www.dtdc.in/tracking?awbno=" },

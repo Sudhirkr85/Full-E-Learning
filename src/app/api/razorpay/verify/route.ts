@@ -32,16 +32,20 @@ export async function POST(req: NextRequest) {
 
     // Retrieve order first to capture metadata safely
     const existingOrder = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
+      include: { items: true }
     });
 
     if (!existingOrder) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
 
+    const hasPhysical = existingOrder.items.some(item => item.productType === "PHYSICAL");
+
     const updatedMetadata = {
       ...(existingOrder.metadata as any || {}),
-      razorpayPaymentId: razorpay_payment_id
+      razorpayPaymentId: razorpay_payment_id,
+      shippingStatus: hasPhysical ? "PROCESSING" : undefined
     };
 
     // Update order status to PAID
@@ -50,6 +54,7 @@ export async function POST(req: NextRequest) {
       data: { 
         status: OrderStatus.PAID,
         paidAt: new Date(),
+        shippingStatus: hasPhysical ? "PROCESSING" : "PENDING",
         metadata: updatedMetadata
       },
       include: { 

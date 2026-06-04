@@ -164,9 +164,11 @@ export async function POST(req: NextRequest) {
           }
 
           if (order.status !== OrderStatus.PAID) {
+            const hasPhysical = order.items.some(item => item.productType === "PHYSICAL");
             const updatedMetadata = {
               ...(order.metadata as any || {}),
-              razorpayPaymentId
+              razorpayPaymentId,
+              shippingStatus: hasPhysical ? "PROCESSING" : undefined
             };
 
             // Mark PAID
@@ -175,6 +177,7 @@ export async function POST(req: NextRequest) {
               data: {
                 status: OrderStatus.PAID,
                 paidAt: new Date(),
+                shippingStatus: hasPhysical ? "PROCESSING" : "PENDING",
                 metadata: updatedMetadata
               }
             });

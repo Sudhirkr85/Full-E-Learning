@@ -31,6 +31,7 @@ type UserData = {
   name: string | null;
   email: string;
   phone: string | null;
+  metadata?: any;
 };
 
 type ProductData = {
@@ -66,6 +67,7 @@ type OrderData = {
   totalCents: number;
   billingPhone: string | null;
   billingEmail: string;
+  shippingStatus?: string | null;
   metadata?: any;
   createdAt: Date | string;
   user: UserData | null;
@@ -148,8 +150,26 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
 
   // Read shipping parameters
   const shippingMeta = order.metadata || {};
-  const shipStatus = shippingMeta.shippingStatus || (hasPhysical ? "PROCESSING" : "");
+  const shipStatus = order.shippingStatus && order.shippingStatus !== "PENDING"
+    ? order.shippingStatus
+    : (shippingMeta.shippingStatus && shippingMeta.shippingStatus !== "PENDING"
+      ? shippingMeta.shippingStatus
+      : (hasPhysical && order.status === "PAID" ? "PROCESSING" : "PENDING"));
   const hasTracking = !!shippingMeta.trackingId;
+
+  const shippingAddress = shippingMeta.shippingAddress || (hasPhysical && order.user ? {
+    fullName: order.user.name || "Student",
+    primaryPhone: order.user.phone || (order.user.metadata as any)?.phone || order.billingPhone || "N/A",
+    addressLine1: (order.user.metadata as any)?.addressLine1 || "",
+    addressLine2: (order.user.metadata as any)?.addressLine2 || "",
+    city: (order.user.metadata as any)?.city || "",
+    state: (order.user.metadata as any)?.state || "",
+    postalCode: (order.user.metadata as any)?.postalCode || "",
+    country: (order.user.metadata as any)?.country || "India",
+    secondaryPhone: (order.user.metadata as any)?.secondaryPhone || ""
+  } : null);
+
+  const hasValidAddress = !!(shippingAddress && (shippingAddress.addressLine1 || shippingAddress.city));
 
   const openShippingDesk = () => {
     const currentCourier = shippingMeta.courierName || "postoffice";
@@ -426,26 +446,26 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Shipping</h2>
           </div>
 
-          {shippingMeta.shippingAddress ? (
+          {hasValidAddress && shippingAddress ? (
             <div className="mb-5 p-4 rounded-xl border border-white/10 bg-white/5 space-y-2 text-xs text-slate-300">
               <h3 className="text-slate-400 uppercase text-[9px] tracking-widest font-extrabold">Delivery Address & Contact</h3>
               <div className="space-y-1">
-                <p className="text-white text-sm font-bold">{shippingMeta.shippingAddress.fullName}</p>
-                <p className="font-semibold text-indigo-400">Phone: {shippingMeta.shippingAddress.primaryPhone || order.billingPhone || "N/A"}</p>
-                {shippingMeta.shippingAddress.secondaryPhone && <p className="text-slate-400">Alt Phone: {shippingMeta.shippingAddress.secondaryPhone}</p>}
+                <p className="text-white text-sm font-bold">{shippingAddress.fullName}</p>
+                <p className="font-semibold text-indigo-400">Phone: {shippingAddress.primaryPhone}</p>
+                {shippingAddress.secondaryPhone && <p className="text-slate-400">Alt Phone: {shippingAddress.secondaryPhone}</p>}
                 <p className="text-slate-300 leading-relaxed mt-1">
-                  {shippingMeta.shippingAddress.addressLine1}
-                  {shippingMeta.shippingAddress.addressLine2 ? `, ${shippingMeta.shippingAddress.addressLine2}` : ""}
+                  {shippingAddress.addressLine1}
+                  {shippingAddress.addressLine2 ? `, ${shippingAddress.addressLine2}` : ""}
                   <br />
-                  {shippingMeta.shippingAddress.city}, {shippingMeta.shippingAddress.state} - {shippingMeta.shippingAddress.postalCode}
+                  {shippingAddress.city}, {shippingAddress.state} - {shippingAddress.postalCode}
                   <br />
-                  {shippingMeta.shippingAddress.country}
+                  {shippingAddress.country}
                 </p>
               </div>
             </div>
           ) : (
             <div className="mb-5 p-4 rounded-xl border border-dashed border-white/10 text-center text-xs text-slate-500">
-              No delivery address details found in order metadata.
+              No delivery address details found in order metadata or student profile.
             </div>
           )}
           
@@ -555,16 +575,16 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
           </div>
           <div className="space-y-1">
             <span className="text-slate-500 block uppercase text-[10px] tracking-widest">Razorpay Order ID</span>
-            {order.payments?.[0]?.providerOrderId ? (
-              <CopyChip value={order.payments[0].providerOrderId} />
+            {order.metadata?.razorpayOrderId || (order.orderNumber?.startsWith("order_") ? order.orderNumber : null) || order.payments?.[0]?.providerOrderId ? (
+              <CopyChip value={order.metadata?.razorpayOrderId || (order.orderNumber?.startsWith("order_") ? order.orderNumber : null) || order.payments?.[0]?.providerOrderId || ""} />
             ) : (
               <p className="text-slate-400 font-semibold">—</p>
             )}
           </div>
           <div className="space-y-1">
             <span className="text-slate-500 block uppercase text-[10px] tracking-widest">Razorpay Payment ID</span>
-            {order.payments?.[0]?.providerPaymentId ? (
-              <CopyChip value={order.payments[0].providerPaymentId} />
+            {order.metadata?.razorpayPaymentId || (order.payments?.[0]?.providerPaymentId && !order.payments[0].providerPaymentId.startsWith("order_") ? order.payments[0].providerPaymentId : null) ? (
+              <CopyChip value={order.metadata?.razorpayPaymentId || (order.payments?.[0]?.providerPaymentId && !order.payments[0].providerPaymentId.startsWith("order_") ? order.payments[0].providerPaymentId : "")} />
             ) : (
               <p className="text-slate-400 font-semibold">—</p>
             )}

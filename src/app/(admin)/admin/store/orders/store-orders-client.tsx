@@ -292,7 +292,10 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
 
   const getStatusBadge = (order: OrderData) => {
     const isPhys = order.items.some(item => item.productType === "PHYSICAL");
-    const shipStatus = order.shippingStatus || (order.metadata || {}).shippingStatus || (isPhys ? "PENDING" : "PAID");
+    let shipStatus = order.shippingStatus || (order.metadata || {}).shippingStatus;
+    if (!shipStatus || shipStatus === "PENDING") {
+      shipStatus = (order.status === "PAID" && isPhys) ? "PROCESSING" : "PENDING";
+    }
     
     if (order.status === "CANCELLED") {
       return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">CANCELLED</span>;

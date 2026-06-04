@@ -10,10 +10,16 @@ import { getCurrentUser } from "@/lib/auth";
 import { enrollInCourseAction, toggleLessonCompletionAction } from "@/lib/courses/actions";
 import { getLessonPlayerBundle } from "@/lib/courses/access";
 
+import { prisma } from "@/lib/prisma";
+import { LessonPlayerClient } from "./lesson-player-client";
+
 type LessonPlayerPageProps = {
   params: Promise<{
     slug: string;
     lessonSlug: string;
+  }>;
+  searchParams?: Promise<{
+    attemptId?: string;
   }>;
 };
 
@@ -52,10 +58,9 @@ import {
   Loader2
 } from "lucide-react";
 
-import { LessonPlayerClient } from "./lesson-player-client";
-
-export default async function LessonPlayerPage({ params }: LessonPlayerPageProps) {
+export default async function LessonPlayerPage({ params, searchParams }: LessonPlayerPageProps) {
   const { slug, lessonSlug } = await params;
+  const sParams = searchParams ? await searchParams : undefined;
   const currentUser = await getCurrentUser();
   const bundle = await getLessonPlayerBundle(slug, lessonSlug, currentUser?.id);
 
@@ -126,6 +131,105 @@ export default async function LessonPlayerPage({ params }: LessonPlayerPageProps
     );
   }
 
+  // Fetch Quiz specifications if lesson contentType is QUIZ
+  let quizTest = null;
+  let quizAttempts: any[] = [];
+  let quizActiveAttempt = null;
+  let quizReviewAttempt = null;
+  let quizQuestions: any[] = [];
+
+  const activeAttemptId = sParams?.attemptId;
+
+  if (bundle.lesson.contentType === "QUIZ") {
+    const fullLesson = await prisma.lesson.findUnique({
+      where: { id: bundle.lesson.id },
+      select: { metadata: true }
+    });
+    const testId = (fullLesson?.metadata as any)?.testId;
+    if (testId) {
+      quizTest = await prisma.test.findUnique({
+        where: { id: testId },
+        include: {
+          questions: {
+            include: {
+              options: true
+            },
+            orderBy: { orderIndex: "asc" }
+          }
+        }
+      });
+
+      if (quizTest && currentUser) {
+        quizAttempts = await prisma.attempt.findMany({
+          where: {
+            testId: quizTest.id,
+            userId: currentUser.id
+          },
+          orderBy: { attemptNumber: "desc" }
+        });
+
+        quizActiveAttempt = quizAttempts.find(att => att.status === "IN_PROGRESS") || null;
+
+        if (activeAttemptId) {
+          quizReviewAttempt = quizAttempts.find(att => att.id === activeAttemptId) || null;
+        }
+
+        const isTakingPhase = quizActiveAttempt && (!quizReviewAttempt || quizReviewAttempt.status === "IN_PROGRESS");
+        
+        quizQuestions = await Promise.all(quizTest.questions.map(async (q) => {
+          const answers = activeAttemptId ? await prisma.attemptAnswer.findMany({
+            where: { attemptId: activeAttemptId, questionId: q.id }
+          }) : [];
+
+          return {
+            id: q.id,
+            prompt: q.prompt,
+            kind: q.kind,
+            points: q.points,
+            explanation: q.explanation,
+            options: q.options.map((o) => ({
+              id: o.id,
+              label: o.label,
+              isCorrect: isTakingPhase ? undefined : o.isCorrect,
+              explanation: isTakingPhase ? undefined : o.explanation
+            })),
+            answers: answers.map(a => ({
+              selectedOptionId: a.selectedOptionId,
+              answerText: a.answerText,
+              isCorrect: a.isCorrect,
+              metadata: a.metadata
+            }))
+          };
+        }));
+
+        // Automatic lesson completion when passed
+        if (quizReviewAttempt && quizReviewAttempt.scorePercent !== null && quizReviewAttempt.scorePercent >= quizTest.passingScore && bundle.enrollment) {
+          const isLessonAlreadyCompleted = bundle.enrollment.lessonProgresses.some(lp => lp.lessonId === bundle.lesson?.id && lp.isCompleted);
+          if (!isLessonAlreadyCompleted) {
+            await prisma.lessonProgress.upsert({
+              where: {
+                enrollmentId_lessonId: {
+                  enrollmentId: bundle.enrollment.id,
+                  lessonId: bundle.lesson.id
+                }
+              },
+              create: {
+                enrollmentId: bundle.enrollment.id,
+                lessonId: bundle.lesson.id,
+                isCompleted: true,
+                completedAt: new Date()
+              },
+              update: {
+                isCompleted: true,
+                completedAt: new Date()
+              }
+            });
+          }
+        }
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white relative overflow-hidden bg-grid-cyber pb-20">
       {/* Cinematic glows */}
@@ -139,6 +243,11 @@ export default async function LessonPlayerPage({ params }: LessonPlayerPageProps
         bundle={bundle}
         isCompleted={isCompleted}
         canTrackProgress={canTrackProgress}
+        quizTest={quizTest}
+        quizAttempts={quizAttempts}
+        quizActiveAttempt={quizActiveAttempt}
+        quizReviewAttempt={quizReviewAttempt}
+        quizQuestions={quizQuestions}
       />
     </div>
   );

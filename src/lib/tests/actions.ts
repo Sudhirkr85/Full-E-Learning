@@ -507,13 +507,19 @@ export async function submitAttemptAction(
   return { success: true };
 }
 
-export async function startClassroomAttemptAction(courseId: string, testId: string, lessonSlug: string) {
+export async function startClassroomAttemptAction(courseId: string, testId: string, lessonSlug: string, originPath?: string) {
   const student = await requireRole([UserRole.STUDENT, UserRole.ADMIN, UserRole.TEACHER]);
 
-  // Check enrollment (bypassed for ADMIN/TEACHER)
+  // Check enrollment (bypassed for ADMIN/TEACHER or FREE preview lessons)
   const isStaff = student.role === "ADMIN" || student.role === "TEACHER";
+  
+  const lesson = await prisma.lesson.findFirst({
+    where: { slug: lessonSlug }
+  });
+  const isPreview = lesson?.isPreview === true;
+
   let enrollment = null;
-  if (!isStaff) {
+  if (!isStaff && !isPreview) {
     enrollment = await prisma.enrollment.findUnique({
       where: {
         userId_courseId: {
@@ -527,9 +533,14 @@ export async function startClassroomAttemptAction(courseId: string, testId: stri
       throw new Error("You must be actively enrolled in the course to take this test.");
     }
   } else {
-    // Staff enrollment fallback or create mock one if required, or simply query if they have one
-    enrollment = await prisma.enrollment.findFirst({
-      where: { userId: student.id, courseId }
+    // Fetch enrollment if they have one (e.g. staff or preview users who happen to be enrolled)
+    enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: student.id,
+          courseId,
+        },
+      },
     });
   }
 
@@ -568,6 +579,9 @@ export async function startClassroomAttemptAction(courseId: string, testId: stri
   });
 
   if (activeAttempt) {
+    if (originPath) {
+      redirect(`${originPath}?attemptId=${activeAttempt.id}`);
+    }
     redirect(`/courses/${test.course.slug}/learn?lesson=${lessonSlug}&attemptId=${activeAttempt.id}`);
   }
 
@@ -583,6 +597,9 @@ export async function startClassroomAttemptAction(courseId: string, testId: stri
     },
   });
 
+  if (originPath) {
+    redirect(`${originPath}?attemptId=${attempt.id}`);
+  }
   redirect(`/courses/${test.course.slug}/learn?lesson=${lessonSlug}&attemptId=${attempt.id}`);
 }
 

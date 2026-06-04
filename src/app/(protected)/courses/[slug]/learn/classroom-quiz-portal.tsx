@@ -107,6 +107,11 @@ export default function ClassroomQuizPortal({
   }>>({});
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Custom Popup state
   const [popup, setPopup] = useState<{
@@ -180,7 +185,7 @@ export default function ClassroomQuizPortal({
     setError(null);
     startTransition(async () => {
       try {
-        await startClassroomAttemptAction(test.courseId, test.id, lessonSlug);
+        await startClassroomAttemptAction(test.courseId, test.id, lessonSlug, window.location.pathname);
       } catch (err: any) {
         setError(err.message || "Failed to start quiz attempt.");
       }
@@ -201,7 +206,7 @@ export default function ClassroomQuizPortal({
       });
 
       await submitAttemptAction(activeAttempt.id, submissionPayload);
-      router.push(`/courses/${courseSlug}/learn?lesson=${lessonSlug}&attemptId=${activeAttempt.id}`);
+      router.push(`${window.location.pathname}?attemptId=${activeAttempt.id}`);
       onRefresh();
     } catch (err: any) {
       console.error("Auto submit failed:", err);
@@ -226,7 +231,7 @@ export default function ClassroomQuizPortal({
             });
 
             await submitAttemptAction(activeAttempt.id, submissionPayload);
-            router.push(`/courses/${courseSlug}/learn?lesson=${lessonSlug}&attemptId=${activeAttempt.id}`);
+            router.push(`${window.location.pathname}?attemptId=${activeAttempt.id}`);
             onRefresh();
           } catch (err: any) {
             setError(err.message || "Failed to submit answers.");
@@ -322,7 +327,7 @@ export default function ClassroomQuizPortal({
                       <div>
                         <span className="font-extrabold text-white">Attempt #{att.attemptNumber}</span>
                         <span className="text-[10px] text-slate-500 block mt-0.5">
-                          {att.submittedAt ? new Date(att.submittedAt).toLocaleDateString() : "Draft"}
+                          {att.submittedAt ? (mounted ? new Date(att.submittedAt).toLocaleDateString() : "") : "Draft"}
                         </span>
                       </div>
                       <div className="flex items-center gap-3">
@@ -389,7 +394,7 @@ export default function ClassroomQuizPortal({
             <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Timed Assessment Attempt</span>
             <h4 className="text-xs font-bold text-white leading-none">
               Attempt #{activeAttempt.attemptNumber}
-              <span className="text-[10px] text-slate-400 font-mono font-normal ml-3">Started At: {new Date(activeAttempt.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span className="text-[10px] text-slate-400 font-mono font-normal ml-3">Started At: {mounted ? new Date(activeAttempt.startedAt).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : ""}</span>
             </h4>
           </div>
 

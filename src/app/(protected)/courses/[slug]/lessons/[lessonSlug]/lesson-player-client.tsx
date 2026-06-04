@@ -26,11 +26,14 @@ import {
   ChevronRight,
   Menu,
   Radio,
-  Calendar
+  Calendar,
+  HelpCircle
 } from "lucide-react";
 import { toggleLessonCompletionAction } from "@/lib/courses/actions";
 import { cn, getYoutubeEmbedUrl, getYoutubeVideoId } from "@/lib/utils";
 import { CustomYoutubePlayer } from "@/components/custom-youtube-player";
+import ClassroomQuizPortal from "../../learn/classroom-quiz-portal";
+import { PdfReader } from "@/components/pdf-reader/PdfReader";
 
 type LessonPlayerClientProps = {
   slug: string;
@@ -39,6 +42,11 @@ type LessonPlayerClientProps = {
   bundle: any;
   isCompleted: boolean;
   canTrackProgress: boolean;
+  quizTest?: any;
+  quizAttempts?: any[];
+  quizActiveAttempt?: any;
+  quizReviewAttempt?: any;
+  quizQuestions?: any[];
 };
 
 export function LessonPlayerClient({
@@ -47,7 +55,12 @@ export function LessonPlayerClient({
   currentUser,
   bundle,
   isCompleted,
-  canTrackProgress
+  canTrackProgress,
+  quizTest,
+  quizAttempts = [],
+  quizActiveAttempt,
+  quizReviewAttempt,
+  quizQuestions = []
 }: LessonPlayerClientProps) {
   const [mounted, setMounted] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -372,7 +385,41 @@ export function LessonPlayerClient({
 
             {/* Media Player Container */}
             <div className="relative z-10">
-              {bundle.lesson.contentType === "LIVE" ? (
+              {bundle.lesson.contentType === "QUIZ" ? (
+                quizTest ? (
+                  <ClassroomQuizPortal
+                    phase={
+                      quizReviewAttempt 
+                        ? (quizReviewAttempt.status === "IN_PROGRESS" ? "taking" : "review")
+                        : (quizActiveAttempt ? "taking" : "overview")
+                    }
+                    courseSlug={slug}
+                    lessonSlug={lessonSlug}
+                    test={{
+                      id: quizTest.id,
+                      title: quizTest.title,
+                      description: quizTest.description,
+                      type: quizTest.type,
+                      passingScore: quizTest.passingScore,
+                      timeLimitMinutes: quizTest.timeLimitMinutes,
+                      attemptLimit: quizTest.attemptLimit,
+                      courseId: bundle.course.id
+                    }}
+                    attempts={quizAttempts}
+                    activeAttempt={quizActiveAttempt}
+                    reviewAttempt={quizReviewAttempt}
+                    questions={quizQuestions}
+                    onRefresh={() => {
+                      window.location.reload();
+                    }}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.01] p-10 text-center flex flex-col items-center justify-center min-h-[300px]">
+                    <HelpCircle className="h-12 w-12 text-slate-600 mb-4" />
+                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">This Quiz has not been configured with questions yet.</p>
+                  </div>
+                )
+              ) : bundle.lesson.contentType === "LIVE" ? (
                 (() => {
                   if (!scheduledAt) {
                     return (
@@ -456,28 +503,24 @@ export function LessonPlayerClient({
                   videoId={getYoutubeVideoId(bundle.lesson.youtubeUrl)!} 
                   title={bundle.lesson.title} 
                 />
+              ) : bundle.lesson.r2AssetUrl ? (
+                <div className="w-full overflow-hidden rounded-2xl border border-white/5 bg-[#030306] relative shadow-2xl h-[75vh]">
+                  <PdfReader
+                    productId={bundle.course.id}
+                    orderId={bundle.enrollment?.id || `lesson-${bundle.lesson.id}`}
+                    fileUrl={bundle.lesson.r2AssetUrl}
+                    userName={currentUser?.name || "Student"}
+                    userEmail={currentUser?.email || ""}
+                    productName={bundle.course.title}
+                    className="h-full w-full"
+                  />
+                </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.01] p-10 text-center flex flex-col items-center justify-center min-h-[300px]">
                   <div className="h-12 w-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mb-4 shadow-[0_0_15px_rgba(255,255,255,0.02)]">
                     <FileText className="h-6 w-6 text-indigo-400" />
                   </div>
-                  {bundle.lesson.r2AssetUrl ? (
-                    <div className="space-y-3">
-                      <h4 className="text-slate-200 font-bold text-sm">Interactive Syllabus Document</h4>
-                      <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">This lesson features an online playbook resource instead of a primary video stream.</p>
-                      <a 
-                        href={bundle.lesson.r2AssetUrl} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-10 px-5 text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-[0_0_15px_rgba(99,102,241,0.2)] mt-2"
-                      >
-                        Open Playbook Document
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">No video or playbook asset published for this lesson yet.</p>
-                  )}
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">No video or playbook asset published for this lesson yet.</p>
                 </div>
               )}
             </div>

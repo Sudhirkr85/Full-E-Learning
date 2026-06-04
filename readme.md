@@ -28,6 +28,8 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Completion Guard**: Hidden the manual "Mark Complete" button for quiz lessons so that students can only pass and complete quiz lessons based on meeting the passing mark criteria.
 
 *   **UI/UX Refinements**:
+    *   **Admin Coupons Table Refinements**: Fixed a typographical error in the voucher campaigns table header (changing "Scope Scope" to "Scope") and styled all target scope badges to use high-contrast indigo colors (`text-indigo-300 bg-indigo-500/10`) for optimal readability against dark dashboard themes.
+    *   **Selective Context-Aware Cart Visibility**: Integrated the `HeaderCartButton` component directly into the main navigation header. Enforced route-aware logic ensuring that the cart button is only rendered when there are items in the cart AND the user is browsing public storefront layouts (Home, Courses, Store, Cart), keeping the learning classroom dashboards completely distraction-free.
     *   **Homepage Cleanups**: Removed the duplicate "Featured Products" section markup from the homepage file.
     *   **Homepage Products Synchronization**: Synchronized the home page product query status filter from strictly checking for `"ACTIVE"` to matching both `"ACTIVE"` and `"PUBLISHED"` states. This ensures products successfully display on the homepage exactly as they do on the store catalog page.
     *   **Header Navigation Cleanup**: Removed the legacy, unused "About" link from both the desktop and mobile navigation headers.

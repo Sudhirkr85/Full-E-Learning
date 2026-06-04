@@ -341,7 +341,7 @@ export function CouponsClient({ initialCoupons, products, courses }: CouponsClie
                   </div>
                   <div className="flex justify-between">
                     <span>Target Scope:</span>
-                    <Badge variant="outline" className="text-[8px] font-mono tracking-wider border-white/10 uppercase bg-slate-900/60 leading-none h-4">
+                    <Badge variant="outline" className="text-[8px] font-mono tracking-wider border-indigo-500/20 bg-indigo-500/10 text-indigo-300 uppercase leading-none h-4">
                       {coupon.appliesTo.replace("_", " ")}
                     </Badge>
                   </div>
@@ -408,7 +408,7 @@ export function CouponsClient({ initialCoupons, products, courses }: CouponsClie
                 <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   <th className="px-6 py-4">Voucher Code</th>
                   <th className="px-6 py-4">Details</th>
-                  <th className="px-6 py-4">Scope Scope</th>
+                  <th className="px-6 py-4">Scope</th>
                   <th className="px-6 py-4 text-center">Status</th>
                   <th className="px-6 py-4 text-center">Redeemed</th>
                   <th className="px-6 py-4 text-right">Actions</th>
@@ -431,7 +431,7 @@ export function CouponsClient({ initialCoupons, products, courses }: CouponsClie
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <Badge variant="outline" className="text-[9px] font-mono tracking-wider border-white/10 uppercase bg-slate-900/60">
+                      <Badge variant="outline" className="text-[9px] font-mono tracking-wider border-indigo-500/20 bg-indigo-500/10 text-indigo-300 uppercase">
                         {coupon.appliesTo.replace("_", " ")}
                       </Badge>
                     </td>
@@ -745,7 +745,7 @@ export function CouponsClient({ initialCoupons, products, courses }: CouponsClie
                 <div className="border-t border-white/5 pt-3 text-[10px] text-slate-400 space-y-1">
                   <p className="text-white font-medium truncate">{formData.name || "Launch offer title"}</p>
                   <p>Min order: ₹{formData.minimumOrderAmountCents || 0}</p>
-                  <Badge variant="outline" className="text-[8px] font-mono border-white/10 scale-90 uppercase mt-1">
+                  <Badge variant="outline" className="text-[8px] font-mono border-indigo-500/20 bg-indigo-500/10 text-indigo-300 scale-90 uppercase mt-1">
                     {formData.appliesTo.replace("_", " ")}
                   </Badge>
                 </div>

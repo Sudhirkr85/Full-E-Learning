@@ -594,13 +594,27 @@ export function StoreOrdersClient({ initialOrders }: StoreOrdersClientProps) {
                   {/* Row 5: Action Button - Full Width */}
                   <div className="pt-1">
                     {isPhys && order.status !== "CANCELLED" ? (
-                      <Button
-                        onClick={() => openShippingDesk(order)}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold h-11 w-full flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.25)]"
-                      >
-                        <Truck className="h-4 w-4" />
-                        {order.metadata?.trackingId ? "Update Tracking" : "Add Tracking"}
-                      </Button>
+                      <div className="flex gap-2 w-full">
+                        <Link 
+                          href={"/admin/store/orders/" + order.id} 
+                          className="flex-1"
+                        >
+                          <Button
+                            variant="outline"
+                            className="border-white/10 hover:bg-white/5 text-slate-400 hover:text-white rounded-xl text-xs font-semibold h-11 w-full flex items-center justify-center gap-1.5"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            View Order
+                          </Button>
+                        </Link>
+                        <Button
+                          onClick={() => openShippingDesk(order)}
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold h-11 flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.25)]"
+                        >
+                          <Truck className="h-4 w-4" />
+                          {order.metadata?.trackingId ? "Update Tracking" : "Add Tracking"}
+                        </Button>
+                      </div>
                     ) : (
                       <Link 
                         href={"/admin/store/orders/" + order.id} 

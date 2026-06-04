@@ -185,6 +185,49 @@ export function PdfReader({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const activeRenderTaskRef = useRef<any>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Drag-to-scroll panning states
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || activeTool !== "view") return;
+    const container = scrollRef.current;
+    if (!container) return;
+
+    setIsDragging(true);
+    setStartX(e.clientX - container.offsetLeft);
+    setStartY(e.clientY - container.offsetTop);
+    setScrollLeft(container.scrollLeft);
+    setScrollTop(container.scrollTop);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    const container = scrollRef.current;
+    if (!container) return;
+
+    e.preventDefault();
+    const x = e.clientX - container.offsetLeft;
+    const y = e.clientY - container.offsetTop;
+    const walkX = (x - startX) * 1.5;
+    const walkY = (y - startY) * 1.5;
+    
+    container.scrollLeft = scrollLeft - walkX;
+    container.scrollTop = scrollTop - walkY;
+  };
 
   // Load PDF.js Script from CDN dynamically to bypass React 19 and Turbopack SSR worker build crashes
   useEffect(() => {
@@ -805,7 +848,16 @@ export function PdfReader({
           </div>
 
           {/* Secure Scrollable Center Canvas Viewport */}
-          <div className="flex-1 w-full overflow-x-auto flex justify-center items-start p-4 sm:p-6 bg-[#07070a]/90 relative">
+          <div 
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onMouseMove={handleMouseMove}
+            className={`flex-1 w-full overflow-auto flex justify-center items-start p-4 sm:p-6 bg-[#07070a]/90 relative ${
+              activeTool === "view" ? (isDragging ? "cursor-grabbing select-none" : "cursor-grab") : ""
+            }`}
+          >
             {isLoading ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                 <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />

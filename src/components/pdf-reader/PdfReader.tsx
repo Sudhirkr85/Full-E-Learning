@@ -164,10 +164,9 @@ export function PdfReader({
   const [error, setError] = useState<string | null>(null);
 
   // View Layout States
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [studyPanelOpen, setStudyPanelOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [studyPanelOpen, setStudyPanelOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [studyTab, setStudyTab] = useState<"notes" | "bookmarks">("notes");
 
   // Mobile Sheets Overlay states
@@ -685,9 +684,7 @@ export function PdfReader({
   return (
     <div 
       ref={containerRef}
-      className={`flex flex-col select-none relative ${className || "h-screen"} ${
-        theme === "dark" ? "bg-[#0a0a0f] text-slate-100" : "bg-slate-50 text-slate-900"
-      }`}
+      className={`flex flex-col select-none relative ${className || "h-screen"} bg-[#0a0a0f] text-slate-100`}
       onContextMenu={(e) => e.preventDefault()} // Disable Right Click completely
     >
       {/* Printable block shield */}
@@ -772,16 +769,7 @@ export function PdfReader({
             <Bookmark className="h-4.5 w-4.5 fill-current" />
           </Button>
 
-          {/* Theme Switcher */}
-          <Button 
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")} 
-            variant="ghost" 
-            size="icon" 
-            className="h-11 w-11 text-slate-300 hover:bg-white/5"
-            title="Light/Dark Mode"
-          >
-            {theme === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
-          </Button>
+
 
           {/* Fullscreen Toggle */}
           <Button 

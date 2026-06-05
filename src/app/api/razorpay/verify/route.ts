@@ -13,9 +13,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify signature
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) {
+      console.error("[Verify] RAZORPAY_KEY_SECRET not set");
+      return NextResponse.json(
+        { error: "Payment verification not configured" },
+        { status: 500 }
+      );
+    }
     const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || "sec_test_secret_placeholder_value_123")
+      .createHmac('sha256', keySecret)
       .update(body)
       .digest('hex');
 

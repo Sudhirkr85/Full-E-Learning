@@ -32,6 +32,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Course not found." }, { status: 404 });
     }
 
+    const price = course.priceCents ?? 0;
+    if (price > 0) {
+      return NextResponse.json(
+        { error: "This is a paid course. Please complete payment." },
+        { status: 400 }
+      );
+    }
+
     // 2. Check duplicate enrollment
     const existingEnrollment = await prisma.enrollment.findUnique({
       where: {

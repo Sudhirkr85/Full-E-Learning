@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function GET(
   req: Request,
@@ -7,6 +8,27 @@ export async function GET(
 ) {
   try {
     const { orderId } = await params;
+
+    const session = await auth();
+
+    if (session?.user?.id) {
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { userId: true }
+      });
+
+      if (order && order.userId !== session.user.id) {
+        const isStaff = 
+          session.user.role === "ADMIN" ||
+          session.user.role === "TEACHER";
+        if (!isStaff) {
+          return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 403 }
+          );
+        }
+      }
+    }
 
     // Check if the orderId is an Enrollment ID first. 
     // In our system, paid/free course enrollments also behave as orders.

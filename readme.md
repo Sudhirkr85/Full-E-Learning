@@ -286,6 +286,13 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 
 ---
 
+## 6. Recent Updates
+
+*   **Security Audit & Hardening (June 2026)**:
+    *   Fixed critical free checkout price bypass — paid courses now rejected at API level
+    *   Added order status ownership verification — users can only view their own orders
+    *   Removed hardcoded Razorpay secret fallbacks — server throws 500 if secrets not configured
+    *   Removed dev-only test email endpoint from codebase
 *   **Secure Student Bookshelf**: Added `/student/library` and secure PDF iframe viewer to stream books directly from Cloudflare R2 with UUID injection guard checks.
 *   **Direct Checkout Engine**: Bypasses intermediate screens during checkout to launch Razorpay modals directly from Zustand cart drawer or full-screen mobile `/cart` pages.
 *   **Admin Coupons Module**: Integrated dashboard CRUD screens at `/admin/coupons` allowing granular discounts configuration with alphanumeric sanitization rules.
@@ -413,3 +420,8 @@ npm run build
 *   **Strict Type-Safety**: Base code compiles without errors (`npx tsc --noEmit`).
 *   **Secured Checkouts**: Razorpay integration enforces cryptographic HMAC signature checking on both user callbacks and webhooks.
 *   **Fail-Soft Operation**: SMTP actions fall back to logging payloads if environment credentials are absent, preventing runtime server crashes.
+*   **Security Hardened**:
+    *   Free checkout validates course price before enrollment
+    *   Order status API enforces user ownership
+    *   No hardcoded payment secrets anywhere in codebase
+    *   Dev utilities removed from production build

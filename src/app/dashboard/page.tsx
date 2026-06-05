@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { makeMetadata } from "@/lib/site";
-import { getCurrentUser, getDashboardPath } from "@/lib/auth";
+import { getCurrentUser, getDashboardPath, getSession } from "@/lib/auth";
 
 export const metadata: Metadata = makeMetadata({
   title: "Dashboard",
@@ -11,9 +11,13 @@ export const metadata: Metadata = makeMetadata({
 });
 
 export default async function DashboardPage() {
+  const session = await getSession();
   const user = await getCurrentUser();
 
   if (!user) {
+    if (session?.user?.id) {
+      redirect("/api/auth/session-expired");
+    }
     redirect("/login");
   }
 

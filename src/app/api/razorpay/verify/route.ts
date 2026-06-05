@@ -41,11 +41,15 @@ export async function POST(req: NextRequest) {
     // Retrieve order first to capture metadata safely
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: true }
+      include: { items: { include: { product: true } } }
     });
 
     if (!existingOrder) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
+    }
+
+    if (existingOrder.status === OrderStatus.PAID) {
+      return NextResponse.json({ success: true });
     }
 
     const hasPhysical = existingOrder.items.some(item => item.productType === "PHYSICAL");
@@ -70,6 +74,20 @@ export async function POST(req: NextRequest) {
         user: true 
       }
     });
+
+    // Decrement product stock quantity
+    for (const item of order.items) {
+      if (item.productId && item.product && item.product.stockQuantity !== null) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: {
+            stockQuantity: {
+              decrement: item.quantity
+            }
+          }
+        });
+      }
+    }
 
     // Write Coupon usage entry if a coupon was used during store checkout
     const orderMeta = existingOrder.metadata as any || {};

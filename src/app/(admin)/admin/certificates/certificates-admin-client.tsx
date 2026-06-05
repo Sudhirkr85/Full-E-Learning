@@ -110,7 +110,7 @@ export function CertificatesAdminClient({ certificates: initialCertificates, met
         {/* Unique Courses */}
         <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#090d22]/50 p-5 shadow-sm">
           <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-full blur-xl"></div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Courses</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Courses Awarded</p>
           <p className="mt-4 text-3xl font-extrabold text-cyan-400 font-display">{metrics.uniqueCourses}</p>
           <p className="text-[10px] text-slate-500 mt-2">Courses with awarded certificates</p>
         </div>

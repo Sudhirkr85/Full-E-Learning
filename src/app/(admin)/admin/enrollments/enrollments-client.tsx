@@ -25,6 +25,8 @@ type User = {
   name: string | null;
   email: string;
   phone: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
 };
 
 type Course = {
@@ -342,15 +344,16 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                       const progress = e.progress?.progressPercent ?? 0;
                       const isCompleted = progress === 100;
                       const isNew = daysSince(e.createdAt) < 7;
+                      const studentName = e.user.name || `${e.user.firstName || ""} ${e.user.lastName || ""}`.trim() || "Student";
                       return (
                         <tr key={e.id} className="hover:bg-white/[0.01] transition-colors duration-150">
                           <td className="p-4">
                             <div className="flex items-center gap-3">
-                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(e.user.name || e.user.email)}`}>
-                                {getInitials(e.user.name, e.user.email)}
+                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(studentName || e.user.email)}`}>
+                                {getInitials(studentName, e.user.email)}
                               </div>
                               <div>
-                                <p className="font-semibold text-white">{e.user.name || "Student"}</p>
+                                <p className="font-semibold text-white">{studentName}</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">{e.user.email}</p>
                               </div>
                             </div>
@@ -477,15 +480,16 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                       const productLabel = productItem?.product?.title ?? productItem?.product?.course?.title ?? productItem?.productName ?? "Unknown";
                       const rawType = productItem?.productType ?? "COURSE_ACCESS";
                       const typeBadgeLabel = typeLabel[rawType] ?? rawType;
+                      const studentName = o.user?.name || `${o.user?.firstName || ""} ${o.user?.lastName || ""}`.trim() || "Student";
                       return (
                         <tr key={o.id} className="hover:bg-white/[0.01] transition-colors duration-150">
                           <td className="p-4">
                             <div className="flex items-center gap-3">
-                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(o.user?.name || o.user?.email || "Student")}`}>
-                                {getInitials(o.user?.name || null, o.user?.email || "Student")}
+                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(studentName || o.user?.email || "Student")}`}>
+                                {getInitials(studentName, o.user?.email || "Student")}
                               </div>
                               <div>
-                                <p className="font-semibold text-white">{o.user?.name || "Student"}</p>
+                                <p className="font-semibold text-white">{studentName}</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">{o.user?.email}</p>
                               </div>
                             </div>

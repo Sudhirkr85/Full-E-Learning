@@ -189,6 +189,20 @@ export async function POST(req: NextRequest) {
               }
             });
 
+            // Decrement product stock quantity
+            for (const item of order.items) {
+              if (item.productId && item.product && item.product.stockQuantity !== null) {
+                await prisma.product.update({
+                  where: { id: item.productId },
+                  data: {
+                    stockQuantity: {
+                      decrement: item.quantity
+                    }
+                  }
+                });
+              }
+            }
+
             // Create success payment ledger if missing
             await prisma.payment.upsert({
               where: { providerPaymentId: razorpayPaymentId },

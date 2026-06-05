@@ -25,6 +25,9 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Aligned Order Tab Filters**: Updated the payment filter tabs (All, Paid, Pending, Failed) to filter list items correctly and reflect the actual order and payment transaction status.
     *   **Corrected Checkout/Cancel Status**: Fixed status badges in the All orders table to dynamically map cancelled and paid states directly, showing accurate state labels (e.g. `FAILED` for expired checkouts) instead of static `PENDING` payment placeholders.
     *   **Dashboard Overview Synchronization**: Integrated course enrollment revenue calculations into the main Admin Overview dashboard statistics, trends, and the 6-month monthly revenue bar charts to prevent data mismatches across pages.
+    *   **Unified Student Display Names**: Synchronized the student profile display name resolvers on both Enrollments and Orders tables to correctly output `firstName` + `lastName` fallbacks (matching the Certificates dashboard behavior) instead of defaulting to a generic "Student" label when the primary `name` field is empty.
+    *   **Aligned Certificates KPI**: Adjusted the certificates panel KPI metrics card label from "Active Courses" to "Courses Awarded" to accurately represent courses with generated credentials.
+    *   **Fulfillment Inventory Decrement**: Configured both local Razorpay checkout payment verification routes and async payment.captured webhooks to atomically decrement the `stockQuantity` of physical store products when an order transitions to `PAID` state, maintaining accurate store catalog inventory.
 
 *   **Access Control and Navigation Fixes**:
     *   **Classroom Learn Guest Access**: Removed the hard redirect for guests/non-enrolled users in the classroom learn player `/courses/[slug]/learn`. Guests and non-enrolled students can now load the page to view the course syllabus and catalog curriculum.
@@ -295,6 +298,14 @@ The following Next.js REST API routes are fully implemented in `src/app/api`:
 
 ## 6. Recent Updates
 
+*   **Overview Dashboard & Storefront Fixes (June 2026)**:
+    *   **Accurate Course Revenue Metrics**: Integrated course enrollment metrics into the dashboard. Course fees are now read from the `Enrollment` table directly instead of only querying the `Payment` table (which is reserved for store purchases), preventing mismatches in total platform revenues.
+    *   **Aligned Shipping Pending Dispatch**: Standardized pending dispatch checks to strictly count paid physical orders that do not have tracking details or a shipped/delivered status.
+    *   **Dashboard & Tab Filter Alignment**: Configured all payment status filter tabs (All, Paid, Pending, Failed) to filter list items correctly and reflect the actual order and payment transaction status.
+    *   **Corrected Checkout/Cancel Status**: Configured order status badges in the All orders table to dynamically map cancelled and paid states, showing accurate state labels (e.g. `FAILED` for expired checkouts) instead of static `PENDING` payment placeholders.
+    *   **Unified Student Display Names**: Synchronized the student profile display name resolvers on both Enrollments and Orders tables to output `firstName` + `lastName` fallbacks.
+    *   **Aligned Certificates KPI**: Adjusted the certificates panel KPI metrics card label from "Active Courses" to "Courses Awarded" to accurately represent courses with generated credentials.
+    *   **Fulfillment Inventory Decrement**: Configured both local Razorpay checkout payment verification routes and async payment.captured webhooks to atomically decrement the `stockQuantity` of physical store products when an order transitions to `PAID` state, maintaining accurate store catalog inventory.
 *   **Security Audit & Hardening (June 2026)**:
     *   Fixed critical free checkout price bypass — paid courses now rejected at API level
     *   Added order status ownership verification — users can only view their own orders

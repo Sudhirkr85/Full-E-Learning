@@ -80,7 +80,7 @@ export async function GET(
         instructorName,
         certificateId: certificate.verificationCode,
         issuedAt,
-        platformName: "E-Learning Platform"
+        platformName: "Sagar Coaching Centre Bhagwanpur"
       }) as any
     );
 

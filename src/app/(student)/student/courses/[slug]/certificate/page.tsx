@@ -232,7 +232,7 @@ export default async function StudentCertificatePage({ params }: CertificatePage
           {/* Signature credentials */}
           <div className="flex justify-between w-full mt-10 px-10 text-xs text-slate-600 print:mt-6 print:px-6">
             <div className="flex flex-col items-center">
-              <div className="font-serif italic font-semibold text-slate-800 text-sm mb-1">E-Learning Academy</div>
+              <div className="font-serif italic font-semibold text-slate-800 text-sm mb-1">Sagar Coaching Centre</div>
               <div className="h-[1px] w-32 bg-slate-200 mb-1" />
               <div className="text-[9px] text-muted-foreground uppercase">Board of Trustees</div>
             </div>

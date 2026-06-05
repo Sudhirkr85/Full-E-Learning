@@ -73,6 +73,37 @@ export default async function HomePage() {
 
   const featuredProducts = dbProducts;
 
+  // Fetch up to 3 published course reviews with rating >= 4
+  let dbReviews: any[] = [];
+  try {
+    dbReviews = await prisma.courseReview.findMany({
+      where: {
+        status: "PUBLISHED",
+        rating: { gte: 4 }
+      },
+      take: 3,
+      orderBy: { reviewedAt: "desc" },
+      include: {
+        enrollment: {
+          include: {
+            user: {
+              select: {
+                name: true
+              }
+            },
+            course: {
+              select: {
+                title: true
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error loading reviews from database:", error);
+  }
+
   return (
     <div className="relative min-h-screen bg-[#030611] text-slate-100 overflow-hidden font-sans">
       {/* Cinematic ambient background glow overlays */}
@@ -92,10 +123,10 @@ export default async function HomePage() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
             {siteConfig.trustBanner.label}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-60 grayscale hover:grayscale-0 transition duration-300">
-            {siteConfig.trustBanner.companies.map((company) => (
-              <span key={company} className="font-display font-extrabold text-xl md:text-2xl text-slate-400 hover:text-white transition cursor-default">
-                {company.toUpperCase()}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 opacity-90 transition duration-300">
+            {siteConfig.trustBanner.items.map((item) => (
+              <span key={item} className="font-display font-extrabold text-sm md:text-base text-slate-300 hover:text-white transition cursor-default bg-white/5 border border-white/10 px-4 py-1.5 rounded-full">
+                {item}
               </span>
             ))}
           </div>
@@ -191,7 +222,7 @@ export default async function HomePage() {
 
                       {/* Excerpt */}
                       <p className="text-xs leading-relaxed text-slate-400 line-clamp-3">
-                        {course.excerpt || course.subtitle || "Build extensive modules and robust features."}
+                        {course.excerpt || course.subtitle || "बिहार स्कूल छात्रवृत्ति परीक्षाओं के नवीनतम पैटर्न पर आधारित पूर्ण अध्ययन सामग्री एवं टेस्ट।"}
                       </p>
 
                       {/* Metadata specs */}
@@ -390,27 +421,27 @@ export default async function HomePage() {
           <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-5 space-y-6 text-left">
               <Badge className="bg-indigo-950/60 border-indigo-500/30 text-indigo-300 text-xs px-3 py-1 rounded-full uppercase tracking-wider">
-                Ecosystem Architecture
+                शिक्षा क्रांति (Active Learning)
               </Badge>
               <h2 className="font-display text-3xl font-extrabold text-white sm:text-4xl leading-tight">
-                Designed for <br className="hidden md:inline" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Extreme Technical</span> Mastery.
+                सफलता का मार्ग <br className="hidden md:inline" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">सागर कोचिंग</span> के साथ।
               </h2>
               <p className="text-sm md:text-base text-slate-400 leading-relaxed">
-                Generic LMS setups deliver passive videos that yield poor learning outcomes. We offer an active, sandbox-integrated workspace paired with an AI assistant that behaves like an elite peer instructor.
+                हम केवल वीडियो लेक्चर्स ही नहीं देते, बल्कि छात्रों को परीक्षा पैटर्न के अनुसार अभ्यास, स्तरीय अध्ययन पुस्तकें और 24/7 गाइडेंस प्रदान करते हैं।
               </p>
               <ul className="space-y-3 pt-2 text-sm text-slate-300">
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-cyan-400" />
-                  <span>24/7 AI-powered learning assistance & guidance</span>
+                  <span>सप्ताह में ऑफलाइन ओएमआर (OMR) आधारित टेस्ट</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-cyan-400" />
-                  <span>Comprehensive real-world project-based assessments</span>
+                  <span>अनुभवी शिक्षकों और सागर सर द्वारा संचालित लाइव कक्षाएं</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-cyan-400" />
-                  <span>Industry-mapped curriculum crafted by expert instructors</span>
+                  <span>राघव प्रकाशन द्वारा सह-लिखित विशेष पुस्तकें और नोट्स</span>
                 </li>
               </ul>
             </div>
@@ -421,9 +452,9 @@ export default async function HomePage() {
                 <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                   <Sparkles className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white">24/7 AI Co-Pilot</h3>
+                <h3 className="text-base font-bold text-white">YouTube Lectures & App</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Stuck on a concept or need a second opinion? Get instant, context-aware instructions tailored directly to your learning progress.
+                  Paid and free online video lessons led by Shrvan Kumar Sagar. Access top classes at your fingertips.
                 </p>
               </div>
 
@@ -432,9 +463,9 @@ export default async function HomePage() {
                 <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
                   <Code className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white">Immersive Sandbox Labs</h3>
+                <h3 className="text-base font-bold text-white">Printed Study Books</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Write, run, and evaluate actual code directly in the browser. Zero local installation friction—code runs inside isolated secure containers.
+                  Best guidebooks and structured chapter notes co-authored by Sagar Sir (Raghav Prakashan), delivered to your door.
                 </p>
               </div>
 
@@ -443,9 +474,9 @@ export default async function HomePage() {
                 <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
                   <TrendingUp className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white">AI Interview Prep</h3>
+                <h3 className="text-base font-bold text-white">OMR Practice Tests</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Practice simulated technical rounds with real-time feedback on your confidence, knowledge depth, and problem-solving pace.
+                  Weekly tests modeled on offline OMR sheet patterns to build exam speed, accuracy, and confidence.
                 </p>
               </div>
 
@@ -454,9 +485,9 @@ export default async function HomePage() {
                 <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white">Blockchain Credentials</h3>
+                <h3 className="text-base font-bold text-white">Verified Selection Success</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Receive secure, cryptographic certificates. Securely showcase your verified assessment scores instantly on LinkedIn and hiring platforms.
+                  Over 500 selections in prestigious schools (Navodaya, Sainik, Simultala) and NMMS. Learn with a proven track record.
                 </p>
               </div>
             </div>
@@ -493,12 +524,17 @@ export default async function HomePage() {
                 "bg-emerald-500/5 group-hover:bg-emerald-500/15",
               ];
               const subTextColors = ["text-cyan-400", "text-indigo-400", "text-purple-400", "text-emerald-400"];
+              const metricValue = (outcome as any).metric || (outcome as any).value || "";
+              const subText = (outcome as any).sub;
+
               return (
                 <div key={outcome.label} className="glass-card-premium rounded-2xl p-6 border border-white/5 text-left relative overflow-hidden group">
                   <div className={`absolute top-0 right-0 h-16 w-16 rounded-full blur-xl transition-all ${glowColors[i % glowColors.length]}`}></div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{outcome.label}</p>
-                  <p className="text-3xl font-extrabold text-white mt-4 font-display">{outcome.value}</p>
-                  <p className={`text-[10px] font-medium mt-2 ${subTextColors[i % subTextColors.length]}`}>{outcome.sub}</p>
+                  <p className="text-3xl font-extrabold text-white mt-4 font-display">{metricValue}</p>
+                  {subText && (
+                    <p className={`text-[10px] font-medium mt-2 ${subTextColors[i % subTextColors.length]}`}>{subText}</p>
+                  )}
                 </div>
               );
             })}
@@ -555,31 +591,21 @@ export default async function HomePage() {
                 </div>
 
                 {/* Chat History Mock */}
-                <div className="space-y-4 text-xs font-mono">
+                <div className="space-y-4 text-xs font-sans">
                   {/* User Bubble */}
                   <div className="space-y-1.5 max-w-[85%] self-start">
                     <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider">{siteConfig.demo.studentLabel}</span>
-                    <div className="rounded-2xl rounded-tl-none bg-slate-900 p-3.5 border border-white/[0.03] text-slate-300 text-xs">
-                      How do I securely calculate the average test grade inside `getStudentCourseProgress` without causing a N+1 query vulnerability?
+                    <div className="rounded-2xl rounded-tl-none bg-slate-900 p-3.5 border border-white/[0.03] text-slate-300 text-xs font-sans">
+                      सर, NMMS परीक्षा में MAT (Mental Ability Test) में समय कैसे बचाएं? ओएमआर शीट भरने में गलतियां हो जाती हैं।
                     </div>
                   </div>
 
                   {/* AI Bubble */}
                   <div className="space-y-1.5 max-w-[90%] ml-auto text-right">
-                    <span className="text-[10px] text-cyan-400 font-semibold uppercase tracking-wider">AI TUTOR (Copilot)</span>
-                    <div className="rounded-2xl rounded-tr-none bg-indigo-950/40 p-4 border border-indigo-500/20 text-slate-300 text-xs text-left space-y-3">
-                      <p>Use the ORM&apos;s relational aggregation `_avg` within a single select query. Here is a secure, transaction-safe approach:</p>
+                    <span className="text-[10px] text-cyan-400 font-semibold uppercase tracking-wider">AI TUTOR (Sagar Sir Assistant)</span>
+                    <div className="rounded-2xl rounded-tr-none bg-indigo-950/40 p-4 border border-indigo-500/20 text-slate-300 text-xs text-left space-y-3 font-sans">
+                      <p>ओएमआर शीट की गलतियों से बचने के लिए हर सप्ताह हमारे ऑफलाइन मॉक टेस्ट प्रारूप में शामिल हों। मानसिक योग्यता परीक्षा (MAT) के लिए श्रृंखला और कोडिंग-डिकोडिंग प्रश्नों के शॉर्टकट ट्रिक्स का अभ्यास करें।</p>
                       
-                      {/* Code Block Mock */}
-                      <div className="rounded-xl bg-slate-950 p-3.5 border border-white/5 overflow-x-auto text-[11px] text-cyan-300 space-y-1">
-                        <div><span className="text-purple-400">const</span> stats = <span className="text-purple-400">await</span> db.testResult.aggregate(&#123;</div>
-                        <div>&nbsp;&nbsp;_avg: &#123; scorePercent: <span className="text-amber-400">true</span> &#125;,</div>
-                        <div>&nbsp;&nbsp;where: &#123;</div>
-                        <div>&nbsp;&nbsp;&nbsp;&nbsp;enrollment: &#123; studentId, courseId &#125;,</div>
-                        <div>&nbsp;&nbsp;&nbsp;&nbsp;test: &#123; isPublished: <span className="text-amber-400">true</span> &#125;</div>
-                        <div>&nbsp;&nbsp;&#125;</div>
-                        <div>&#125;);</div>
-                      </div>
 
                       <p className="text-[10px] text-emerald-400 flex items-center gap-1.5 mt-2">
                         <CheckCircle className="h-3.5 w-3.5" /> Checked: 100% compliant with your current schema models.
@@ -594,7 +620,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 7. PREMIUM BLOCKCHAIN CERTIFICATE SHOWCASE */}
+      {/* 7. PREMIUM CERTIFICATE SHOWCASE */}
       <section className="py-20 md:py-28 relative z-10 overflow-hidden">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -602,10 +628,10 @@ export default async function HomePage() {
               Earn Credentials
             </Badge>
             <h2 className="font-display text-3xl font-extrabold text-white sm:text-4xl">
-              Blockchain-Verified <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">Completion Certificate</span>
+              मेधावी छात्र <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">प्रमाण पत्र (Certificate of Merit)</span>
             </h2>
             <p className="text-sm md:text-base text-slate-400 leading-relaxed">
-              Earn credentials that command respect. Upon course completion, receive a cryptographically sealed, printable certificate instantly shareable on LinkedIn and hiring registries.
+              कोर्स पूरा होने और मॉक टेस्ट में उत्कृष्ट प्रदर्शन करने पर सागर कोचिंग सेंटर द्वारा मेधावी छात्र का डिजिटल प्रमाण पत्र प्राप्त करें।
             </p>
           </div>
 
@@ -649,7 +675,7 @@ export default async function HomePage() {
                 <p className="text-[10px] font-semibold tracking-[0.2em] text-indigo-400 uppercase">CERTIFICATE OF COMPLETION</p>
                 <h3 className="text-xl md:text-3xl font-extrabold text-white font-display">{siteConfig.certificate.learnerName}</h3>
                 <p className="text-[11px] md:text-xs text-slate-400 leading-relaxed max-w-lg">
-                  has successfully cleared all comprehensive assessments, interactive lessons, and hands-on projects to master the course:
+                  has successfully cleared all comprehensive mock tests, interactive lessons, and home assignments to master the course:
                 </p>
                 <p className="text-sm md:text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mt-1">
                   {siteConfig.certificate.courseName}
@@ -688,23 +714,36 @@ export default async function HomePage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            {siteConfig.testimonials.map((testimonial) => (
-              <div key={testimonial.name} className="glass-card-premium rounded-2xl p-6 border border-white/5 text-left relative space-y-4">
-                <div className="flex items-center gap-1 text-amber-400">
-                  <Star className="h-4 w-4 fill-current" /><Star className="h-4 w-4 fill-current" /><Star className="h-4 w-4 fill-current" /><Star className="h-4 w-4 fill-current" /><Star className="h-4 w-4 fill-current" />
-                </div>
-                <p className="text-xs leading-relaxed text-slate-300">
-                  &quot;{testimonial.text}&quot;
-                </p>
-                <div className="flex items-center gap-3 pt-2">
-                  <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-white text-xs">{testimonial.initials}</div>
-                  <div>
-                    <h4 className="text-xs font-semibold text-white">{testimonial.name}</h4>
-                    <p className="text-[10px] text-slate-500">{testimonial.role} @ {testimonial.company}</p>
+            {dbReviews.length > 0 ? (
+              dbReviews.map((rev) => {
+                const name = rev.enrollment?.user?.name || "Student";
+                const courseTitle = rev.enrollment?.course?.title || "Scholarship Course";
+                const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "S";
+                return (
+                  <div key={rev.id} className="glass-card-premium rounded-2xl p-6 border border-white/5 text-left relative space-y-4">
+                    <div className="flex items-center gap-1 text-amber-400">
+                      {Array.from({ length: rev.rating || 5 }).map((_, idx) => (
+                        <Star key={idx} className="h-4 w-4 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-xs leading-relaxed text-slate-300">
+                      &quot;{rev.body || rev.title || "Excellent teaching!"}&quot;
+                    </p>
+                    <div className="flex items-center gap-3 pt-2">
+                      <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-white text-xs">{initials}</div>
+                      <div>
+                        <h4 className="text-xs font-semibold text-white">{name}</h4>
+                        <p className="text-[10px] text-slate-500">{courseTitle}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full rounded-2xl border border-dashed border-white/10 bg-slate-950/20 p-8 text-center">
+                <p className="text-sm text-slate-400">No reviews yet.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -718,10 +757,10 @@ export default async function HomePage() {
               Answers Hub
             </Badge>
             <h2 className="font-display text-3xl font-extrabold text-white sm:text-4xl">
-              Frequently Asked Questions
+              अक्सर पूछे जाने वाले प्रश्न (FAQ)
             </h2>
             <p className="text-sm text-slate-400">
-              Everything you need to know about our premium platform features, career services, and labs.
+              सागर कोचिंग सेंटर, परीक्षाओं की तैयारी और कोर्सेज से जुड़े आपके सभी सवालों के जवाब।
             </p>
           </div>
 
@@ -729,42 +768,42 @@ export default async function HomePage() {
             <details className="group rounded-2xl border border-white/5 bg-[#0a0f21]/40 p-5 [&_summary::-webkit-details-marker]:hidden">
               <summary className="flex items-center justify-between cursor-pointer focus:outline-none">
                 <h3 className="text-sm font-semibold text-white group-hover:text-cyan-300 transition duration-200">
-                  How does the integrated AI Tutor helper work?
+                  क्या स्टडी मैटेरियल/किताबें घर पर मिलेंगी?
                 </h3>
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-900 border border-white/5 text-slate-400 group-open:rotate-180 transition-all">
                   <ChevronRight className="h-3.5 w-3.5 rotate-90" />
                 </span>
               </summary>
               <p className="mt-4 text-xs leading-relaxed text-slate-400">
-                The AI Tutor helper is context-aware. It processes your specific learning progress, detecting knowledge gaps, logical errors, and areas for improvement. It functions like an elite senior instructor providing guidance, rather than just giving you the answer outright.
+                A: हाँ, हमारे प्रीमियम कोर्सेज में इनरॉल करने पर राघव प्रकाशन द्वारा प्रकाशित और सागर सर द्वारा सह-लिखित पुस्तकें स्पीड पोस्ट/कूरियर के माध्यम से सीधे आपके पते पर भेजी जाती हैं।
               </p>
             </details>
 
             <details className="group rounded-2xl border border-white/5 bg-[#0a0f21]/40 p-5 [&_summary::-webkit-details-marker]:hidden">
               <summary className="flex items-center justify-between cursor-pointer focus:outline-none">
                 <h3 className="text-sm font-semibold text-white group-hover:text-cyan-300 transition duration-200">
-                  Is career support available after course completion?
+                  ऑनलाइन और ऑफलाइन बैच में क्या अंतर है?
                 </h3>
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-900 border border-white/5 text-slate-400 group-open:rotate-180 transition-all">
                   <ChevronRight className="h-3.5 w-3.5 rotate-90" />
                 </span>
               </summary>
               <p className="mt-4 text-xs leading-relaxed text-slate-400">
-                Yes, absolutely. Once you complete 100% of a course and average a score above 85% in assessments, your profile is showcased to our network of partner organizations. This provides access to top employers seeking skilled, certified professionals.
+                ऑनलाइन बैच में आपको घर बैठे ऐप पर लाइव क्लासेज, रिकॉर्डेड लेक्चर्स और डिजिटल टेस्ट मिलते हैं। जबकि ऑफलाइन सेंटर (भगवानपुर, सुपौल) पर छात्र सीधे कक्षाओं में भाग ले सकते हैं और साप्ताहिक OMR टेस्ट दे सकते हैं।
               </p>
             </details>
 
             <details className="group rounded-2xl border border-white/5 bg-[#0a0f21]/40 p-5 [&_summary::-webkit-details-marker]:hidden">
               <summary className="flex items-center justify-between cursor-pointer focus:outline-none">
                 <h3 className="text-sm font-semibold text-white group-hover:text-cyan-300 transition duration-200">
-                  Are the certificates recognized by companies?
+                  NMMS परीक्षा में सफल होने पर कितनी छात्रवृत्ति मिलती है?
                 </h3>
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-900 border border-white/5 text-slate-400 group-open:rotate-180 transition-all">
                   <ChevronRight className="h-3.5 w-3.5 rotate-90" />
                 </span>
               </summary>
               <p className="mt-4 text-xs leading-relaxed text-slate-400">
-                Yes. Our certificates are cryptographically verifiable. Every certificate carries a unique, shareable link displaying your actual assessment scores, lesson completion metrics, and project solutions. Employers verify your capabilities directly.
+                राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा (NMMS) में सफल छात्रों को कक्षा 9 से 12 तक पढ़ाई जारी रखने के लिए भारत सरकार द्वारा ₹12,000 प्रति वर्ष (कुल ₹48,000) की छात्रवृत्ति मिलती है।
               </p>
             </details>
           </div>
@@ -788,7 +827,7 @@ export default async function HomePage() {
                 Start Today
               </Badge>
               <h2 className="font-display text-3xl font-extrabold text-white sm:text-4xl md:text-5xl leading-tight">
-                Step into the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Future of Learning</span>.
+                आज ही अपने बच्चों के <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">सुनहरे भविष्य की शुरुआत करें</span>।
               </h2>
               <p className="text-sm md:text-base text-slate-400 leading-relaxed">
                 {siteConfig.cta.subtext}

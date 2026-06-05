@@ -247,7 +247,7 @@ export function CertificatesClient({ initialCertificates }: CertificatesClientPr
                   {/* Top header */}
                   <div className="space-y-3">
                     <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">
-                      E-Learning Platform
+                      Sagar Coaching Centre Bhagwanpur
                     </p>
                     <div className="w-24 h-[1px] bg-amber-500/20 mx-auto" />
                     <h2 className="font-serif text-2xl md:text-3xl font-extrabold uppercase tracking-wider text-amber-400">

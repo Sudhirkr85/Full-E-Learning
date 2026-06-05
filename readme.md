@@ -1,12 +1,12 @@
-# E-Learning Platform — LMS + Digital Store (Premium Futuristic EdTech)
+# Sagar Coaching Centre Bhagwanpur — LMS + Digital Store (Premium Futuristic EdTech)
 
-A production-grade, highly scalable, and SEO-optimized Learning Management System (LMS) combined with an integrated Digital & Physical Products Store. Built on Next.js 16 App Router, React 19, TypeScript, PostgreSQL, Prisma, Razorpay, Cloudflare R2, Brevo Email, Zustand, SWR, and Sonner, this platform features an immersive cinematic dark visual architecture for students, professionals, and career-oriented learners worldwide.
+A production-grade, highly scalable, and SEO-optimized Learning Management System (LMS) combined with an integrated Digital & Physical Products Store. Built on Next.js 16 App Router, React 19, TypeScript, PostgreSQL, Prisma, Razorpay, Cloudflare R2, Brevo Email, Zustand, SWR, and Sonner, this platform features an immersive cinematic dark visual architecture for students, professionals, and Bihar ke meritorious students.
 
 ---
 
 ## 1. Project Overview
 
-This platform represents a modern fusion of an advanced Educational portal and a transactional Digital Store. Designed to help software developers and tech students bridge the gap between academic theory and real-world system engineering, the application provides:
+This platform represents a modern fusion of an advanced Educational portal and a transactional Digital Store. Designed to help scholarship exam aspirants and Class 5–8 students of Bihar bridge the gap between academic theory and real-world system engineering, the application provides:
 
 *   **Advanced LMS Ecosystem**: Student dashboards, lesson player modules, interactive assessments, real-world coding sandboxes, automatic course progress trackers, and public blockchain-verified digital certificates.
 *   **Digital & Physical Products Store**: A built-in storefront catalog capable of processing independent digital downloads (PDF playbooks, code repositories), physical merchandise (vouchers, dashboard UI kits), course access keys, and complex product bundles.
@@ -381,8 +381,8 @@ R2_ENDPOINT="https://replace-with-cloudflare-account-id.r2.cloudflarestorage.com
 # Brevo Email System
 # -------------------------------------------------------------------------
 BREVO_API_KEY="replace-with-your-brevo-api-key"
-BREVO_SENDER_EMAIL="noreply@e-learning.in"
-BREVO_SENDER_NAME="E-Learning Academy"
+BREVO_SENDER_EMAIL="noreply@sagarcoachingcentre.com"
+BREVO_SENDER_NAME="Sagar Coaching Centre"
 ```
 
 ---
@@ -409,7 +409,7 @@ npx prisma migrate dev
 ```bash
 npx tsx prisma/seed.ts
 ```
-*(Default admin email is set as `admin@yourapp.com` with password `Admin@123456` directly inside the seed script)*
+*(Default admin email is set as `admin@sagarcoachingcentre.com` with password `Admin@123456` directly inside the seed script)*
 
 ### 5. Start Development Server
 ```bash

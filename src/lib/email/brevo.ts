@@ -8,7 +8,7 @@ interface SendOrderConfirmationEmailParams {
 export async function sendOrderConfirmationEmail({ order, user }: SendOrderConfirmationEmailParams) {
   const firstName = user?.name ? user.name.split(" ")[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
 
   // Check types of items purchased
   const hasPdf = order.items.some((item: any) => item.productType === "DIGITAL_RESOURCE");
@@ -129,7 +129,7 @@ export async function sendOrderConfirmationEmail({ order, user }: SendOrderConfi
             Need help? Contact our support desk at <a href="mailto:${supportEmail}" style="color: #7c3aed; text-decoration: none;">${supportEmail}</a>
           </p>
           <p style="margin: 0;">
-            © ${new Date().getFullYear()} E-Learning Platform. All rights reserved.
+            © ${new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved.
           </p>
         </div>
 
@@ -154,7 +154,7 @@ export async function sendOrderConfirmationEmail({ order, user }: SendOrderConfi
   return await sendEmail({
     toEmail: order.billingEmail,
     toName: user?.name || "Student",
-    subject: "Order Confirmed — E-Learning Platform 🎉",
+    subject: "Order Confirmed — Sagar Coaching Centre Bhagwanpur 🎉",
     htmlContent,
     textContent
   });
@@ -175,7 +175,7 @@ export async function sendCourseEnrollmentEmail({
 }: SendCourseEnrollmentEmailParams) {
   const firstName = userName ? userName.trim().split(/\s+/)[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
   const courseUrl = `${appUrl}/student/courses/${courseId}`;
 
   const htmlContent = `
@@ -231,7 +231,7 @@ export async function sendCourseEnrollmentEmail({
             Need help? Contact our support desk at <a href="mailto:${supportEmail}" style="color: #7c3aed; text-decoration: none;">${supportEmail}</a>
           </p>
           <p style="margin: 0;">
-            © ${new Date().getFullYear()} E-Learning Platform. All rights reserved.
+            © ${new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved.
           </p>
         </div>
 
@@ -281,7 +281,7 @@ export async function sendShippingDispatchedEmail({
 }: SendShippingDispatchedEmailParams) {
   const firstName = user?.name ? user.name.split(" ")[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
 
   const productNames = order.items.map((item: any) => item.productName).join(", ");
 
@@ -352,7 +352,7 @@ export async function sendShippingDispatchedEmail({
             Need help? Contact our support desk at <a href="mailto:${supportEmail}" style="color: #7c3aed; text-decoration: none;">${supportEmail}</a>
           </p>
           <p style="margin: 0;">
-            © ${new Date().getFullYear()} E-Learning Platform. All rights reserved.
+            © ${new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved.
           </p>
         </div>
 
@@ -392,7 +392,7 @@ export async function sendOrderDeliveredEmail(
 ) {
   const firstName = studentName ? studentName.split(" ")[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -446,7 +446,7 @@ export async function sendOrderDeliveredEmail(
             Need help? Contact our support desk at <a href="mailto:${supportEmail}" style="color: #7c3aed; text-decoration: none;">${supportEmail}</a>
           </p>
           <p style="margin: 0;">
-            © ${new Date().getFullYear()} E-Learning Platform. All rights reserved.
+            © ${new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved.
           </p>
         </div>
 

@@ -1,134 +1,212 @@
 import type { Metadata } from "next";
 
 export const siteConfig = {
-  // ── Core identity ──────────────────────────────────────────────────────────
-  name: "E-Learning Platform",
-  description: "A modern learning platform for students, teachers, and administrators.",
-  url: "http://localhost:3000",
+  // ── Core Identity ──────────────────────────────────────────────
+  name: "Sagar Coaching Centre",
+  shortName: "Sagar Coaching",
+  tagline: "माना कि अंधेरा घना है, पर दीया जलाना कहां मना है",
+  taglineEnglish: "Bihar's #1 Scholarship Exam Coaching Centre",
+  description:
+    "Sagar Coaching Centre Bhagwanpur — Bihar's most trusted coaching centre for NMMS, Navodaya, Sainik School, Shrestha NETS, CMMSS and other scholarship exams. Founded by Shrvan Kumar Sagar, Supaul, Bihar.",
+  url: "https://sagarcoachingcentre.com",
+  locale: "hi_IN",
 
-  // ── Hero section ───────────────────────────────────────────────────────────
+  // ── Founder / Contact ───────────────────────────────────────────
+  founder: "Shrvan Kumar Sagar",
+  founderBio:
+    "श्रवण कुमार 'सागर' — जिला सुपौल, बिहार। NMMS, Navodaya, Sainik School जैसी Scholarship Exams की तैयारी कराने वाले Bihar के सबसे भरोसेमंद शिक्षक। Published author, YouTuber, और हजारों बच्चों के सपनों के मार्गदर्शक।",
+  phone: "+919110113671",
+  phoneDisplay: "+91 91101 13671",
+  whatsapp: "https://wa.me/919110113671",
+  email: "noreply@sagarcoachingcentre.com",
+  address: "NH 106, Bhagwanpur, Supaul, Bihar — 854338",
+  city: "Bhagwanpur, Supaul",
+  state: "Bihar",
+  pincode: "854338",
+  googleMapsUrl:
+    "https://maps.google.com/?cid=10120212661193213675",
+
+  // ── SEO Meta ────────────────────────────────────────────────────
+  metaTitle: "Sagar Coaching Centre Bhagwanpur | NMMS, Navodaya, Sainik School Coaching Bihar",
+  metaDescription:
+    "Bihar ke sabse trusted scholarship coaching centre mein aapka swagat hai. NMMS, Navodaya, Sainik School, Shrestha NETS, CMMSS exam ki behtareen taiyari. By Shrvan Kumar Sagar, Supaul Bihar.",
+  metaKeywords:
+    "NMMS coaching Bihar, Navodaya coaching Supaul, Sainik School coaching Bihar, Shrestha NETS, CMMSS exam, Megha Chhatravriti, scholarship exam Bihar, Sagar Coaching Centre Bhagwanpur, Shrvan Kumar Sagar",
+  ogImage: "/og-image.jpg",
+
+  // ── Social Media ────────────────────────────────────────────────
+  socials: {
+    youtube: "https://www.youtube.com/@sagarcoachingcentrebhagwanpur",
+    youtubeChannels: [
+      {
+        name: "Sagar Coaching Centre Bhagwanpur",
+        handle: "@sagarcoachingcentrebhagwanpur",
+        url: "https://www.youtube.com/@sagarcoachingcentrebhagwanpur",
+        focus: "NMMS Main Channel",
+      },
+      {
+        name: "NMMS King Sagar Sir",
+        handle: "@NmmsKingSagarSir",
+        url: "https://www.youtube.com/@NmmsKingSagarSir",
+        focus: "NMMS MAT & SAT Deep Preparation",
+      },
+      {
+        name: "Yogita Online Classes",
+        handle: "@YogitaOnlineClasses",
+        url: "https://www.youtube.com/@YogitaOnlineClasses",
+        focus: "CMMSS, Shrestha NETS, Atul Maheshvari Scholarship",
+      },
+      {
+        name: "Akanksha Junior Classes",
+        handle: "@AkankshaJuniorClasses",
+        url: "https://www.youtube.com/@AkankshaJuniorClasses",
+        focus: "Navodaya, Sainik School, Simultala (Class 5–6)",
+      },
+    ],
+    facebookPage: "https://www.facebook.com/SagarCoachingCentreBhagwanpur59",
+    facebookPersonal: "https://www.facebook.com/ShrvanKumarSagar",
+    instagram: "https://www.instagram.com/sagarcoachingcentrebhagwanpur/",
+    telegram: "https://t.me/ShrvanKumarSagar",
+    whatsapp: "https://wa.me/919110113671",
+    app: "https://play.google.com/store/apps/details?id=com.lct.pbxwdta",
+  },
+
+  // ── Hero Section ────────────────────────────────────────────────
   hero: {
-    badge: "Modern Learning Platform",
-    headline: "Master New Skills at Your Own Pace",
+    headline: "Scholarship का सपना अब होगा पूरा",
     subheadline:
-      "Access expert-led courses, interactive lessons, and industry-recognized certificates — all in one place.",
-    ctaPrimary: "Browse Courses",
-    ctaSecondary: "Start Free",
+      "Bihar के सबसे भरोसेमंद Coaching Centre में NMMS, Navodaya, Sainik School की तैयारी करें — ऑनलाइन और ऑफलाइन दोनों।",
+    badgeText: "🏆 Bihar's #1 Scholarship Coaching",
+    ctaPrimary: "अभी Enroll करें",
+    ctaSecondary: "Free Classes देखें",
+    floatingBadge1: "छात्रवृत्ति मिली! 🎉",
+    floatingBadge2: "Navodaya में Selection ✅",
   },
 
-  // ── Hero stats bar (3 items) ────────────────────────────────────────────────
+  // ── Stats ───────────────────────────────────────────────────────
   stats: [
-    { label: "Students Enrolled", value: "10,000+" },
-    { label: "Completion Rate",   value: "94%" },
-    { label: "Partner Organizations", value: "200+" },
+    { value: "5000+", label: "Students Coached" },
+    { value: "4", label: "YouTube Channels" },
+    { value: "500+", label: "Selections in Govt Schools" },
+    { value: "7+", label: "Years of Teaching" },
   ],
 
-  // ── Feature pill badges (replaces React/Node.js/etc.) ──────────────────────
-  highlights: [
-    "Expert Instructors",
-    "Lifetime Access",
-    "HD Video Lessons",
-    "Offline Downloads",
-    "Mobile Friendly",
-  ],
-
-  // ── Skills You'll Master list (replaces AI Agent / SaaS / System Design) ───
-  skills: [
-    {
-      title: "Professional Certifications",
-      description:
-        "Industry-recognized credentials accepted by top employers worldwide.",
-    },
-    {
-      title: "Hands-On Projects",
-      description: "Build real projects and apply what you learn immediately.",
-    },
-    {
-      title: "Structured Learning Paths",
-      description:
-        "Guided curricula designed for beginners through advanced learners.",
-    },
-  ],
-
-  // ── Hero card stat chips (replaces Full Stack / AI Ready / Job Ready) ───────
-  heroCard: {
-    chips: ["Beginner Friendly", "Career Ready", "Expert Led"],
-  },
-
-  // ── Trust banner ────────────────────────────────────────────────────────────
+  // ── Trust Banner / Exam Names ───────────────────────────────────
   trustBanner: {
-    label: "Our Learners Work at Leading Organizations",
-    companies: ["Google", "Microsoft", "Amazon", "Deloitte", "Accenture"],
+    label: "हम इन Exams की तैयारी कराते हैं",
+    items: [
+      "NMMS Exam",
+      "Navodaya Vidyalaya",
+      "Sainik School",
+      "Shrestha NETS",
+      "CMMSS Exam",
+      "Simultala Awasiya",
+      "Atul Maheshvari Scholarship",
+      "Talent Search Test",
+    ],
   },
 
-  // ── Outcome metric cards (replaces ₹45 LPA, ₹12.4 LPA, etc.) ──────────────
-  outcomes: [
-    { value: "94%",     label: "Completion Rate",          sub: "Industry-leading engagement" },
-    { value: "4.8★",    label: "Average Rating",           sub: "Across all courses" },
-    { value: "3x",      label: "Career Growth",            sub: "Reported by our graduates" },
-    { value: "30 Days", label: "Avg. Time to Certificate", sub: "At your own pace" },
+  // ── Features / Why Us ───────────────────────────────────────────
+  features: [
+    {
+      icon: "🎯",
+      title: "Expert Faculty",
+      description:
+        "Shrvan Kumar Sagar Sir — Published Author, 7+ साल का experience, हजारों बच्चों को Scholarship दिलाई।",
+    },
+    {
+      icon: "📱",
+      title: "Online + Offline",
+      description:
+        "YouTube, App, Telegram पर Free Classes। Paid Courses में Live Classes, Notes, और Mock Tests।",
+    },
+    {
+      icon: "📚",
+      title: "Complete Study Material",
+      description:
+        "NMMS के लिए खुद की Published Book (Raghav Prakashan), Notes, Previous Year Papers सब available।",
+    },
+    {
+      icon: "🏆",
+      title: "Proven Results",
+      description:
+        "Supaul और Bihar के सैकड़ों बच्चों ने Navodaya, NMMS, Sainik School में Selection पाया।",
+    },
+    {
+      icon: "💰",
+      title: "Scholarship ₹12,000/year",
+      description:
+        "NMMS में select होने पर Class 9–12 तक ₹12,000 प्रति वर्ष की Government Scholarship मिलती है।",
+    },
+    {
+      icon: "📲",
+      title: "Mobile App Available",
+      description:
+        "Google Play Store पर 'Sagar Coaching Centre' App download करें — NMMS की बेहतर तैयारी के लिए।",
+    },
   ],
 
-  // ── Testimonials (replaces India-specific names/companies) ─────────────────
+  // ── Outcomes / Impact Metrics ───────────────────────────────────
+  outcomes: [
+    { metric: "₹12,000/yr", label: "NMMS Scholarship Amount" },
+    { metric: "Free", label: "Navodaya School Education" },
+    { metric: "5000+", label: "Students Guided" },
+    { metric: "4.7⭐", label: "Average Rating" },
+  ],
+
+  // ── Testimonials ────────────────────────────────────────────────
   testimonials: [
     {
-      initials: "SM",
-      name: "Sarah Mitchell",
-      role: "Product Manager",
-      company: "TechCorp",
-      text: "The structured learning paths helped me transition into a new career within months. The certificate assessments validated my skills for employers.",
+      name: "Ashish Kumar",
+      role: "NMMS Student, Bihar",
+      text: "Sagar Sir की coaching से मेरा NMMS में selection हुआ। बहुत अच्छा coaching centre है।",
+      rating: 5,
     },
     {
-      initials: "JO",
-      name: "James Okafor",
-      role: "Software Developer",
-      company: "BuildLabs",
-      text: "Best investment I made. The instructors are world-class and the content is always up to date. The interactive assignments are exactly what I needed.",
+      name: "Sunil Kumar",
+      role: "Parent, Supaul",
+      text: "Good coaching. Sagar Sir बहुत अच्छे से पढ़ाते हैं और बच्चों का ध्यान रखते हैं।",
+      rating: 5,
     },
     {
-      initials: "PN",
-      name: "Priya Nair",
-      role: "Data Analyst",
-      company: "Insight Co",
-      text: "Earned two certificates that directly helped me land my current role. Highly recommend the structured modules — crucial insights not found elsewhere.",
+      name: "Umesh Kumar",
+      role: "Student, Bhagwanpur",
+      text: "यहाँ की classes बहुत helpful हैं। NMMS exam की पूरी preparation यहीं से की।",
+      rating: 5,
     },
   ],
 
-  // ── AI tutor / demo chat mockup ─────────────────────────────────────────────
-  demo: {
-    personaName: "Alex Johnson",
-    studentLabel: "Alex (Student)",
-    consoleOutput: ">> Skills verified. Certificate ready.",
-    tutorDescription:
-      "Stuck on a concept or need guidance on your learning path? Our AI tutor analyzes your progress and delivers context-aware, step-by-step explanations.",
-  },
+  // ── Email / Branding ────────────────────────────────────────────
+  emailSenderName: "Sagar Coaching Centre",
+  emailSenderEmail: "noreply@sagarcoachingcentre.com",
+  supportEmail: "support@sagarcoachingcentre.com",
 
-  // ── Certificate mockup ──────────────────────────────────────────────────────
-  certificate: {
-    learnerName: "Alex Johnson",
-    courseName: "Professional Development Masterclass",
-  },
+  // ── App / Platform ──────────────────────────────────────────────
+  appName: "Sagar Coaching Centre",
+  appPlayStoreUrl:
+    "https://play.google.com/store/apps/details?id=com.lct.pbxwdta",
+  copyright: `© ${new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved.`,
 
-  // ── Final CTA section ───────────────────────────────────────────────────────
-  cta: {
-    headline: "Start Learning Today",
-    subtext:
-      "Join thousands of learners building real skills and advancing their careers.",
-    primaryLabel: "Get Started Free",
-    secondaryLabel: "Browse Courses",
-  },
-
-  // ── Courses section ─────────────────────────────────────────────────────────
   courses: {
-    sectionSubheadline:
-      "Explore our growing catalog of expert-led courses across a wide range of topics and skill levels.",
+    sectionSubheadline: "Sagar Coaching Centre Bhagwanpur ke behtareen courses mein enroll karein.",
   },
-
-  // ── Products section ────────────────────────────────────────────────────────
   products: {
-    sectionSubheadline:
-      "Explore our curated collection of learning resources, digital downloads, and exclusive bundles.",
+    sectionSubheadline: "NMMS Books aur complete study materials ke liye hamara store explore karein.",
   },
+  demo: {
+    studentLabel: "Sonam Sagar (Student)",
+    tutorDescription: "क्या आप किसी सवाल में अटक गए हैं? हमारा AI Tutor आपके प्रदर्शन का विश्लेषण करता है और आपको सही दिशा में मार्गदर्शन देता है।"
+  },
+  certificate: {
+    learnerName: "Sonam Sagar",
+    courseName: "NMMS Exam Complete Preparation 2025-26"
+  },
+  cta: {
+    headline: "आज ही अपनी तैयारी शुरू करें",
+    subtext: "बिहार के सबसे भरोसेमंद कोचिंग संस्थान के साथ जुड़कर छात्रवृत्ति परीक्षाओं में सफलता की ओर कदम बढ़ाएं।",
+    primaryLabel: "Get Started Free",
+    secondaryLabel: "Browse Courses"
+  }
 };
 
 export const mainNav = [

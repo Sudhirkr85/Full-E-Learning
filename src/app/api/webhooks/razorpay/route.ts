@@ -254,7 +254,7 @@ export async function POST(req: NextRequest) {
       } = await import("@/lib/email");
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-      const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+      const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
 
       const itemsSummary = order.items.map(item => ({
         productName: item.productName,

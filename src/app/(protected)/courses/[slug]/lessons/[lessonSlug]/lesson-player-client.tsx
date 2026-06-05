@@ -129,7 +129,7 @@ export function LessonPlayerClient({
     const icsContent = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//E-Learning Platform//Live Classes//EN",
+      "PRODID:-//Sagar Coaching Centre Bhagwanpur//Live Classes//EN",
       "BEGIN:VEVENT",
       `UID:${bundle.lesson.id}`,
       `DTSTART:${startStr}`,

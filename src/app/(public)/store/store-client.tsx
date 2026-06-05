@@ -531,7 +531,7 @@ export function StoreClient({ products, profileUser, userWishlistedProductIds = 
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_51I2V3X4Y5Z6A7B",
         amount: amount,
         currency: "INR",
-        name: "E-Learning Platform",
+        name: "Sagar Coaching Centre Bhagwanpur",
         description: `${cart.length} item(s)`,
         order_id: razorpayOrderId,
         prefill: {

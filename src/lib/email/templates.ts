@@ -14,8 +14,8 @@ import {
  * HTML email layouts for Indian student EdTech outcomes.
  */
 function getEmailLayout(title: string, preheaderText: string, bodyContentHtml: string): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || "support@e-learning.in";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sagarcoachingcentre.com";
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
 
   return `<!DOCTYPE html>
 <html>
@@ -192,7 +192,7 @@ function getEmailLayout(title: string, preheaderText: string, bodyContentHtml: s
     <table class="main-card" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td class="header">
-          <h1 class="logo-text">🚀 E-LEARNING<span class="logo-accent">.IN</span></h1>
+          <h1 class="logo-text">🚀 SAGAR COACHING CENTRE</h1>
         </td>
       </tr>
       <tr>
@@ -208,10 +208,10 @@ function getEmailLayout(title: string, preheaderText: string, bodyContentHtml: s
             <a href="mailto:${senderEmail}" class="footer-link">Help desk</a>
           </div>
           <p class="footer-text">
-            © ${new Date().getFullYear()} E-Learning Platform. Built for Indian Tech Job Seekers & Students.
+            © ${new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved.
           </p>
           <p class="footer-text" style="color: #64748B;">
-            You received this transactional notification email because you registered or completed an action at E-Learning.in.
+            You received this transactional notification email because you registered or completed an action at sagarcoachingcentre.com.
           </p>
         </td>
       </tr>
@@ -246,7 +246,7 @@ export function renderWelcomeEmail(data: WelcomeEmailData): { html: string; text
     <h2 class="title">Welcome aboard, ${data.name}! 👋</h2>
     <p class="greeting">We're absolutely thrilled to have you join our learning ecosystem.</p>
     <p class="text">
-      E-Learning.in is built specifically to bridge the gap between academic theory and real-world tech stack production. 
+      sagarcoachingcentre.com is built specifically to bridge the gap between academic theory and real-world tech stack production. 
       You now have complete access to industry-aligned courses, real coding sandboxes, performance analytics, and blockchain-verified certifications.
     </p>
     <div class="cta-container">
@@ -269,7 +269,7 @@ export function renderWelcomeEmail(data: WelcomeEmailData): { html: string; text
 
   const text = `Welcome aboard, ${data.name}!
 
-We are absolutely thrilled to have you join our learning ecosystem. E-Learning.in is built specifically to bridge the gap between academic theory and real-world tech stack production.
+We are absolutely thrilled to have you join our learning ecosystem. sagarcoachingcentre.com is built specifically to bridge the gap between academic theory and real-world tech stack production.
 
 Get started by exploring live courses:
 ${data.appUrl}/courses
@@ -593,7 +593,7 @@ The CRM Desk`;
  */
 export function renderPasswordResetEmail(data: PasswordResetEmailData): { html: string; text: string } {
   const title = "Password Reset Request";
-  const preheader = "Reset credentials for your E-Learning.in account.";
+  const preheader = "Reset credentials for your sagarcoachingcentre.com account.";
 
   const html = getEmailLayout(
     title,
@@ -698,7 +698,7 @@ export function renderCombinedWelcomePaymentEmail(data: CombinedWelcomePaymentEm
 
   const text = `Hello ${data.name},
   
-Welcome to E-Learning.in! We are absolutely thrilled to welcome you to our learning ecosystem. Your student account has been created, and we have successfully validated your payment transaction.
+Welcome to sagarcoachingcentre.com! We are absolutely thrilled to welcome you to our learning ecosystem. Your student account has been created, and we have successfully validated your payment transaction.
 
 Order Receipt Breakdown:
 Order Number: ${data.orderNumber}

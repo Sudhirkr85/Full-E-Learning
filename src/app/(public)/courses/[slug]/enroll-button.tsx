@@ -131,7 +131,7 @@ export function EnrollButton({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
         amount: amount,
         currency: "INR",
-        name: "E-Learning Platform",
+        name: "Sagar Coaching Centre Bhagwanpur",
         description: courseName,
         order_id: razorpayOrderId,
         prefill: {

@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { siteConfig } from "@/lib/site";
 import { Toaster } from "sonner";
 import Script from "next/script";
+import { MobileContactBar } from "@/components/MobileContactBar";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -19,19 +20,38 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`
+    default: "Sagar Coaching Centre | NMMS, Navodaya, Sainik School Coaching Bihar",
+    template: "%s | Sagar Coaching Centre",
   },
-  description: siteConfig.description,
-  applicationName: siteConfig.name,
-  authors: [{ name: siteConfig.name }],
-  creator: siteConfig.name,
-  publisher: siteConfig.name,
+  description:
+    "Bihar ke sabse trusted scholarship coaching centre. NMMS, Navodaya, Sainik School, Shrestha NETS, CMMSS exam preparation by Shrvan Kumar Sagar, Bhagwanpur, Supaul.",
+  keywords: [
+    "NMMS coaching Bihar",
+    "Navodaya coaching Supaul",
+    "Sainik School coaching Bihar",
+    "Shrestha NETS",
+    "CMMSS exam",
+    "Megha Chhatravriti",
+    "scholarship exam Bihar",
+    "Sagar Coaching Centre Bhagwanpur",
+    "Shrvan Kumar Sagar",
+  ],
+  authors: [{ name: "Shrvan Kumar Sagar" }],
+  creator: "Shrvan Kumar Sagar",
   openGraph: {
     type: "website",
-    locale: "en_US",
-    siteName: siteConfig.name
-  }
+    locale: "hi_IN",
+    url: "https://sagarcoachingcentre.com",
+    siteName: "Sagar Coaching Centre",
+    title: "Sagar Coaching Centre | Bihar's #1 Scholarship Coaching",
+    description:
+      "NMMS, Navodaya, Sainik School, Shrestha NETS की तैयारी। Founded by Shrvan Kumar Sagar, Supaul Bihar.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sagar Coaching Centre Bhagwanpur",
+    description: "Bihar's #1 Scholarship Exam Coaching Centre",
+  },
 };
 
 export default function RootLayout({
@@ -41,7 +61,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-[#0a0a0f] text-foreground overflow-x-hidden`}>
+      <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-[#0a0a0f] text-foreground overflow-x-hidden pb-16 md:pb-0`}>
         <ThemeProvider>
           {children}
           <Toaster position="bottom-center" richColors />
@@ -50,6 +70,7 @@ export default function RootLayout({
           src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="lazyOnload"
         />
+        <MobileContactBar />
       </body>
     </html>
   );

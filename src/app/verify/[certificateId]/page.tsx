@@ -91,7 +91,7 @@ export default async function VerifyCertificatePage(
             </div>
           </div>
           <span className="font-display text-base font-extrabold tracking-tight text-white">
-            E-Learning Platform
+            Sagar Coaching Centre Bhagwanpur
           </span>
         </Link>
         <Button asChild size="sm" variant="outline" className="border-white/10 hover:bg-white/5 text-xs text-slate-300">
@@ -143,7 +143,7 @@ export default async function VerifyCertificatePage(
                 ✓ Certificate Verified
               </h1>
               <p className="text-xs text-slate-400">
-                This certificate is authentic and was officially issued by E-Learning Platform.
+                This certificate is authentic and was officially issued by Sagar Coaching Centre Bhagwanpur.
               </p>
             </div>
 
@@ -217,7 +217,7 @@ export default async function VerifyCertificatePage(
       {/* Footer */}
       <footer className="border-t border-white/5 bg-slate-950/20 px-6 py-4 text-center shrink-0">
         <p className="text-[10px] text-slate-500">
-          © {new Date().getFullYear()} E-Learning Platform. Secured with cryptographic verification codes.
+          © {new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. Secured with cryptographic verification codes.
         </p>
       </footer>
     </div>

@@ -84,7 +84,7 @@ export function CheckoutClient({ order }: CheckoutClientProps) {
         key: data.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: data.amount,
         currency: "INR",
-        name: "E-Learning Platform",
+        name: "Sagar Coaching Centre Bhagwanpur",
         description: `${itemCount} item(s) — ₹${total}`,
         order_id: data.orderId,
         prefill: { name: userName, email: userEmail, contact: userPhone },

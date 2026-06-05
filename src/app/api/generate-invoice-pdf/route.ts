@@ -258,7 +258,7 @@ export async function POST(request: NextRequest) {
       Document,
       {
         title: `Invoice ${order.orderNumber}`,
-        author: "E-Learning Platform",
+        author: "Sagar Coaching Centre Bhagwanpur",
       },
       h(
         Page,

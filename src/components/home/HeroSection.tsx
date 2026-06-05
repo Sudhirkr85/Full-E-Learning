@@ -65,6 +65,22 @@ export function HeroSection() {
     active: false,
   });
 
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState("Sonam Sagar");
+
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.user?.name) {
+          setStudentName(data.user.name);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const studentInitials = studentName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "SS";
+
   // 1. Stats count-up: triggered 400ms after mount, runs over ~1800ms
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -359,7 +375,7 @@ export function HeroSection() {
 
   // Headline shimmer manipulation
   const headline = siteConfig.hero.headline;
-  const targetHighlight = "Your Own Pace";
+  const targetHighlight = "Scholarship";
   const hasHighlight = headline.includes(targetHighlight);
   const headlineParts = hasHighlight 
     ? headline.split(targetHighlight) 
@@ -408,7 +424,7 @@ export function HeroSection() {
             {/* Animated badge pill */}
             <div className="inline-flex items-center gap-2.5 rounded-full border border-purple-500/25 bg-purple-950/30 px-4 py-2 text-xs md:text-sm font-medium text-purple-300 backdrop-blur-md">
               <span className="h-2 w-2 rounded-full bg-purple-400 animate-pulse-dot" />
-              <span>Modern Learning Platform</span>
+              <span>{siteConfig.hero.badgeText || "Modern Learning Platform"}</span>
             </div>
 
             {/* H1 headline with gradient shimmer animation */}
@@ -484,42 +500,75 @@ export function HeroSection() {
                 </span>
               </div>
 
-              {/* Monospace code block */}
-              <div className="rounded-xl bg-black/40 p-4 border border-white/5 font-mono text-xs text-left leading-relaxed relative">
-                <div className="space-y-1 text-slate-300">
-                  <div className="text-purple-400 font-medium">
-                    import <span className="text-slate-100">&#123;</span> AI_Tutor<span className="text-slate-100">,</span> Sandbox <span className="text-slate-100">&#125;</span> from <span className="text-emerald-400">"elearning"</span>;
-                  </div>
-                  <div className="text-slate-300">
-                    const learner = new Developer(<span className="text-amber-400">"Alex"</span>);
-                  </div>
-                  <div className="text-slate-400">
-                    await learner.joinPath(<span className="text-emerald-400">"full-stack-nextjs"</span>);
-                  </div>
-                  <div className="flex items-center text-cyan-400 font-semibold pt-1">
-                    <span>{`>> Certificate issued: VERIFIED`}</span>
-                    <span className="w-1.5 h-4 ml-1 bg-cyan-400 animate-pulse" />
-                  </div>
+              {/* Interactive Scholarship Quiz Card */}
+              <div className="rounded-xl bg-slate-900/60 p-4 border border-white/10 text-xs text-left relative flex flex-col gap-3 font-sans">
+                <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono">
+                  <span>EXAM PREPARATION QUIZ</span>
+                  <span>SUBJECT: MENTAL ABILITY (MAT)</span>
                 </div>
+                <div className="font-bold text-slate-200 text-sm">
+                  Q: Find the missing number in the series / श्रृंखला में लुप्त संख्या ज्ञात करें:
+                  <div className="text-cyan-400 mt-1 font-mono text-base">3, 9, 27, 81, ?</div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {[
+                    { key: "A", label: "120", isCorrect: false },
+                    { key: "B", label: "243", isCorrect: true },
+                    { key: "C", label: "162", isCorrect: false },
+                    { key: "D", label: "100", isCorrect: false },
+                  ].map((opt) => {
+                    let btnStyle = "bg-white/5 hover:bg-white/10 text-slate-300 border-white/5";
+                    if (selectedAnswer !== null) {
+                      if (opt.isCorrect) {
+                        btnStyle = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+                      } else if (selectedAnswer === opt.key) {
+                        btnStyle = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+                      }
+                    }
+                    return (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => setSelectedAnswer(opt.key)}
+                        className={`px-3 py-2 rounded-lg border text-left font-medium transition duration-200 ${btnStyle}`}
+                      >
+                        {opt.key}) {opt.label}
+                        {selectedAnswer !== null && opt.isCorrect && (
+                          <span className="float-right text-emerald-400 font-bold">✓</span>
+                        )}
+                        {selectedAnswer === opt.key && !opt.isCorrect && (
+                          <span className="float-right text-rose-400 font-bold">✗</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedAnswer !== null && (
+                  <p className="text-[10px] text-emerald-400 mt-1 font-semibold animate-pulse">
+                    {selectedAnswer === "B" 
+                      ? "✓ Correct Answer! Well done! (3 × 3 = 9, 9 × 3 = 27, 27 × 3 = 81, 81 × 3 = 243)" 
+                      : "✗ Wrong Answer. Try again! Solution: Every term is multiplied by 3."}
+                  </p>
+                )}
               </div>
 
               {/* Feature Pill Grid (2x2) */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-xs text-slate-300">
                   <Award className="h-4 w-4 text-[#7f77dd] shrink-0" />
-                  <span>Certifications</span>
+                  <span>Scholarships</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-xs text-slate-300">
                   <Video className="h-4 w-4 text-[#7f77dd] shrink-0" />
-                  <span>HD Video Lessons</span>
+                  <span>Free Live Classes</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-xs text-slate-300">
                   <WifiOff className="h-4 w-4 text-[#7f77dd] shrink-0" />
-                  <span>Offline Downloads</span>
+                  <span>Offline Study Material</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-xs text-slate-300">
                   <Smartphone className="h-4 w-4 text-[#7f77dd] shrink-0" />
-                  <span>Mobile Friendly</span>
+                  <span>Android Mobile App</span>
                 </div>
               </div>
 
@@ -536,7 +585,7 @@ export function HeroSection() {
                 animation: 'floatY 4s ease-in-out infinite',
                 zIndex: 10, whiteSpace: 'nowrap'
               }}>
-                <Award size={15} color="#5dcaa5" /> Certificate earned!
+                <Award size={15} color="#5dcaa5" /> {siteConfig.hero.floatingBadge1 || "छात्रवृत्ति मिली! 🎉"}
               </div>
 
               {/* Streak badge — bottom left of card column */}
@@ -551,19 +600,19 @@ export function HeroSection() {
                 animation: 'floatY 4s ease-in-out infinite 0.9s',
                 zIndex: 10, whiteSpace: 'nowrap'
               }}>
-                <Flame size={14} color="#f0997b" /> 7-day streak
+                <Flame size={14} color="#f0997b" /> {siteConfig.hero.floatingBadge2 || "Navodaya में Selection ✅"}
               </div>
             </div>
 
             {/* Course progress card */}
             <div className="bg-[#10132a] border border-white/10 rounded-2xl p-4 shadow-[0_15px_35px_rgba(0,0,0,0.5)] flex items-center gap-4">
               <div className="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center font-bold text-sm text-white shrink-0">
-                AJ
+                {studentInitials}
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex justify-between items-center mb-1.5">
                   <h4 className="text-xs font-semibold text-white truncate">
-                    Next.js Production Architecture
+                    NMMS & Navodaya Mock Test Series
                   </h4>
                   <span className="text-[10px] font-bold text-purple-400">
                     72%
@@ -597,21 +646,44 @@ export function HeroSection() {
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/35 bg-purple-950/40 px-2.5 py-0.5 text-[10px] font-semibold text-purple-300">
                   <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse-dot" />
-                  Tech Mastery Preview
+                  Scholarship Prep Practice
                 </span>
               </div>
 
-              <div className="rounded-xl bg-black/40 p-4 border border-white/5 font-mono text-xs text-left leading-relaxed">
-                <div className="space-y-1 text-slate-300">
-                  <div className="text-purple-400 font-medium">
-                    import <span className="text-slate-100">&#123;</span> AI_Tutor <span className="text-slate-100">&#125;</span> from <span className="text-emerald-400">"elearning"</span>;
-                  </div>
-                  <div className="text-slate-300">
-                    const learner = new Developer(<span className="text-amber-400">"Alex"</span>);
-                  </div>
-                  <div className="flex items-center text-cyan-400 font-semibold pt-1">
-                    <span>{`>> Certificate issued: VERIFIED`}</span>
-                  </div>
+              {/* Interactive Scholarship Quiz Card (Mobile) */}
+              <div className="rounded-xl bg-slate-900/60 p-4 border border-white/10 text-xs text-left relative flex flex-col gap-3 font-sans">
+                <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono">
+                  <span>EXAM PREPARATION QUIZ</span>
+                </div>
+                <div className="font-bold text-slate-200 text-sm">
+                  Q: Find the missing number / लुप्त संख्या ज्ञात करें: 3, 9, 27, 81, ?
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {[
+                    { key: "A", label: "120", isCorrect: false },
+                    { key: "B", label: "243", isCorrect: true },
+                    { key: "C", label: "162", isCorrect: false },
+                    { key: "D", label: "100", isCorrect: false },
+                  ].map((opt) => {
+                    let btnStyle = "bg-white/5 hover:bg-white/10 text-slate-300 border-white/5";
+                    if (selectedAnswer !== null) {
+                      if (opt.isCorrect) {
+                        btnStyle = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+                      } else if (selectedAnswer === opt.key) {
+                        btnStyle = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+                      }
+                    }
+                    return (
+                      <button
+                        key={opt.key + "_mob"}
+                        type="button"
+                        onClick={() => setSelectedAnswer(opt.key)}
+                        className={`px-3 py-2 rounded-lg border text-left font-medium transition duration-200 ${btnStyle}`}
+                      >
+                        {opt.key}) {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -630,12 +702,12 @@ export function HeroSection() {
             {/* Progress card */}
             <div className="bg-[#10132a] border border-white/10 rounded-2xl p-4 shadow-[0_15px_35px_rgba(0,0,0,0.5)] flex items-center gap-4">
               <div className="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center font-bold text-sm text-white shrink-0">
-                AJ
+                {studentInitials}
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex justify-between items-center mb-1.5">
                   <h4 className="text-xs font-semibold text-white truncate">
-                    Next.js Production Architecture
+                    NMMS & Navodaya Mock Test Series
                   </h4>
                   <span className="text-[10px] font-bold text-purple-400">
                     72%

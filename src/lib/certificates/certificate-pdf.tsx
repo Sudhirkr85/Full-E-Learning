@@ -191,7 +191,7 @@ export function CertificatePDF({
   const safeCourseName = courseName || "Advanced Coursework";
   const safeInstructorName = instructorName || "Authorized Instructor";
   const safeCertificateId = certificateId || "CERT-PENDING";
-  const safePlatformName = platformName || "E-Learning Platform";
+  const safePlatformName = platformName || "Sagar Coaching Centre Bhagwanpur";
 
   return (
     <Document>

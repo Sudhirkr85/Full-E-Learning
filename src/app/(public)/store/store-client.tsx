@@ -632,14 +632,20 @@ export function StoreClient({ products, profileUser, userWishlistedProductIds = 
   return (
     <div className="relative min-h-screen pb-20 bg-[#0a0a0f] text-slate-100">
       {/* Floating Shopping Cart Trigger */}
-      <div className="fixed bottom-6 right-6 z-30">
+      <div className="fixed bottom-6 right-6 z-30 select-none">
         <Button 
           onClick={handleCartTrigger}
-          className="h-14 w-14 rounded-full shadow-lg bg-violet-600 hover:bg-violet-500 text-white p-0 relative transition-transform hover:scale-105"
+          className="h-14 w-14 rounded-full shadow-2xl bg-violet-600 hover:bg-violet-500 text-white p-0 relative transition-all duration-300 hover:scale-105 active:scale-95"
         >
-          <ShoppingCart className="h-6 w-6" />
           {cart.length > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-violet-600 text-white font-bold text-xs h-6 w-6 rounded-full flex items-center justify-center border-2 border-background animate-pulse">
+            <>
+              <span className="absolute inset-0 rounded-full bg-violet-500/40 animate-ping opacity-75" />
+              <span className="absolute -inset-1 rounded-full border border-violet-500/30 animate-pulse" />
+            </>
+          )}
+          <ShoppingCart className="h-6 w-6 relative z-10" />
+          {cart.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-violet-600 text-white font-bold text-xs h-6 w-6 rounded-full flex items-center justify-center border-2 border-background animate-pulse z-20">
               {cart.reduce((sum, item) => sum + item.quantity, 0)}
             </span>
           )}

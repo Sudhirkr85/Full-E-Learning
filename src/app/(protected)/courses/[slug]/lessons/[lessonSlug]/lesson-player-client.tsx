@@ -50,6 +50,7 @@ type LessonPlayerClientProps = {
   quizQuestions?: any[];
   isEnrolled: boolean;
   isStaff: boolean;
+  isGuest?: boolean;
 };
 
 export function LessonPlayerClient({
@@ -65,7 +66,8 @@ export function LessonPlayerClient({
   quizReviewAttempt,
   quizQuestions = [],
   isEnrolled,
-  isStaff
+  isStaff,
+  isGuest = false
 }: LessonPlayerClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -436,6 +438,7 @@ export function LessonPlayerClient({
               {bundle.lesson.contentType === "QUIZ" ? (
                 quizTest ? (
                   <ClassroomQuizPortal
+                    isGuest={isGuest}
                     phase={
                       quizReviewAttempt 
                         ? (quizReviewAttempt.status === "IN_PROGRESS" ? "taking" : "review")

@@ -6,27 +6,6 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const secureCookie = request.nextUrl.protocol === "https:";
-    const cookieName = secureCookie ? "__Secure-authjs.session-token" : "authjs.session-token";
-    
-    const token = await getToken({
-      req: request,
-      secret: process.env.AUTH_SECRET,
-      secureCookie,
-      cookieName
-    });
-
-    const session = token && token.sub ? {
-      user: {
-        id: token.sub as string,
-        role: (token.role as string) || "STUDENT"
-      }
-    } : null;
-
-    if (!session?.user?.id) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const rawUrl = searchParams.get("url");
 
@@ -42,25 +21,7 @@ export async function GET(request: NextRequest) {
       normalizedUrl = rawUrl;
     }
 
-    // Staff (Admin/Teacher) always have full access — skip DB lookup entirely
-    if (session.user.role === "ADMIN" || session.user.role === "TEACHER") {
-      const response = await fetch(normalizedUrl);
-      if (!response.ok) {
-        return new NextResponse("Failed to fetch document from source storage", { status: response.status });
-      }
-      const buffer = await response.arrayBuffer();
-      return new NextResponse(buffer, {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": "inline",
-          "Cache-Control": "private, max-age=3600",
-        },
-      });
-    }
-
-    let hasAccess = false;
-
-    // Check Lesson PDF — try both raw and normalized URL to handle encoding differences
+    // Check if the lesson is a preview first
     const lesson = await prisma.lesson.findFirst({
       where: {
         OR: [
@@ -77,16 +38,62 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    if (lesson) {
-      // Preview lessons are accessible to any authenticated user
-      if (lesson.isPreview) {
-        hasAccess = true;
-      } else {
+    const isPreviewLesson = lesson?.isPreview === true;
+
+    let hasAccess = false;
+    let userId: string | null = null;
+    let userRole: string | null = null;
+
+    if (isPreviewLesson) {
+      hasAccess = true;
+    } else {
+      const secureCookie = request.nextUrl.protocol === "https:";
+      const cookieName = secureCookie ? "__Secure-authjs.session-token" : "authjs.session-token";
+      
+      const token = await getToken({
+        req: request,
+        secret: process.env.AUTH_SECRET,
+        secureCookie,
+        cookieName
+      });
+
+      const session = token && token.sub ? {
+        user: {
+          id: token.sub as string,
+          role: (token.role as string) || "STUDENT"
+        }
+      } : null;
+
+      if (!session?.user?.id) {
+        return new NextResponse("Unauthorized", { status: 401 });
+      }
+
+      userId = session.user.id;
+      userRole = session.user.role;
+
+      // Staff (Admin/Teacher) always have full access — skip DB lookup entirely
+      if (userRole === "ADMIN" || userRole === "TEACHER") {
+        const response = await fetch(normalizedUrl);
+        if (!response.ok) {
+          return new NextResponse("Failed to fetch document from source storage", { status: response.status });
+        }
+        const buffer = await response.arrayBuffer();
+        return new NextResponse(buffer, {
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": "inline",
+            "Cache-Control": "private, max-age=3600",
+          },
+        });
+      }
+    }
+    if (!hasAccess && userId) {
+      if (lesson) {
         const courseId = lesson.section.courseId;
         const enrollment = await prisma.enrollment.findUnique({
           where: {
             userId_courseId: {
-              userId: session.user.id,
+              userId,
               courseId
             }
           }
@@ -94,37 +101,37 @@ export async function GET(request: NextRequest) {
         if (enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED")) {
           hasAccess = true;
         }
-      }
-    } else {
-      // Check if it's a Product PDF
-      const product = await prisma.product.findFirst({
-        where: {
-          OR: [
-            { assetUrl: normalizedUrl },
-            { assetUrl: rawUrl },
-          ]
-        }
-      });
-
-      if (product) {
-        // Check if the user has a PAID order for this product
-        const orderItem = await prisma.orderItem.findFirst({
+      } else {
+        // Check if it's a Product PDF
+        const product = await prisma.product.findFirst({
           where: {
-            productId: product.id,
-            order: {
-              userId: session.user.id,
-              status: "PAID"
-            }
+            OR: [
+              { assetUrl: normalizedUrl },
+              { assetUrl: rawUrl },
+            ]
           }
         });
-        if (orderItem) {
-          hasAccess = true;
+
+        if (product) {
+          // Check if the user has a PAID order for this product
+          const orderItem = await prisma.orderItem.findFirst({
+            where: {
+              productId: product.id,
+              order: {
+                userId,
+                status: "PAID"
+              }
+            }
+          });
+          if (orderItem) {
+            hasAccess = true;
+          }
         }
       }
     }
 
     if (!hasAccess) {
-      console.warn(`[PDF_PROXY] 403 — user ${session.user.id} tried to access: ${normalizedUrl}`);
+      console.warn(`[PDF_PROXY] 403 — user ${userId || "guest"} tried to access: ${normalizedUrl}`);
       return new NextResponse("Unauthorized to access this document", { status: 403 });
     }
 

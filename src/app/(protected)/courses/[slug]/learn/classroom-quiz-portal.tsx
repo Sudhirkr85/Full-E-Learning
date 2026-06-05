@@ -29,6 +29,7 @@ type OptionData = {
   label: string;
   isCorrect?: boolean;
   explanation?: string | null;
+  value?: string | null;
 };
 
 type QuestionData = {
@@ -82,6 +83,7 @@ type ClassroomQuizPortalProps = {
   questions?: QuestionData[];
   reviewAttempt?: AttemptData | null;
   onRefresh: () => void;
+  isGuest?: boolean;
 };
 
 export default function ClassroomQuizPortal({
@@ -93,7 +95,8 @@ export default function ClassroomQuizPortal({
   activeAttempt = null,
   questions = [],
   reviewAttempt = null,
-  onRefresh
+  onRefresh,
+  isGuest = false
 }: ClassroomQuizPortalProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -101,13 +104,25 @@ export default function ClassroomQuizPortal({
 
   const urlAttemptId = searchParams.get("attemptId");
 
+  // Local state to override props during client-side Guest Mode
+  const [localPhase, setLocalPhase] = useState<"overview" | "taking" | "review" | null>(null);
+  const [guestAttempt, setGuestAttempt] = useState<AttemptData | null>(null);
+  const [guestReviewAttempt, setGuestReviewAttempt] = useState<AttemptData | null>(null);
+  const [guestQuestions, setGuestQuestions] = useState<QuestionData[]>([]);
+
+  const activePhase = isGuest && localPhase ? localPhase : phase;
+  const currentAttempt = isGuest ? guestAttempt : activeAttempt;
+  const currentReviewAttempt = isGuest ? guestReviewAttempt : reviewAttempt;
+  const activeQuestions = isGuest && guestQuestions.length > 0 ? guestQuestions : questions;
+
   // Automatically refresh route data when URL searchParams don't match the current rendered state (handles back/forward buttons)
   useEffect(() => {
+    if (isGuest) return; // Skip in guest mode
     const renderedAttemptId = reviewAttempt?.id || activeAttempt?.id || null;
     if (urlAttemptId !== renderedAttemptId) {
       router.refresh();
     }
-  }, [urlAttemptId, reviewAttempt?.id, activeAttempt?.id, router]);
+  }, [urlAttemptId, reviewAttempt?.id, activeAttempt?.id, router, isGuest]);
 
   // Active taking states
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -170,9 +185,10 @@ export default function ClassroomQuizPortal({
 
   // Load timer for active taking
   useEffect(() => {
-    if (phase !== "taking" || !activeAttempt || !test.timeLimitMinutes) return;
+    const activeAttemptObj = isGuest ? guestAttempt : activeAttempt;
+    if (activePhase !== "taking" || !activeAttemptObj || !test.timeLimitMinutes) return;
 
-    const startedTime = new Date(activeAttempt.startedAt).getTime();
+    const startedTime = new Date(activeAttemptObj.startedAt).getTime();
     const limitMs = test.timeLimitMinutes * 60 * 1000;
 
     const calculateTimeRemaining = () => {
@@ -190,10 +206,30 @@ export default function ClassroomQuizPortal({
     const interval = setInterval(calculateTimeRemaining, 1000);
 
     return () => clearInterval(interval);
-  }, [phase, activeAttempt, test.timeLimitMinutes]);
+  }, [activePhase, activeAttempt, guestAttempt, test.timeLimitMinutes, isGuest]);
 
   const handleStartAttempt = () => {
     setError(null);
+    if (isGuest) {
+      const newAttempt = {
+        id: "guest-attempt",
+        testId: test.id,
+        status: AttemptStatus.IN_PROGRESS,
+        attemptNumber: 1,
+        startedAt: new Date(),
+        submittedAt: null,
+        scorePercent: null,
+        correctAnswersCount: 0,
+        totalQuestionsCount: questions.length,
+        timeSpentSeconds: null,
+      };
+      setGuestAttempt(newAttempt);
+      setGuestReviewAttempt(null);
+      setGuestQuestions([]);
+      setAnswers({});
+      setLocalPhase("taking");
+      return;
+    }
     startTransition(async () => {
       try {
         await startClassroomAttemptAction(test.courseId, test.id, lessonSlug, window.location.pathname);
@@ -203,7 +239,66 @@ export default function ClassroomQuizPortal({
     });
   };
 
+  const gradeGuestQuiz = () => {
+    if (!guestAttempt) return;
+    const now = new Date();
+    const timeSpentSeconds = Math.round((now.getTime() - guestAttempt.startedAt.getTime()) / 1000);
+    let correctCount = 0;
+
+    const gradedQuestions = questions.map((q) => {
+      const ans = answers[q.id];
+      let isCorrect = false;
+
+      if (q.kind === QuestionType.SINGLE_CHOICE || q.kind === QuestionType.TRUE_FALSE) {
+        const correctOption = q.options.find((opt) => opt.isCorrect === true);
+        isCorrect = Boolean(ans && ans.selectedOptionId === correctOption?.id);
+      } else if (q.kind === QuestionType.SHORT_ANSWER) {
+        const studentAns = (ans?.answerText || "").trim().toLowerCase();
+        isCorrect = q.options.some((opt) => {
+          const acceptedVal = (opt.value || opt.label || "").trim().toLowerCase();
+          return acceptedVal === studentAns;
+        });
+      }
+
+      if (isCorrect) {
+        correctCount++;
+      }
+
+      return {
+        ...q,
+        answers: [
+          {
+            selectedOptionId: ans?.selectedOptionId || null,
+            answerText: ans?.answerText || null,
+            isCorrect,
+            metadata: null
+          }
+        ]
+      };
+    });
+
+    const scorePercent = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+
+    const reviewAttemptData = {
+      ...guestAttempt,
+      status: AttemptStatus.GRADED,
+      submittedAt: now,
+      scorePercent,
+      correctAnswersCount: correctCount,
+      totalQuestionsCount: questions.length,
+      timeSpentSeconds,
+    };
+
+    setGuestReviewAttempt(reviewAttemptData);
+    setGuestQuestions(gradedQuestions);
+    setLocalPhase("review");
+  };
+
   const handleAutoSubmit = async () => {
+    if (isGuest) {
+      gradeGuestQuiz();
+      return;
+    }
     if (!activeAttempt) return;
     try {
       const submissionPayload = questions.map((q) => {
@@ -225,10 +320,15 @@ export default function ClassroomQuizPortal({
   };
 
   const handleManualSubmit = async () => {
-    if (!activeAttempt) return;
+    const activeAttemptObj = isGuest ? guestAttempt : activeAttempt;
+    if (!activeAttemptObj) return;
     showConfirm(
       "Are you sure you want to submit your answers and complete this attempt?",
       async () => {
+        if (isGuest) {
+          gradeGuestQuiz();
+          return;
+        }
         startTransition(async () => {
           try {
             const submissionPayload = questions.map((q) => {
@@ -241,8 +341,8 @@ export default function ClassroomQuizPortal({
               };
             });
 
-            await submitAttemptAction(activeAttempt.id, submissionPayload);
-            router.push(`${window.location.pathname}?attemptId=${activeAttempt.id}`);
+            await submitAttemptAction(activeAttemptObj.id, submissionPayload);
+            router.push(`${window.location.pathname}?attemptId=${activeAttemptObj.id}`);
             router.refresh();
           } catch (err: any) {
             setError(err.message || "Failed to submit answers.");
@@ -281,7 +381,7 @@ export default function ClassroomQuizPortal({
   // ----------------------------------------------------
   // OVERVIEW PHASE RENDER
   // ----------------------------------------------------
-  if (phase === "overview") {
+  if (activePhase === "overview") {
     const hasAttemptsLeft = !test.attemptLimit || attempts.length < test.attemptLimit;
 
     return (
@@ -323,11 +423,11 @@ export default function ClassroomQuizPortal({
             </div>
             <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 text-center">
               <span className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wider block">Attempts Made</span>
-              <span className="text-lg font-bold text-white mt-1 block">{attempts.length}</span>
+              <span className="text-lg font-bold text-white mt-1 block">{isGuest ? 0 : attempts.length}</span>
             </div>
           </div>
 
-          {attempts.length > 0 && (
+          {!isGuest && attempts.length > 0 && (
             <div className="space-y-3 pt-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Attempt Roster</h4>
               <div className="rounded-xl border border-white/5 overflow-hidden bg-slate-950/20 divide-y divide-white/5">
@@ -391,10 +491,10 @@ export default function ClassroomQuizPortal({
   // ----------------------------------------------------
   // ACTIVE TAKING PHASE RENDER
   // ----------------------------------------------------
-  if (phase === "taking" && activeAttempt) {
-    const currentQuestion = questions[currentQuestionIdx];
+  if (activePhase === "taking" && currentAttempt) {
+    const currentQuestion = activeQuestions[currentQuestionIdx];
     const isFirst = currentQuestionIdx === 0;
-    const isLast = currentQuestionIdx === questions.length - 1;
+    const isLast = currentQuestionIdx === activeQuestions.length - 1;
 
     // Check if the current question has an answer in local answers state
     const isAnswered = (qId: string) => {
@@ -412,8 +512,9 @@ export default function ClassroomQuizPortal({
           <div className="space-y-0.5">
             <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Timed Assessment Attempt</span>
             <h4 className="text-xs font-bold text-white leading-none">
-              Attempt #{activeAttempt.attemptNumber}
-              <span className="text-[10px] text-slate-400 font-mono font-normal ml-3">Started At: {mounted ? new Date(activeAttempt.startedAt).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : ""}</span>
+              Attempt #{currentAttempt.attemptNumber}
+              {isGuest && <span className="text-[10px] text-amber-400 font-bold ml-2">[Guest Mode]</span>}
+              <span className="text-[10px] text-slate-400 font-mono font-normal ml-3">Started At: {mounted ? new Date(currentAttempt.startedAt).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : ""}</span>
             </h4>
           </div>
 
@@ -437,7 +538,7 @@ export default function ClassroomQuizPortal({
               <Card className="border-white/5 bg-[#0a0a14]/60">
                 <CardHeader className="p-6 border-b border-white/5 bg-white/[0.01]">
                   <div className="flex items-center justify-between gap-4 mb-2">
-                    <Badge variant="secondary">Question {currentQuestionIdx + 1} of {questions.length}</Badge>
+                    <Badge variant="secondary">Question {currentQuestionIdx + 1} of {activeQuestions.length}</Badge>
                     <span className="text-[10px] font-mono text-slate-500">{currentQuestion.points} Marks</span>
                   </div>
                   <CardTitle className="text-sm md:text-base font-bold text-white leading-relaxed">{currentQuestion.prompt}</CardTitle>
@@ -499,7 +600,7 @@ export default function ClassroomQuizPortal({
                       Submit Assessment
                     </Button>
                   ) : (
-                    <Button onClick={() => setCurrentQuestionIdx(idx => Math.min(questions.length - 1, idx + 1))} className="h-9 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white">
+                    <Button onClick={() => setCurrentQuestionIdx(idx => Math.min(activeQuestions.length - 1, idx + 1))} className="h-9 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white">
                       Next Question
                     </Button>
                   )}
@@ -520,7 +621,7 @@ export default function ClassroomQuizPortal({
             </CardHeader>
             <CardContent className="p-4">
               <div className="grid grid-cols-4 gap-2">
-                {questions.map((q, idx) => {
+                {activeQuestions.map((q, idx) => {
                   const isCurrent = idx === currentQuestionIdx;
                   const answered = isAnswered(q.id);
 
@@ -562,10 +663,10 @@ export default function ClassroomQuizPortal({
   // ----------------------------------------------------
   // REVIEW PHASE RENDER
   // ----------------------------------------------------
-  if (phase === "review" && reviewAttempt) {
-    const passed = reviewAttempt.scorePercent !== null && reviewAttempt.scorePercent >= test.passingScore;
-    const spentMins = reviewAttempt.timeSpentSeconds ? Math.floor(reviewAttempt.timeSpentSeconds / 60) : 0;
-    const spentSecs = reviewAttempt.timeSpentSeconds ? reviewAttempt.timeSpentSeconds % 60 : 0;
+  if (activePhase === "review" && currentReviewAttempt) {
+    const passed = currentReviewAttempt.scorePercent !== null && currentReviewAttempt.scorePercent >= test.passingScore;
+    const spentMins = currentReviewAttempt.timeSpentSeconds ? Math.floor(currentReviewAttempt.timeSpentSeconds / 60) : 0;
+    const spentSecs = currentReviewAttempt.timeSpentSeconds ? currentReviewAttempt.timeSpentSeconds % 60 : 0;
 
     const showDetails = test?.metadata && typeof test.metadata === "object"
       ? (test.metadata as any).showResults !== false
@@ -581,7 +682,8 @@ export default function ClassroomQuizPortal({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs">
                 <Badge variant="outline" className="capitalize text-slate-400">Attempt Review</Badge>
-                <Badge variant="outline" className="text-slate-400 font-mono">Attempt #{reviewAttempt.attemptNumber}</Badge>
+                <Badge variant="outline" className="text-slate-400 font-mono">Attempt #{currentReviewAttempt.attemptNumber}</Badge>
+                {isGuest && <span className="text-[10px] text-amber-400 font-bold">[Guest Mode]</span>}
               </div>
               <h2 className="text-lg md:text-xl font-black text-white tracking-tight">{test.title} Results</h2>
               <div className={`flex items-center gap-1.5 text-xs font-bold ${passed ? "text-emerald-400" : "text-rose-400"}`}>
@@ -593,10 +695,10 @@ export default function ClassroomQuizPortal({
             <div className="p-4 rounded-xl border border-white/5 bg-[#08080f]/80 text-center shrink-0 min-w-36">
               <span className="text-[9px] text-slate-500 font-extrabold uppercase block">Your Score</span>
               <span className={`text-3xl font-black mt-1 block ${passed ? "text-emerald-400" : "text-rose-400"}`}>
-                {reviewAttempt.scorePercent}%
+                {currentReviewAttempt.scorePercent}%
               </span>
               <span className="text-[10px] text-slate-400 block mt-1">
-                {reviewAttempt.correctAnswersCount} / {reviewAttempt.totalQuestionsCount} Correct
+                {currentReviewAttempt.correctAnswersCount} / {currentReviewAttempt.totalQuestionsCount} Correct
               </span>
               <span className="text-[10px] text-slate-400 block mt-1 font-mono">
                 {spentMins}m {spentSecs}s spent
@@ -606,6 +708,14 @@ export default function ClassroomQuizPortal({
           <CardFooter className="p-5 border-t border-white/5 bg-white/[0.01] flex justify-end">
             <Button 
               onClick={() => {
+                if (isGuest) {
+                  setLocalPhase("overview");
+                  setGuestAttempt(null);
+                  setGuestReviewAttempt(null);
+                  setGuestQuestions([]);
+                  setAnswers({});
+                  return;
+                }
                 router.push(window.location.pathname);
                 router.refresh();
               }} 
@@ -622,7 +732,7 @@ export default function ClassroomQuizPortal({
           <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Detailed Feedback</h3>
             <div className="space-y-4">
-              {questions.map((q, idx) => {
+              {activeQuestions.map((q, idx) => {
                 const ans = q.answers?.[0];
                 const isCorrect = ans?.isCorrect === true;
                 

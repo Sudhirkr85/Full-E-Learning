@@ -191,7 +191,8 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
               id: o.id,
               label: o.label,
               isCorrect: isTakingPhase ? undefined : o.isCorrect,
-              explanation: isTakingPhase ? undefined : o.explanation
+              explanation: isTakingPhase ? undefined : o.explanation,
+              value: o.value
             })),
             answers: answers.map(a => ({
               selectedOptionId: a.selectedOptionId,
@@ -232,6 +233,7 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
 
   const isEnrolled = Boolean(bundle.enrollment && (bundle.enrollment.status === "ACTIVE" || bundle.enrollment.status === "COMPLETED"));
   const isStaff = currentUser?.role === "ADMIN" || currentUser?.role === "TEACHER";
+  const isGuest = !currentUser;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white relative overflow-hidden bg-grid-cyber pb-20">
@@ -253,6 +255,7 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
         quizQuestions={quizQuestions}
         isEnrolled={isEnrolled}
         isStaff={isStaff}
+        isGuest={isGuest}
       />
     </div>
   );

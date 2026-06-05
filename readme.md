@@ -36,6 +36,9 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Dynamic Lesson Back Buttons**: Updated the back button in the lesson player header to direct enrolled students to the `/learn` classroom view and guest/preview users to the public `/courses/[slug]` details page.
     *   **Portal Dashboard Navigation**: Set the main learn page header back button to direct students back to `/student/dashboard` ("← My Dashboard") while keeping guests directed to the course detail page ("← Back to Course").
     *   **Catalog Preview Anchoring**: Standardized curriculum outline cards in `CourseDetailClient` so that clicking locked lessons automatically scrolls the visitor down to the enrollment/checkout container.
+    *   **Guest Assessment Sandbox Mode**: Integrated full client-side quiz execution for guest/non-enrolled users, bypassing server database write requests (to resolve schema constraints) while providing instant local grading and reviews.
+    *   **Preview PDF Authorization Bypass**: Updated the secure `/api/pdf-proxy` proxy API to evaluate matching lesson flags first, bypassing session and user purchase checks for verified free preview playbook assets.
+    *   **Universal Guest Prop Propagation**: Propagated the guest state parameters from server views to client components in both `/learn` and `/lessons/[lessonSlug]` modules, ensuring consistency across interactive sandboxes.
 
 *   **Hero Section & Particle Canvas Magic**:
     *   **Magic Particle Canvas System**: Added a `<canvas>` element absolutely positioned behind the hero content with an automated `requestAnimationFrame` loop rendering 100 floating particles, constellation connection lines under 80px distance, 4 drifting radial gradient accent color orbs, and mouse repulsion pushing particles away from the cursor.

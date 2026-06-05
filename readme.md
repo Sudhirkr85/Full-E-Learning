@@ -19,6 +19,14 @@ This platform represents a modern fusion of an advanced Educational portal and a
 
 ## 2. Recent Improvements & Fixes (June 2026)
 
+*   **Access Control and Navigation Fixes**:
+    *   **Classroom Learn Guest Access**: Removed the hard redirect for guests/non-enrolled users in the classroom learn player `/courses/[slug]/learn`. Guests and non-enrolled students can now load the page to view the course syllabus and catalog curriculum.
+    *   **Curriculum Syllabus Lock States**: Integrated conditional locks in the syllabus sidebar of `/learn`. Free preview lessons display a "FREE" badge and link to `/courses/[slug]/lessons/[lessonSlug]`. Locked paid lessons display lock icons with "Enroll to unlock" labels and link directly to the course purchase checkout.
+    *   **Viewport Lock Screen Placeholder**: Rendered a premium locked card inside the main viewport of `/learn` when a non-enrolled user attempts to view a paid lesson.
+    *   **Dynamic Lesson Back Buttons**: Updated the back button in the lesson player header to direct enrolled students to the `/learn` classroom view and guest/preview users to the public `/courses/[slug]` details page.
+    *   **Portal Dashboard Navigation**: Set the main learn page header back button to direct students back to `/student/dashboard` ("← My Dashboard") while keeping guests directed to the course detail page ("← Back to Course").
+    *   **Catalog Preview Anchoring**: Standardized curriculum outline cards in `CourseDetailClient` so that clicking locked lessons automatically scrolls the visitor down to the enrollment/checkout container.
+
 *   **Hero Section & Particle Canvas Magic**:
     *   **Magic Particle Canvas System**: Added a `<canvas>` element absolutely positioned behind the hero content with an automated `requestAnimationFrame` loop rendering 100 floating particles, constellation connection lines under 80px distance, 4 drifting radial gradient accent color orbs, and mouse repulsion pushing particles away from the cursor.
     *   **Interactive Sparkle Trail & Glow Dot**: Triggers cross-shaped falling sparkle trails on mouse movements > 2px, and renders an active purple cursor glow dot inside the canvas.

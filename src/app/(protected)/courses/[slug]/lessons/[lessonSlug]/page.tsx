@@ -230,6 +230,9 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
     }
   }
 
+  const isEnrolled = Boolean(bundle.enrollment && (bundle.enrollment.status === "ACTIVE" || bundle.enrollment.status === "COMPLETED"));
+  const isStaff = currentUser?.role === "ADMIN" || currentUser?.role === "TEACHER";
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white relative overflow-hidden bg-grid-cyber pb-20">
       {/* Cinematic glows */}
@@ -248,6 +251,8 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
         quizActiveAttempt={quizActiveAttempt}
         quizReviewAttempt={quizReviewAttempt}
         quizQuestions={quizQuestions}
+        isEnrolled={isEnrolled}
+        isStaff={isStaff}
       />
     </div>
   );

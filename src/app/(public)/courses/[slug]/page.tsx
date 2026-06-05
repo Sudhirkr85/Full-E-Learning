@@ -298,7 +298,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
           </div>
 
           <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-6 border border-white/10 rounded-xl p-6 flex flex-col gap-4 bg-[#090d20]/50 backdrop-blur-md shadow-2xl text-slate-100">
+            <div id="enroll-section" className="lg:sticky lg:top-6 border border-white/10 rounded-xl p-6 flex flex-col gap-4 bg-[#090d20]/50 backdrop-blur-md shadow-2xl text-slate-100">
               <EnrollButton
                 courseId={course.id}
                 coursePrice={price}

@@ -147,10 +147,16 @@ export function CourseDetailClient({ slug, description, sections, isEnrolled, ou
                               <ChevronRight className="h-3 w-3 ml-1" />
                             </Link>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                document.getElementById("enroll-section")?.scrollIntoView({ behavior: "smooth" });
+                              }}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-full border border-white/5 transition"
+                            >
                               <Lock className="h-3 w-3" />
                               Locked
-                            </span>
+                            </button>
                           )}
                         </div>
                       </div>

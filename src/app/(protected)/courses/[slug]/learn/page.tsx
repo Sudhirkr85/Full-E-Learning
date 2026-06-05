@@ -24,7 +24,8 @@ import {
   Award,
   Star,
   CheckCircle2,
-  Circle
+  Circle,
+  Lock
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: LearnPageProps): Promise<Meta
 }
 
 function isUUID(val: string) {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(val);
 }
 
@@ -59,9 +60,8 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
   const sParams = searchParams ? await searchParams : undefined;
   const session = await auth();
 
-  if (!session?.user?.id) {
-    redirect(`/login?callbackUrl=/courses/${routeParam}/learn`);
-  }
+  const isGuest = !session?.user?.id;
+  const loggedIn = !isGuest;
 
   // 1. Resolve Course (by slug or UUID id)
   const course = await prisma.course.findFirst({
@@ -93,28 +93,27 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
   }
 
   // 2. Access Control: Admins, teachers bypass. Students must be enrolled.
-  const userRole = session.user.role;
+  const userRole = session?.user?.role;
   const isStaff = userRole === "ADMIN" || userRole === "TEACHER";
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: {
-      userId_courseId: {
-        userId: session.user.id,
-        courseId: course.id
-      }
-    },
-    include: {
-      progress: true,
-      lessonProgresses: true,
-      certificate: true
-    }
-  });
+  const enrollment = loggedIn
+    ? await prisma.enrollment.findUnique({
+        where: {
+          userId_courseId: {
+            userId: session.user.id,
+            courseId: course.id
+          }
+        },
+        include: {
+          progress: true,
+          lessonProgresses: true,
+          certificate: true
+        }
+      })
+    : null;
 
-  const hasAccess = isStaff || (enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED"));
-
-  if (!hasAccess) {
-    redirect(`/courses/${course.slug}`);
-  }
+  const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED"));
+  const canFullAccess = isStaff || isEnrolled;
 
   // 3. Flat lessons hierarchy for navigation
   const allLessons = course.sections.flatMap((s) => s.lessons);
@@ -146,6 +145,11 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
     }
   }
 
+  // If the resolved/requested lesson is a preview, redirect non-enrolled users and guests to the public lesson player
+  if (!canFullAccess && activeLesson.isPreview) {
+    redirect(`/courses/${course.slug}/lessons/${activeLesson.slug}`);
+  }
+
   const activeIndex = allLessons.findIndex((l) => l.id === activeLesson.id);
   const previousLesson = activeIndex > 0 ? allLessons[activeIndex - 1] : null;
   const nextLesson = activeIndex < allLessons.length - 1 ? allLessons[activeIndex + 1] : null;
@@ -175,7 +179,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
         }
       });
 
-      if (quizTest) {
+      if (quizTest && loggedIn) {
         quizAttempts = await prisma.attempt.findMany({
           where: {
             testId: quizTest.id,
@@ -286,8 +290,18 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
       {/* Top Navbar */}
       <header className="h-16 border-b border-white/5 bg-[#0a0a12]/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-40 shrink-0">
         <div className="flex items-center gap-3">
-          <Link href={activeAttemptId ? `/courses/${course.slug}/learn?lesson=${activeLesson.slug}` : `/courses/${course.slug}`} className="text-slate-400 hover:text-white transition">
-            <ArrowLeft className="h-5 w-5" />
+          <Link
+            href={
+              activeAttemptId
+                ? `/courses/${course.slug}/learn?lesson=${activeLesson.slug}`
+                : isGuest
+                  ? `/courses/${course.slug}`
+                  : `/student/dashboard`
+            }
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white transition text-xs font-bold mr-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>{activeAttemptId ? "Back to Lesson" : isGuest ? "Back to Course" : "My Dashboard"}</span>
           </Link>
           <div className="flex flex-col">
             <span className="text-xs text-indigo-400 font-bold uppercase tracking-widest font-mono">Classroom Player</span>
@@ -312,7 +326,23 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
         <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Active Content Viewer */}
-            {activeLesson.contentType === "QUIZ" ? (
+            {!canFullAccess ? (
+              <div className="w-full aspect-video rounded-2xl border border-white/10 bg-[#0c0c16]/80 flex flex-col items-center justify-center p-8 text-center backdrop-blur-md relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-40 pointer-events-none" />
+                <div className="h-14 w-14 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-5 animate-pulse">
+                  <Lock className="h-7 w-7" />
+                </div>
+                <h3 className="text-lg font-extrabold text-white tracking-wide">Locked Curriculum Resource</h3>
+                <p className="text-xs text-slate-400 mt-2 max-w-sm leading-relaxed">
+                  This lesson requires enrollment. Enroll in this course to gain lifetime access to all learning assets and modules.
+                </p>
+                <Button asChild className="mt-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl h-11 px-6 text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.25)]">
+                  <Link href={loggedIn ? `/courses/${course.slug}?checkout=true` : `/login?callbackUrl=${encodeURIComponent(`/courses/${course.slug}/learn`)}`}>
+                    {loggedIn ? "Buy Course to Unlock" : "Sign In to Enroll"}
+                  </Link>
+                </Button>
+              </div>
+            ) : activeLesson.contentType === "QUIZ" ? (
               quizTest ? (
                 <ClassroomQuizPortal
                   phase={
@@ -402,8 +432,8 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                     productId={course.id}
                     orderId={enrollment?.id || `lesson-${activeLesson.id}`}
                     fileUrl={activeLesson.r2AssetUrl}
-                    userName={session.user.name || "Student"}
-                    userEmail={session.user.email || ""}
+                    userName={session?.user?.name || "Student"}
+                    userEmail={session?.user?.email || ""}
                     productName={course.title}
                     className="h-full w-full"
                   />
@@ -427,7 +457,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
               </div>
 
               {/* Progress Tracking Action */}
-              {enrollment && userRole === "STUDENT" && activeLesson.contentType !== "QUIZ" && (
+              {canFullAccess && enrollment && userRole === "STUDENT" && activeLesson.contentType !== "QUIZ" && (
                 <form action={toggleLessonCompletionAction} className="shrink-0 text-left">
                   <input type="hidden" name="courseId" value={course.id} />
                   <input type="hidden" name="lessonId" value={activeLesson.id} />
@@ -448,7 +478,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
 
             {/* Curriculum Chronological Navigation */}
             <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-4">
-              {previousLesson ? (
+              {previousLesson && canFullAccess ? (
                 <Button asChild variant="outline" className="border-white/10 bg-white/5 text-slate-400 hover:text-white rounded-xl transition-all">
                   <Link href={`/courses/${course.slug}/learn?lesson=${previousLesson.slug}`} className="flex items-center gap-1.5">
                     <ChevronLeft className="h-4 w-4" /> Prev Lesson
@@ -457,7 +487,7 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
               ) : (
                 <div />
               )}
-              {nextLesson ? (
+              {nextLesson && canFullAccess ? (
                 <Button asChild variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-indigo-600 rounded-xl transition-all">
                   <Link href={`/courses/${course.slug}/learn?lesson=${nextLesson.slug}`} className="flex items-center gap-1.5">
                     Next Lesson <ChevronRight className="h-4 w-4" />
@@ -533,62 +563,69 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                   {section.lessons.map((lesson) => {
                     const isLessonActive = lesson.id === activeLesson.id;
                     const isLessonCompleted = completedLessonIds.has(lesson.id);
+                    const canAccessLesson = canFullAccess || lesson.isPreview;
 
-                    return (
-                      <Link
-                        key={lesson.id}
-                        href={`/courses/${course.slug}/learn?lesson=${lesson.slug}`}
-                        className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left transition ${
-                          isLessonActive 
-                            ? "bg-indigo-600/10 border border-indigo-500/20 text-white font-medium" 
-                            : "hover:bg-white/[0.02] text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {isLessonCompleted ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                          ) : lesson.contentType === "LIVE" ? (
-                            <Radio className="h-4 w-4 text-rose-400 shrink-0 animate-pulse" />
-                          ) : (
-                            <Circle className="h-4 w-4 text-slate-600 shrink-0" />
-                          )}
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs line-clamp-1">{lesson.title}</span>
-                            {lesson.contentType === "LIVE" && (() => {
-                              if (!lesson.scheduledAt) return null;
-                              const sched = new Date(lesson.scheduledAt);
-                              const now = new Date();
-                              if (sched > now) {
-                                const formattedTime = sched.toLocaleString("en-IN", {
-                                  timeZone: "Asia/Kolkata",
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                  hour12: true
-                                });
-                                return (
-                                  <span className="text-[10px] text-slate-400 mt-0.5">
-                                    {formattedTime} IST
-                                  </span>
-                                );
-                              } else if (now.getTime() - sched.getTime() <= 4 * 60 * 60 * 1000) {
-                                return (
-                                  <span className="text-[10px] text-rose-400 font-bold mt-0.5 flex items-center gap-1">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
-                                    Live Now
-                                  </span>
-                                );
-                              }
-                              return null;
-                            })()}
+                    if (canAccessLesson) {
+                      const href = canFullAccess
+                        ? `/courses/${course.slug}/learn?lesson=${lesson.slug}`
+                        : `/courses/${course.slug}/lessons/${lesson.slug}`;
+                      return (
+                        <Link
+                          key={lesson.id}
+                          href={href}
+                          className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left transition ${
+                            isLessonActive 
+                              ? "bg-indigo-600/10 border border-indigo-500/20 text-white font-medium" 
+                              : "hover:bg-white/[0.02] text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {isLessonCompleted ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                            ) : lesson.contentType === "LIVE" ? (
+                              <Radio className="h-4 w-4 text-rose-400 shrink-0 animate-pulse" />
+                            ) : (
+                              <Circle className="h-4 w-4 text-slate-600 shrink-0" />
+                            )}
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-xs line-clamp-1">{lesson.title}</span>
+                            </div>
                           </div>
-                        </div>
-                        <span className="text-[9px] uppercase font-mono text-slate-600 shrink-0">
-                          {lesson.contentType.toLowerCase()}
-                        </span>
-                      </Link>
-                    );
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {lesson.isPreview && (
+                              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                                FREE
+                              </span>
+                            )}
+                            <span className="text-[9px] uppercase font-mono text-slate-600">
+                              {lesson.contentType.toLowerCase()}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    } else {
+                      const redirectUrl = loggedIn
+                        ? `/courses/${course.slug}`
+                        : `/login?callbackUrl=${encodeURIComponent(`/courses/${course.slug}/learn`)}`;
+                      return (
+                        <Link
+                          key={lesson.id}
+                          href={redirectUrl}
+                          className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left transition hover:bg-white/[0.02] text-slate-500 hover:text-slate-400"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Lock className="h-4 w-4 text-slate-600 shrink-0" />
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-xs line-clamp-1 text-slate-400">{lesson.title}</span>
+                              <span className="text-[9px] text-slate-500 font-semibold mt-0.5">Enroll to unlock</span>
+                            </div>
+                          </div>
+                          <span className="text-[9px] uppercase font-mono text-slate-600 shrink-0">
+                            {lesson.contentType.toLowerCase()}
+                          </span>
+                        </Link>
+                      );
+                    }
                   })}
                 </div>
               </div>

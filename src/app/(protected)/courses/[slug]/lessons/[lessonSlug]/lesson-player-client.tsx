@@ -48,6 +48,8 @@ type LessonPlayerClientProps = {
   quizActiveAttempt?: any;
   quizReviewAttempt?: any;
   quizQuestions?: any[];
+  isEnrolled: boolean;
+  isStaff: boolean;
 };
 
 export function LessonPlayerClient({
@@ -61,7 +63,9 @@ export function LessonPlayerClient({
   quizAttempts = [],
   quizActiveAttempt,
   quizReviewAttempt,
-  quizQuestions = []
+  quizQuestions = [],
+  isEnrolled,
+  isStaff
 }: LessonPlayerClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -271,9 +275,21 @@ export function LessonPlayerClient({
       <div className="flex items-center justify-between mb-5 md:mb-7 gap-2">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <Link
-            href={quizReviewAttempt ? `/courses/${slug}/lessons/${lessonSlug}` : `/courses/${slug}`}
+            href={
+              quizReviewAttempt
+                ? `/courses/${slug}/lessons/${lessonSlug}`
+                : (isEnrolled || isStaff)
+                  ? `/courses/${slug}/learn`
+                  : `/courses/${slug}`
+            }
             className="flex-shrink-0 flex items-center justify-center h-9 w-9 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200"
-            title={quizReviewAttempt ? "Back to Quiz Overview" : "Back to Course"}
+            title={
+              quizReviewAttempt
+                ? "Back to Quiz Overview"
+                : (isEnrolled || isStaff)
+                  ? "Back to Classroom"
+                  : "Back to Course"
+            }
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -291,7 +307,7 @@ export function LessonPlayerClient({
         </div>
 
         <Link
-          href={`/courses/${slug}`}
+          href={(isEnrolled || isStaff) ? `/courses/${slug}/learn` : `/courses/${slug}`}
           className="flex-shrink-0 flex items-center gap-1.5 px-3 md:px-4 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-indigo-500/20 hover:border-indigo-500/40 transition-all duration-300"
         >
           <BookOpen className="h-3.5 w-3.5" />

@@ -229,7 +229,7 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
             }
           }
         } else {
-          // Guest mode: load questions for local taking (correct option answers are hidden until submission)
+          // Guest mode: load questions with answers/explanations for client-side grading
           quizQuestions = quizTest.questions.map((q) => {
             return {
               id: q.id,
@@ -240,8 +240,8 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
               options: q.options.map((o) => ({
                 id: o.id,
                 label: o.label,
-                isCorrect: undefined, // hidden during taking
-                explanation: undefined, // hidden during taking
+                isCorrect: o.isCorrect,
+                explanation: o.explanation,
                 value: o.value
               })),
               answers: []

@@ -64,9 +64,31 @@ export default async function StudentWishlistPage() {
     };
   });
 
+  const productWishlists = await prisma.productWishlist.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    include: {
+      product: true
+    }
+  });
+
+  const wishlistedProducts = productWishlists.map((w) => {
+    return {
+      id: w.product.id,
+      title: w.product.title,
+      slug: w.product.slug,
+      coverImageUrl: w.product.coverImageUrl,
+      price: w.product.priceCents / 100,
+      originalPrice: w.product.originalPriceCents ? w.product.originalPriceCents / 100 : null,
+      productType: w.product.productType,
+      shortDescription: w.product.shortDescription || w.product.description || ""
+    };
+  });
+
   return (
     <WishlistClient
       courses={wishlistedCourses}
+      products={wishlistedProducts}
       userId={user.id}
     />
   );

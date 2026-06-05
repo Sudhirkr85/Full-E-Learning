@@ -58,6 +58,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   let hasPurchased = false;
   let hasReviewed = false;
+  let isWishlisted = false;
 
   if (isLoggedIn && session?.user?.id) {
     const paidOrder = await prisma.order.findFirst({
@@ -80,6 +81,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       }
     });
     hasReviewed = !!existingReview;
+
+    const dbWishlist = await prisma.productWishlist.findUnique({
+      where: {
+        userId_productId: {
+          userId: session.user.id,
+          productId: product.id
+        }
+      }
+    });
+    isWishlisted = !!dbWishlist;
   }
 
   // --- SECTION 2: TRUST SIGNALS DATA ---
@@ -218,7 +229,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
 
             {/* Interactive Buy Buttons */}
-            <DetailClient product={product} />
+            <DetailClient product={product} isWishlisted={isWishlisted} isLoggedIn={isLoggedIn} />
 
             {/* Trust Badging */}
             <div className="border-t border-white/10 pt-6 flex items-center justify-between text-xs text-slate-400">

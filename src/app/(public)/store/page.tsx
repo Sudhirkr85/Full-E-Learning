@@ -17,6 +17,7 @@ export default async function StorePage() {
 
   const currentUser = await getCurrentUser();
   let profileUser = null;
+  let userWishlistedProductIds: string[] = [];
 
   if (currentUser) {
     const dbUser = await prisma.user.findUnique({
@@ -37,7 +38,19 @@ export default async function StorePage() {
         phone: dbUser.phone || meta.phone || "",
       };
     }
+
+    const dbWishlists = await prisma.productWishlist.findMany({
+      where: { userId: currentUser.id },
+      select: { productId: true }
+    });
+    userWishlistedProductIds = dbWishlists.map(w => w.productId);
   }
 
-  return <StoreClient products={products} profileUser={profileUser} />;
+  return (
+    <StoreClient 
+      products={products} 
+      profileUser={profileUser} 
+      userWishlistedProductIds={userWishlistedProductIds} 
+    />
+  );
 }

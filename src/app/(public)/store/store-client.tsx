@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import type { Product, ProductType as PrismaProductType } from "@prisma/client";
+import { ProductWishlistButton } from "@/components/product-wishlist-button";
 
 const ProductType = {
   COURSE_ACCESS: "COURSE_ACCESS" as const,
@@ -44,9 +45,10 @@ interface StoreClientProps {
     name: string;
     phone: string;
   } | null;
+  userWishlistedProductIds?: string[];
 }
 
-export function StoreClient({ products, profileUser }: StoreClientProps) {
+export function StoreClient({ products, profileUser, userWishlistedProductIds = [] }: StoreClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -767,6 +769,13 @@ export function StoreClient({ products, profileUser }: StoreClientProps) {
                         {getProductIcon(product.productType)}
                         {product.productType.replace("_", " ")}
                       </Badge>
+                    </div>
+                    <div className="absolute top-3 right-3 z-10">
+                      <ProductWishlistButton
+                        productId={product.id}
+                        initialWishlisted={userWishlistedProductIds.includes(product.id)}
+                        isLoggedIn={!!profileUser}
+                      />
                     </div>
                   </div>
 

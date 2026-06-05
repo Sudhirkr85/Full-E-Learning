@@ -39,6 +39,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Guest Assessment Sandbox Mode**: Integrated full client-side quiz execution for guest/non-enrolled users, supplying correct answer keys directly to client data structures for browser-side evaluation, bypassing server database write requests, and providing instant local grading results and breakdowns.
     *   **Preview PDF Authorization Bypass**: Updated the secure `/api/pdf-proxy` proxy API to evaluate matching lesson flags first, bypassing session and user purchase checks for verified free preview playbook assets.
     *   **Universal Guest Prop Propagation**: Propagated the guest state parameters from server views to client components in both `/learn` and `/lessons/[lessonSlug]` modules, ensuring consistency across interactive sandboxes.
+    *   **Storefront Product Wishlist**: Integrated a dedicated `ProductWishlist` database schema, POST/GET API endpoints at `/api/store/wishlist`, and Zustand state management to allow wishlisting of digital playbooks and physical merchandise across the store catalog grid, product detail views, and student dashboard tabs.
 
 *   **Hero Section & Particle Canvas Magic**:
     *   **Magic Particle Canvas System**: Added a `<canvas>` element absolutely positioned behind the hero content with an automated `requestAnimationFrame` loop rendering 100 floating particles, constellation connection lines under 80px distance, 4 drifting radial gradient accent color orbs, and mouse repulsion pushing particles away from the cursor.
@@ -136,7 +137,7 @@ The application contains the following fully implemented production modules:
 *   **Auth.js Engine**: Enforces STUDENT, TEACHER, and ADMIN credentials. Includes automatic redirection gates via Next.js Middleware.
 
 ### Store & Checkout
-*   **Wishlist System**: Integrated wishlist management with persistent storage and instant toggle (Add/Remove) functionality across product cards and detail pages.
+*   **Wishlist System**: Integrated wishlist management with persistent storage and instant toggle (Add/Remove) functionality for both Course shells (catalog grid & detail pages) and Storefront Products (store cards, product detail pages, and student wishlist tab views).
 *   **Smart Storefront**: Unified product listing supporting "In Your Cart" status detection and interactive "Buy Now" triggers.
 *   **Secure Checkout Pipeline**: Multi-stage order processor with client-side validation, server-side inventory checks (ACTIVE/PUBLISHED status), and Razorpay payment fulfillment. Supports role-based access for course specific links.
 

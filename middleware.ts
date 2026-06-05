@@ -22,7 +22,10 @@ export default async function middleware(request: NextRequest) {
   
   // NextAuth v5 uses authjs.session-token cookie names.
   // We dynamically resolve secureCookie and cookieName based on HTTPS to prevent live environment desyncs.
-  const secureCookie = nextUrl.protocol === "https:";
+  const secureCookie = 
+    process.env.NODE_ENV === "production" ||
+    request.headers.get("x-forwarded-proto") === "https" ||
+    nextUrl.protocol === "https:";
   const cookieName = secureCookie ? "__Secure-authjs.session-token" : "authjs.session-token";
 
   const token = await getToken({ 

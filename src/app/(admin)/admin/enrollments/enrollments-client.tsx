@@ -144,7 +144,6 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
       return matchesSearch;
     });
   }, [enrollments, search, enrollmentFilter]);
-
   // Filter & Search Orders
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
@@ -155,15 +154,20 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
       const matchesSearch = name.includes(query) || email.includes(query);
 
       const paymentStatus = o.payments[0]?.status || "PENDING";
+      const isSucceeded = paymentStatus === "SUCCEEDED" || paymentStatus === "COMPLETED" || o.status === "PAID";
+      const isFailed = paymentStatus === "FAILED" || o.status === "CANCELLED";
+      const isPending = !isSucceeded && !isFailed;
+
       if (orderFilter === "succeeded") {
-        return matchesSearch && paymentStatus === "SUCCEEDED";
+        return matchesSearch && isSucceeded;
       }
       if (orderFilter === "pending") {
-        return matchesSearch && paymentStatus === "PENDING";
+        return matchesSearch && isPending;
       }
       if (orderFilter === "failed") {
-        return matchesSearch && paymentStatus === "FAILED";
+        return matchesSearch && isFailed;
       }
+      // "all" tab should show all orders
       return matchesSearch;
     });
   }, [orders, search, orderFilter]);
@@ -468,7 +472,8 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                     filteredOrders.map((o) => {
                       const productItem = o.items[0];
                       const amountPaid = o.payments[0]?.amountCents ?? 0;
-                      const status = o.payments[0]?.status ?? "PENDING";
+                      const rawPaymentStatus = o.payments[0]?.status ?? "PENDING";
+                      const status = o.status === "CANCELLED" ? "FAILED" : (o.status === "PAID" ? "SUCCEEDED" : rawPaymentStatus);
                       const productLabel = productItem?.product?.title ?? productItem?.product?.course?.title ?? productItem?.productName ?? "Unknown";
                       const rawType = productItem?.productType ?? "COURSE_ACCESS";
                       const typeBadgeLabel = typeLabel[rawType] ?? rawType;

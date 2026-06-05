@@ -69,28 +69,29 @@ export default async function AdminEnrollmentsPage() {
   const uniqueUserIds = new Set(enrollments.map((e) => e.userId));
   const activeLearners = uniqueUserIds.size;
 
-  // Get total platform revenue from all succeeded payments to separate courses from store
-  const allSucceededPayments = await withRetry(() =>
-    prisma.payment.findMany({
-      where: { status: "SUCCEEDED" }
-    })
-  );
-  const totalRevenue = allSucceededPayments.reduce((sum, p) => sum + p.amountCents, 0);
-
   // Store Revenue: Sum of SUCCEEDED payment amounts in ₹ (amountCents is in paise)
   // Scaled cleanly to exclude course revenues (since orders is pre-filtered!)
   const succeededPayments = orders.flatMap((o) => o.payments).filter((p) => p.status === "SUCCEEDED");
   const storeRevenue = succeededPayments.reduce((sum, p) => sum + p.amountCents, 0); // Keep in paise for metrics object
-  
-  // Course Revenue: The remaining succeeded payment volume
-  const courseRevenue = Math.max(0, totalRevenue - storeRevenue);
 
-  // Pending Dispatch: Physical product orders that do not have a tracking ID or tracking URL in metadata
+  // Course Revenue: Sum of `amountPaid` (stored in Rupees, convert to paise) for completed/paid enrollments
+  const paidEnrollments = enrollments.filter(
+    (e) => e.paymentStatus === "COMPLETED" || e.paymentStatus === "PAID"
+  );
+  const courseRevenue = paidEnrollments.reduce((sum, e) => sum + (e.amountPaid || 0) * 100, 0);
+
+  // Total Platform Revenue: Combine store and course revenue volumes
+  const totalRevenue = storeRevenue + courseRevenue;
+
+  // Pending Dispatch: Paid physical product orders that do not have tracking details or a status of SHIPPED/DELIVERED
   const pendingDispatch = orders.filter((o) => {
-    const isPhysical = o.items.some((item) => item.product?.shippingRequired === true);
+    if (o.status !== "PAID") return false;
+    const isPhysical = o.items.some((item) => item.product?.shippingRequired === true || item.productType === "PHYSICAL" || item.product?.productType === "PHYSICAL");
     const metadata = (o.metadata as Record<string, any>) || {};
-    const hasTracking = !!metadata.trackingId || !!metadata.trackingUrl;
-    return isPhysical && !hasTracking;
+    const hasTracking = !!o.trackingNumber || !!metadata.trackingId || !!metadata.trackingUrl;
+    const shipStatus = o.shippingStatus || metadata.shippingStatus;
+    const isFulfilled = shipStatus === "SHIPPED" || shipStatus === "OUT_FOR_DELIVERY" || shipStatus === "DELIVERED" || hasTracking;
+    return isPhysical && !isFulfilled;
   }).length;
 
   const metrics = {

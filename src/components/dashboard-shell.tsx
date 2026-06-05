@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { LogoutModal } from "@/components/navbar/logout-modal";
 import { useWishlistStore } from "@/store/wishlist-store";
+import { useProductWishlistStore } from "@/store/product-wishlist-store";
 
 type NavItem = {
   label: string;
@@ -47,6 +48,8 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { count } = useWishlistStore();
+  const { count: productCount } = useProductWishlistStore();
+  const totalWishlistCount = count + productCount;
 
   const labelText =
     role === "ADMIN" ? "ADMIN PANEL" :
@@ -96,9 +99,9 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
             {getNavIcon(item.label)}
             {item.label}
           </span>
-          {isWishlist && count > 0 ? (
+          {isWishlist && totalWishlistCount > 0 ? (
             <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
-              {count}
+              {totalWishlistCount}
             </span>
           ) : (
             <ChevronRight className={cn("h-3 w-3 opacity-60 transition duration-300", isActive ? "translate-x-0.5" : "")} />

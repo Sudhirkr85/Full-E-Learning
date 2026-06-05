@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWishlistStore } from "@/store/wishlist-store";
+import { useProductWishlistStore } from "@/store/product-wishlist-store";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -42,6 +43,8 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
   const pathname = usePathname();
   const drawerRef = useRef<HTMLDivElement>(null);
   const { count } = useWishlistStore();
+  const { count: productCount } = useProductWishlistStore();
+  const totalWishlistCount = count + productCount;
 
   // Close on Escape key press, handle body scroll lock
   useEffect(() => {
@@ -268,9 +271,9 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                     >
                       <Icon className="h-4 w-4 text-slate-500 shrink-0" />
                       {item.label}
-                      {item.label === "Wishlist" && count > 0 && (
+                      {item.label === "Wishlist" && totalWishlistCount > 0 && (
                         <span className="ml-auto bg-gradient-to-br from-rose-500 to-pink-600 text-white text-[9px] font-black rounded-full h-5 w-5 flex items-center justify-center shadow-[0_0_10px_rgba(244,63,94,0.35)] border border-white/20">
-                          {count}
+                          {totalWishlistCount}
                         </span>
                       )}
                     </Link>

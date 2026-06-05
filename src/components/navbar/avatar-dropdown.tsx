@@ -18,6 +18,7 @@ import {
   Award
 } from "lucide-react";
 import { useWishlistStore } from "@/store/wishlist-store";
+import { useProductWishlistStore } from "@/store/product-wishlist-store";
 
 interface AvatarDropdownProps {
   user: {
@@ -33,6 +34,8 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { count } = useWishlistStore();
+  const { count: productCount } = useProductWishlistStore();
+  const totalWishlistCount = count + productCount;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -223,9 +226,9 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                 >
                   <Heart className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Wishlist
-                  {count > 0 && (
+                  {totalWishlistCount > 0 && (
                     <span className="ml-auto bg-rose-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
-                      {count}
+                      {totalWishlistCount}
                     </span>
                   )}
                 </Link>

@@ -265,7 +265,17 @@ export function PdfReader({
 
         const proxiedUrl = `/api/pdf-proxy?url=${encodeURIComponent(fileUrl)}`;
         console.log("Loading secure playbook document via proxy:", proxiedUrl);
-        const loadingTask = pdfjsLib.getDocument(proxiedUrl);
+        
+        const response = await fetch(proxiedUrl);
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Failed to retrieve document: ${response.status} ${response.statusText} - Detail: ${errText}`);
+        }
+        const data = await response.arrayBuffer();
+
+        const loadingTask = pdfjsLib.getDocument({
+          data: data
+        });
         const doc = await loadingTask.promise;
 
         if (!active) return;

@@ -1,12 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const secureCookie = request.nextUrl.protocol === "https:";
+    const cookieName = secureCookie ? "__Secure-authjs.session-token" : "authjs.session-token";
+    
+    const token = await getToken({
+      req: request,
+      secret: process.env.AUTH_SECRET,
+      secureCookie,
+      cookieName
+    });
+
+    const session = token && token.sub ? {
+      user: {
+        id: token.sub as string,
+        role: (token.role as string) || "STUDENT"
+      }
+    } : null;
+
     if (!session?.user?.id) {
       return new NextResponse("Unauthorized", { status: 401 });
     }

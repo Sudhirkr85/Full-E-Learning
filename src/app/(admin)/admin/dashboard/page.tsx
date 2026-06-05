@@ -40,6 +40,10 @@ export default async function AdminDashboardPage() {
     revenueRecentSum,
     revenuePriorSum,
     payments,
+    courseRevenueSum,
+    courseRevenueRecentSum,
+    courseRevenuePriorSum,
+    coursePayments,
     recentEnrollments
   ] = await Promise.all([
     // Totals
@@ -86,6 +90,31 @@ export default async function AdminDashboardPage() {
       }
     }),
     
+    // Course Revenue Aggregates
+    prisma.enrollment.aggregate({
+      where: { paymentStatus: { in: ["COMPLETED", "PAID"] } },
+      _sum: { amountPaid: true }
+    }),
+    prisma.enrollment.aggregate({
+      where: { paymentStatus: { in: ["COMPLETED", "PAID"] }, enrolledAt: { gte: thirtyDaysAgo } },
+      _sum: { amountPaid: true }
+    }),
+    prisma.enrollment.aggregate({
+      where: { paymentStatus: { in: ["COMPLETED", "PAID"] }, enrolledAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+      _sum: { amountPaid: true }
+    }),
+    prisma.enrollment.findMany({
+      where: {
+        paymentStatus: { in: ["COMPLETED", "PAID"] },
+        enrolledAt: { gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000) }
+      },
+      select: {
+        amountPaid: true,
+        paidAt: true,
+        enrolledAt: true
+      }
+    }),
+
     prisma.enrollment.findMany({
       take: 5,
       orderBy: { enrolledAt: "desc" },
@@ -97,7 +126,11 @@ export default async function AdminDashboardPage() {
   ]);
 
   const totalUsers = studentCount + teacherCount + adminCount;
-  const formattedRevenue = ((revenueSum._sum.amountCents ?? 0) / 100).toLocaleString("en-IN");
+  
+  const totalStoreRevenueCents = revenueSum._sum.amountCents ?? 0;
+  const totalCourseRevenueCents = (courseRevenueSum._sum.amountPaid ?? 0) * 100;
+  const totalRevCents = totalStoreRevenueCents + totalCourseRevenueCents;
+  const formattedRevenue = (totalRevCents / 100).toLocaleString("en-IN");
 
   // Compute actual percentage trends dynamically
   const studentTrend = studentsPrior > 0 
@@ -112,8 +145,8 @@ export default async function AdminDashboardPage() {
     ? Math.round(((coursesRecent - coursesPrior) / coursesPrior) * 100) 
     : (coursesRecent > 0 ? 100 : 0);
 
-  const revRecent = revenueRecentSum._sum.amountCents ?? 0;
-  const revPrior = revenuePriorSum._sum.amountCents ?? 0;
+  const revRecent = (revenueRecentSum._sum.amountCents ?? 0) + (courseRevenueRecentSum._sum.amountPaid ?? 0) * 100;
+  const revPrior = (revenuePriorSum._sum.amountCents ?? 0) + (courseRevenuePriorSum._sum.amountPaid ?? 0) * 100;
   const revenueTrend = revPrior > 0 
     ? Math.round(((revRecent - revPrior) / revPrior) * 100) 
     : (revRecent > 0 ? 100 : 0);
@@ -150,6 +183,14 @@ export default async function AdminDashboardPage() {
     const monthName = months[date.getMonth()];
     if (revenueByMonth[monthName] !== undefined) {
       revenueByMonth[monthName] += p.amountCents / 100;
+    }
+  });
+
+  coursePayments.forEach((cp) => {
+    const date = cp.paidAt || cp.enrolledAt;
+    const monthName = months[date.getMonth()];
+    if (revenueByMonth[monthName] !== undefined) {
+      revenueByMonth[monthName] += cp.amountPaid || 0;
     }
   });
 

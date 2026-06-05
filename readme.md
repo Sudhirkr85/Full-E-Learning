@@ -24,6 +24,7 @@ This platform represents a modern fusion of an advanced Educational portal and a
     *   **Aligned Shipping Pending Dispatch**: Standardized pending dispatch checks to strictly count paid physical orders that do not have tracking details or a shipped/delivered status.
     *   **Aligned Order Tab Filters**: Updated the payment filter tabs (All, Paid, Pending, Failed) to filter list items correctly and reflect the actual order and payment transaction status.
     *   **Corrected Checkout/Cancel Status**: Fixed status badges in the All orders table to dynamically map cancelled and paid states directly, showing accurate state labels (e.g. `FAILED` for expired checkouts) instead of static `PENDING` payment placeholders.
+    *   **Dashboard Overview Synchronization**: Integrated course enrollment revenue calculations into the main Admin Overview dashboard statistics, trends, and the 6-month monthly revenue bar charts to prevent data mismatches across pages.
 
 *   **Access Control and Navigation Fixes**:
     *   **Classroom Learn Guest Access**: Removed the hard redirect for guests/non-enrolled users in the classroom learn player `/courses/[slug]/learn`. Guests and non-enrolled students can now load the page to view the course syllabus and catalog curriculum.

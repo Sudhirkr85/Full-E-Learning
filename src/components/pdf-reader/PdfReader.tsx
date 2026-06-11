@@ -182,6 +182,11 @@ export function PdfReader({
   // Local Storage Key
   const storageKey = `pdf_study_${orderId}_${productId}`;
 
+  // Custom modal states for pinning notes
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [noteInputText, setNoteInputText] = useState("");
+  const [pendingNoteCoords, setPendingNoteCoords] = useState<{ x: number, y: number } | null>(null);
+
   // Canvas & Containers Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const textLayerRef = useRef<HTMLDivElement | null>(null);
@@ -536,23 +541,9 @@ export function PdfReader({
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     if (activeTool === "note") {
-      const noteText = prompt("Type your sticky note for this section:");
-      if (!noteText) return;
-
-      const newNote: Note = {
-        id: `note_${Date.now()}`,
-        page: pageNum,
-        x,
-        y,
-        text: noteText,
-        createdAt: new Date().toISOString()
-      };
-
-      const nextNotes = [...notes, newNote];
-      setNotes(nextNotes);
-      saveStudyState(bookmarks, nextNotes, highlights);
-      setActiveTool("view");
-      toast.success("Sticky note pinned!");
+      setPendingNoteCoords({ x, y });
+      setNoteInputText("");
+      setNoteModalOpen(true);
     } else if (activeTool === "highlight") {
       const newHighlight: Highlight = {
         id: `hl_${Date.now()}`,
@@ -1099,6 +1090,76 @@ export function PdfReader({
           <span>🔒 Secured PDF Reader Desk</span>
         </div>
       </div>
+      {/* Custom Note Modal Dialog */}
+      {noteModalOpen && (
+        <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0f0f18] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6 relative flex flex-col space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-2 border-b border-white/5">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Edit3 className="h-4.5 w-4.5 text-indigo-400" />
+                Add Sticky Note
+              </h3>
+              <button 
+                onClick={() => {
+                  setNoteModalOpen(false);
+                  setActiveTool("view");
+                }} 
+                className="h-8 w-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-1.5 text-left">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Note Content</label>
+              <textarea 
+                value={noteInputText} 
+                onChange={(e) => setNoteInputText(e.target.value)} 
+                placeholder="Type your sticky note details..." 
+                className="w-full min-h-[100px] rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2 border-t border-white/5">
+              <Button 
+                type="button"
+                onClick={() => {
+                  setNoteModalOpen(false);
+                  setActiveTool("view");
+                }} 
+                className="rounded-xl text-xs h-10 px-4 bg-white/5 border border-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition-all"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button"
+                onClick={() => {
+                  if (!noteInputText.trim() || !pendingNoteCoords) return;
+                  const newNote: Note = {
+                    id: `note_${Date.now()}`,
+                    page: pageNum,
+                    x: pendingNoteCoords.x,
+                    y: pendingNoteCoords.y,
+                    text: noteInputText.trim(),
+                    createdAt: new Date().toISOString()
+                  };
+                  const nextNotes = [...notes, newNote];
+                  setNotes(nextNotes);
+                  saveStudyState(bookmarks, nextNotes, highlights);
+                  setNoteModalOpen(false);
+                  setActiveTool("view");
+                  toast.success("Sticky note pinned!");
+                }}
+                disabled={!noteInputText.trim()}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs h-10 px-5 font-bold uppercase tracking-wider shadow-lg shadow-indigo-600/15"
+              >
+                Save Note
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

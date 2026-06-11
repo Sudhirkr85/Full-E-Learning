@@ -1,56 +1,54 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { uploadToR2 } from "@/lib/r2";
+import { getUploadPresignedUrl } from "@/lib/r2";
 
 const ALLOWED_TYPES = ["application/pdf"];
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
 
 export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    if (!session?.user?.id || session.user.role !== "ADMIN") {
+    if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "TEACHER")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await request.formData();
-    const file = formData.get("pdf") as File | null;
+    const body = await request.json();
+    const { filename, contentType, size } = body;
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    if (!filename || !contentType || size === undefined) {
+      return NextResponse.json({ error: "Missing required parameters (filename, contentType, size)." }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    if (!ALLOWED_TYPES.includes(contentType)) {
       return NextResponse.json(
         { error: "Invalid file type. Only PDF documents are allowed." },
         { status: 400 }
       );
     }
 
-    if (file.size > MAX_SIZE_BYTES) {
+    if (size > MAX_SIZE_BYTES) {
       return NextResponse.json(
-        { error: "File too large. Maximum size is 50 MB." },
+        { error: "File too large. Maximum size is 100 MB." },
         { status: 400 }
       );
     }
 
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
     // Generate a unique key for the PDF
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+    const sanitizedName = filename.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
     const key = `pdfs/${session.user.id}/${Date.now()}_${sanitizedName}.pdf`;
 
-    // Upload to Cloudflare R2
-    const pdfUrl = await uploadToR2(key, buffer, file.type);
+    // Generate Presigned Upload URL
+    const uploadUrl = await getUploadPresignedUrl(key, contentType);
+    const pdfUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
 
-    return NextResponse.json({ pdfUrl });
+    return NextResponse.json({ uploadUrl, pdfUrl });
   } catch (error) {
-    console.error("PDF upload error:", error);
+    console.error("PDF upload presign error:", error);
     return NextResponse.json(
-      { error: "Failed to upload PDF. Please try again." },
+      { error: "Failed to generate upload URL. Please try again." },
       { status: 500 }
     );
   }
 }
+

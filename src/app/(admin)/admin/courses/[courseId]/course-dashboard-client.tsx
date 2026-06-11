@@ -546,27 +546,54 @@ export function CourseDashboardClient({
                                           onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (!file) return;
-                                            const formData = new FormData();
-                                            formData.append("pdf", file);
+
+                                            if (file.size > 100 * 1024 * 1024) {
+                                              alert("File too large. Maximum size is 100 MB.");
+                                              return;
+                                            }
                                             
                                             const label = document.getElementById("pdf-upload-label");
                                             if (label) label.innerText = "Uploading PDF...";
                                             
                                             try {
+                                              // 1. Request presigned URL
                                               const res = await fetch("/api/courses/upload-pdf", {
                                                 method: "POST",
-                                                body: formData
+                                                headers: {
+                                                  "Content-Type": "application/json",
+                                                },
+                                                body: JSON.stringify({
+                                                  filename: file.name,
+                                                  contentType: file.type,
+                                                  size: file.size
+                                                })
                                               });
-                                              const data = await res.json();
-                                              if (data.pdfUrl) {
-                                                setPdfUrl(data.pdfUrl);
-                                                if (label) label.innerText = "PDF Uploaded successfully!";
-                                              } else {
-                                                alert(data.error || "Upload failed.");
-                                                if (label) label.innerText = "Upload failed.";
+
+                                              if (!res.ok) {
+                                                const data = await res.json();
+                                                throw new Error(data.error || "Failed to generate upload URL.");
                                               }
-                                            } catch (err) {
-                                              alert("Upload failed.");
+
+                                              const data = await res.json();
+                                              const { uploadUrl, pdfUrl } = data;
+
+                                              // 2. Direct upload to R2
+                                              const uploadRes = await fetch(uploadUrl, {
+                                                method: "PUT",
+                                                headers: {
+                                                  "Content-Type": file.type
+                                                },
+                                                body: file
+                                              });
+
+                                              if (!uploadRes.ok) {
+                                                throw new Error("Direct upload failed.");
+                                              }
+
+                                              setPdfUrl(pdfUrl);
+                                              if (label) label.innerText = "PDF Uploaded successfully!";
+                                            } catch (err: any) {
+                                              alert(err.message || "Upload failed.");
                                               if (label) label.innerText = "Upload failed.";
                                             }
                                           }}
@@ -581,7 +608,7 @@ export function CourseDashboardClient({
                                         >
                                           Upload PDF File
                                         </Button>
-                                        <span id="pdf-upload-label" className="text-[10px] text-slate-400">Max size 50 MB</span>
+                                        <span id="pdf-upload-label" className="text-[10px] text-slate-400">Max size 100 MB</span>
                                       </div>
                                     </div>
                                   )}

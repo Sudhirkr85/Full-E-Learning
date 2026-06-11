@@ -104,8 +104,8 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
       return;
     }
 
-    if (file.size > 50 * 1024 * 1024) {
-      setPdfUploadError("Maximum file size is 50 MB.");
+    if (file.size > 100 * 1024 * 1024) {
+      setPdfUploadError("Maximum file size is 100 MB.");
       return;
     }
 
@@ -113,21 +113,41 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
     setPdfUploadError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("pdf", file);
-
+      // 1. Get presigned URL
       const res = await fetch("/api/courses/upload-pdf", {
         method: "POST",
-        body: formData
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          size: file.size
+        })
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to upload PDF.");
+        throw new Error(data.error || "Failed to generate upload URL.");
       }
 
       const data = await res.json();
-      setAssetUrl(data.pdfUrl);
+      const { uploadUrl, pdfUrl } = data;
+
+      // 2. Direct upload to R2
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type
+        },
+        body: file
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Direct upload failed.");
+      }
+
+      setAssetUrl(pdfUrl);
     } catch (err: any) {
       setPdfUploadError(err.message || "Something went wrong uploading PDF.");
     } finally {
@@ -381,7 +401,7 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
                     {isUploadingPdf ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Upload className="mr-2 h-3.5 w-3.5" />}
                     {isUploadingPdf ? "Uploading..." : "Upload PDF Book"}
                   </Button>
-                  <p className="text-[9px] text-slate-500 text-center">PDF up to 50 MB.</p>
+                  <p className="text-[9px] text-slate-500 text-center">PDF up to 100 MB.</p>
                   {pdfUploadError ? <p className="text-[10px] font-semibold text-rose-400 text-center">{pdfUploadError}</p> : null}
                 </div>
               )}

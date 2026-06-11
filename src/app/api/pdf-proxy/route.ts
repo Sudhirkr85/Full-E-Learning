@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { getDownloadPresignedUrl } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 
@@ -73,18 +74,13 @@ export async function GET(request: NextRequest) {
 
       // Staff (Admin/Teacher) always have full access — skip DB lookup entirely
       if (userRole === "ADMIN" || userRole === "TEACHER") {
-        const response = await fetch(normalizedUrl);
-        if (!response.ok) {
-          return new NextResponse("Failed to fetch document from source storage", { status: response.status });
+        try {
+          const key = new URL(normalizedUrl).pathname.substring(1);
+          const downloadUrl = await getDownloadPresignedUrl(key);
+          return NextResponse.redirect(downloadUrl, 302);
+        } catch (err) {
+          return NextResponse.redirect(normalizedUrl, 302);
         }
-        const buffer = await response.arrayBuffer();
-        return new NextResponse(buffer, {
-          headers: {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": "inline",
-            "Cache-Control": "private, max-age=3600",
-          },
-        });
       }
     }
     if (!hasAccess && userId) {
@@ -135,23 +131,17 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Unauthorized to access this document", { status: 403 });
     }
 
-    // Fetch the PDF from remote R2 storage
-    const response = await fetch(normalizedUrl);
-    if (!response.ok) {
-      return new NextResponse("Failed to fetch document from source storage", { status: response.status });
+    // Redirect user to the secure presigned download link
+    try {
+      const key = new URL(normalizedUrl).pathname.substring(1);
+      const downloadUrl = await getDownloadPresignedUrl(key);
+      return NextResponse.redirect(downloadUrl, 302);
+    } catch (err) {
+      return NextResponse.redirect(normalizedUrl, 302);
     }
-
-    const buffer = await response.arrayBuffer();
-
-    return new NextResponse(buffer, {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": "inline",
-        "Cache-Control": "private, max-age=3600",
-      },
-    });
   } catch (error) {
     console.error("[PDF_PROXY_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+

@@ -236,8 +236,8 @@ function formatCurrency(cents: number, currencyCode: string): string {
  * 1. Welcome Email Template
  */
 export function renderWelcomeEmail(data: WelcomeEmailData): { html: string; text: string } {
-  const title = "Welcome to E-Learning!";
-  const preheader = "Start accelerating your software engineering career today.";
+  const title = "Welcome to Sagar Coaching Centre!";
+  const preheader = "Start accelerating your scholarship exam preparation today.";
   
   const html = getEmailLayout(
     title,
@@ -262,7 +262,7 @@ export function renderWelcomeEmail(data: WelcomeEmailData): { html: string; text
     </div>
     <p class="text" style="margin-bottom: 0;">
       Best regards,<br>
-      <strong>The E-Learning Support Team</strong>
+      <strong>Sagar Coaching Centre Support Team</strong>
     </p>
     `
   );
@@ -275,7 +275,7 @@ Get started by exploring live courses:
 ${data.appUrl}/courses
 
 Best regards,
-The E-Learning Support Team`;
+Sagar Coaching Centre Support Team`;
 
   return { html, text };
 }
@@ -319,7 +319,7 @@ Start your first lesson now:
 ${data.appUrl}/courses/${data.courseSlug}
 
 Best regards,
-The E-Learning Team`;
+Sagar Coaching Centre Team`;
 
   return { html, text };
 }
@@ -633,7 +633,7 @@ Security Operations`;
  */
 export function renderCombinedWelcomePaymentEmail(data: CombinedWelcomePaymentEmailData): { html: string; text: string } {
   const title = "Welcome & Payment Verified! 🚀💳";
-  const preheader = `Welcome to E-Learning! Your order #${data.orderNumber} is confirmed.`;
+  const preheader = `Welcome to Sagar Coaching Centre! Your order #${data.orderNumber} is confirmed.`;
   const formattedTotal = formatCurrency(data.totalAmountCents, data.currency);
 
   let itemsHtml = "";
@@ -686,7 +686,7 @@ export function renderCombinedWelcomePaymentEmail(data: CombinedWelcomePaymentEm
     </div>
     <p class="text" style="margin-bottom: 0;">
       Best regards,<br>
-      <strong>The E-Learning Team</strong>
+      <strong>Sagar Coaching Centre Team</strong>
     </p>
     `
   );
@@ -711,7 +711,7 @@ ${data.appUrl}/student/courses
 If you need any assistance, contact our support desk: ${data.supportEmail}
 
 Best regards,
-The E-Learning Team`;
+The Sagar Coaching Centre Team`;
 
   return { html, text };
 }

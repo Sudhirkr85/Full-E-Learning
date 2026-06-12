@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: VerifyPageProps): Promise<Met
   const { code } = await params;
   return makeMetadata({
     title: `Verify Certificate ${code}`,
-    description: `Verify the authenticity of digital certificate ${code} issued by our E-Learning platform.`,
+    description: `Verify the authenticity of digital certificate ${code} issued by Sagar Coaching Centre Bhagwanpur.`,
     path: `/certificates/verify/${code}`,
   });
 }

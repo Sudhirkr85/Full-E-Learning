@@ -18,39 +18,39 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Sagar Coaching Centre | NMMS, Navodaya, Sainik School Coaching Bihar",
+    default:  "Sagar Coaching Centre | NMMS, Navodaya, Sainik School Online Coaching India",
     template: "%s | Sagar Coaching Centre",
   },
   description:
-    "Bihar ke sabse trusted scholarship coaching centre. NMMS, Navodaya, Sainik School, Shrestha NETS, CMMSS exam preparation by Shrvan Kumar Sagar, Bhagwanpur, Supaul.",
+    "India ke sabse trusted scholarship coaching. NMMS, Navodaya, Sainik School, Shrestha NETS, CMMSS online preparation by Shrvan Kumar Sagar, Bhagwanpur Supaul Bihar. All states.",
   keywords: [
-    "NMMS coaching Bihar",
-    "Navodaya coaching Supaul",
-    "Sainik School coaching Bihar",
-    "Shrestha NETS",
-    "CMMSS exam",
+    "NMMS coaching online India",
+    "Navodaya coaching India",
+    "Sainik School coaching online",
+    "Shrestha NETS coaching",
+    "CMMSS exam coaching",
     "Megha Chhatravriti",
-    "scholarship exam Bihar",
+    "scholarship exam class 8",
+    "NMMS UP Bihar MP Rajasthan",
+    "JNVST coaching",
     "Sagar Coaching Centre Bhagwanpur",
     "Shrvan Kumar Sagar",
   ],
-  authors: [{ name: "Shrvan Kumar Sagar" }],
-  creator: "Shrvan Kumar Sagar",
+  authors:  [{ name: "Shrvan Kumar Sagar" }],
+  creator:  "Shrvan Kumar Sagar",
   openGraph: {
-    type: "website",
-    locale: "hi_IN",
-    url: "https://sagarcoachingcentre.com",
-    siteName: "Sagar Coaching Centre",
-    title: "Sagar Coaching Centre | Bihar's #1 Scholarship Coaching",
-    description:
-      "NMMS, Navodaya, Sainik School, Shrestha NETS की तैयारी। Founded by Shrvan Kumar Sagar, Supaul Bihar.",
+    type:        "website",
+    locale:      "hi_IN",
+    url:         "https://sagarcoachingcentre.com",
+    siteName:    "Sagar Coaching Centre",
+    title:       "Sagar Coaching Centre | India's Trusted Scholarship Coaching",
+    description: "NMMS, Navodaya, Sainik School, Shrestha NETS की तैयारी। Founded by Shrvan Kumar Sagar, Bhagwanpur Supaul Bihar. Online for all states.",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Sagar Coaching Centre Bhagwanpur",
-    description: "Bihar's #1 Scholarship Exam Coaching Centre",
+    card:        "summary_large_image",
+    title:       "Sagar Coaching Centre Bhagwanpur",
+    description: "India's Trusted Online Scholarship Exam Coaching — NMMS, Navodaya, Sainik School",
   },
 };
 

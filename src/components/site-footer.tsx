@@ -109,7 +109,7 @@ export function SiteFooter() {
         <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 max-w-7xl mx-auto px-4">
           <p>
             © 2025 Sagar Coaching Centre Bhagwanpur. All rights reserved. <br className="sm:hidden" />
-            Founder: Shrvan Kumar Sagar | जिला सुपौल, बिहार
+            Founder: Shrvan Kumar Sagar | जिला सुपौल, बिहार | Online Classes — All India
           </p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-slate-300 transition">Privacy Policy</a>

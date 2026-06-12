@@ -53,7 +53,7 @@ export async function sendOrderConfirmationEmail({ order, user }: SendOrderConfi
         <!-- Header -->
         <div style="background-color: #0d1117; padding: 32px; text-align: center; border-b: 1px solid #1e293b;">
           <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">
-            🚀 E-LEARNING<span style="color: #7c3aed;">.IN</span>
+            🚀 SAGAR COACHING CENTRE
           </h1>
         </div>
 
@@ -191,7 +191,7 @@ export async function sendCourseEnrollmentEmail({
         <!-- Header -->
         <div style="background-color: #0d1117; padding: 32px; text-align: center; border-bottom: 1px solid #1e293b;">
           <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">
-            🚀 E-LEARNING<span style="color: #7c3aed;">.IN</span>
+            🚀 SAGAR COACHING CENTRE
           </h1>
         </div>
 
@@ -298,7 +298,7 @@ export async function sendShippingDispatchedEmail({
         <!-- Header -->
         <div style="background-color: #0d1117; padding: 32px; text-align: center; border-bottom: 1px solid #1e293b;">
           <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">
-            🚚 E-LEARNING<span style="color: #7c3aed;">.IN</span>
+            🚚 SAGAR COACHING CENTRE
           </h1>
         </div>
 
@@ -407,7 +407,7 @@ export async function sendOrderDeliveredEmail(
         <!-- Header -->
         <div style="background-color: #0d1117; padding: 32px; text-align: center; border-bottom: 1px solid #1e293b;">
           <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">
-            🎉 E-LEARNING<span style="color: #7c3aed;">.IN</span>
+            🎉 SAGAR COACHING CENTRE
           </h1>
         </div>
 

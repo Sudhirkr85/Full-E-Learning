@@ -171,14 +171,14 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
         {/* Drawer Header & User Profile Info at top */}
         <div className="flex flex-col border-b border-white/10 p-5 gap-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group" onClick={onClose}>
+            <Link href="/" className="flex items-center gap-2 group" onClick={onClose} title="Sagar Coaching Centre — Home" aria-label="Sagar Coaching Centre Logo">
               <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 p-[1px]">
                 <div className="flex h-full w-full items-center justify-center rounded-[7px] bg-[#0b0f1e] text-indigo-400">
                   <Zap className="h-3 w-3 fill-indigo-400/20" />
                 </div>
               </div>
               <span className="font-display text-sm font-bold tracking-tight text-white">
-                LMS
+                Sagar Coaching Centre
               </span>
             </Link>
 

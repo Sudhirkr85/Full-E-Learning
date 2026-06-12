@@ -58,10 +58,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             
             {/* Immersive Header Badge */}
             <div className="flex items-center gap-2.5 animate-in fade-in duration-300">
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 p-[1.5px] shadow-[0_0_25px_rgba(99,102,241,0.35)]">
-                <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-[#0b0f1e] text-indigo-400">
-                  <Zap className="h-4.5 w-4.5 fill-indigo-400/25" />
-                </div>
+              <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#0b0f1e] shadow-[0_0_25px_rgba(99,102,241,0.15)]">
+                <img src="/logo-circle-transparent.png" alt="Sagar Coaching Centre Logo" className="h-full w-full object-cover" />
               </div>
               <span className="font-display text-xl font-bold tracking-tight text-white">
                 {siteConfig.name}

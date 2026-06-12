@@ -88,10 +88,8 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
           
           {/* Left Side: Logo & Brand */}
           <Link href="/" className="flex items-center gap-2 group" title="Sagar Coaching Centre — Home" aria-label="Sagar Coaching Centre Logo">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 p-[1px] transition duration-300 group-hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]">
-              <div className="flex h-full w-full items-center justify-center rounded-[11px] bg-[#0b0f1e] text-indigo-400 group-hover:text-indigo-300 transition duration-300">
-                <Zap className="h-4 w-4 fill-indigo-400/20" />
-              </div>
+            <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0b0f1e] transition duration-300 group-hover:shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+              <img src="/logo-navbar.png" alt="Sagar Coaching Centre Logo" className="h-full w-full object-cover" />
             </div>
             <span className="font-display text-lg font-bold tracking-tight text-white group-hover:text-slate-200 transition duration-300">
               {siteConfig.name}

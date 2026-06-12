@@ -16,10 +16,8 @@ export function SiteFooter() {
         {/* About & Address Block */}
         <div className="space-y-4">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 p-[1px]">
-              <div className="flex h-full w-full items-center justify-center rounded-[7px] bg-[#0b0f1e] text-indigo-400">
-                <Zap className="h-3.5 w-3.5 fill-indigo-400/20" />
-              </div>
+            <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#0b0f1e]">
+              <img src="/logo-circle-transparent.png" alt="Sagar Coaching Centre Logo" className="h-full w-full object-cover" />
             </div>
             <span className="font-display text-base font-bold tracking-tight text-white">
               {siteConfig.name}

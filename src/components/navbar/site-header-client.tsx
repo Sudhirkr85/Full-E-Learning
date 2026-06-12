@@ -87,7 +87,7 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
         <Container className="flex h-14 md:h-16 items-center justify-between gap-4 px-4 max-w-7xl mx-auto">
           
           {/* Left Side: Logo & Brand */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group" title="Sagar Coaching Centre — Home" aria-label="Sagar Coaching Centre Logo">
             <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 p-[1px] transition duration-300 group-hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]">
               <div className="flex h-full w-full items-center justify-center rounded-[11px] bg-[#0b0f1e] text-indigo-400 group-hover:text-indigo-300 transition duration-300">
                 <Zap className="h-4 w-4 fill-indigo-400/20" />

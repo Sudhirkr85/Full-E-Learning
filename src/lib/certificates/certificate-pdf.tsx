@@ -189,7 +189,7 @@ export function CertificatePDF({
   // Safe Fallbacks
   const safeStudentName = studentName || "Valued Student";
   const safeCourseName = courseName || "Advanced Coursework";
-  const safeInstructorName = instructorName || "Authorized Instructor";
+  const safeInstructorName = instructorName || "Shrvan Kumar Sagar";
   const safeCertificateId = certificateId || "CERT-PENDING";
   const safePlatformName = platformName || "Sagar Coaching Centre Bhagwanpur";
 
@@ -202,9 +202,11 @@ export function CertificatePDF({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.platformName}>{safePlatformName}</Text>
+            <Text style={{ fontSize: 8, color: "#38bdf8", letterSpacing: 2, marginTop: -6 }}>sagarcoachingcentre.com</Text>
             <View style={styles.divider} />
-            <Text style={styles.title}>CERTIFICATE OF COMPLETION</Text>
-            <Text style={styles.subtitle}>This certifies that</Text>
+            <Text style={styles.title}>CERTIFICATE OF EXCELLENCE</Text>
+            <Text style={styles.subtitle}>Scholarship Exam Preparation</Text>
+            <Text style={{ fontSize: 10, color: "#94a3b8", textAlign: "center", marginVertical: 4 }}>This certifies that</Text>
           </View>
 
           {/* Body */}
@@ -221,7 +223,7 @@ export function CertificatePDF({
             <View style={styles.signatureContainer}>
               <View style={styles.signatureLine} />
               <Text style={styles.instructorName}>{safeInstructorName}</Text>
-              <Text style={styles.instructorRole}>Course Instructor</Text>
+              <Text style={styles.instructorRole}>Founder & Head Teacher</Text>
             </View>
 
             {/* Seal Center */}
@@ -237,7 +239,7 @@ export function CertificatePDF({
           </View>
 
           <Text style={styles.footer}>
-            Verify at: {process.env.NEXT_PUBLIC_APP_URL || "localhost:3000"}/verify/{safeCertificateId}
+            Verify at: sagarcoachingcentre.com/certificates/verify/{safeCertificateId}
           </Text>
 
           <View style={styles.bottomBorderLine} />

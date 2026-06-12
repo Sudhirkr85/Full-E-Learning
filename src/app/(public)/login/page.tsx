@@ -71,13 +71,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             {/* Premium Typographical Title */}
             <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500 delay-100">
               <h2 className="font-display text-4xl xl:text-5xl font-extrabold tracking-tight leading-tight text-white">
-                Learn software engineering <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 shadow-sm">
-                  the right way.
-                </span>
+                Sagar Coaching Centre में आपका स्वागत है
               </h2>
               <p className="max-w-lg text-sm leading-relaxed text-slate-400 font-sans tracking-wide">
-                Bridging the critical gap between average state-college curriculum and modern high-end software development roles at global tech giants.
+                माना कि अंधेरा घना है, पर दीया जलाना कहां मना है
               </p>
             </div>
 

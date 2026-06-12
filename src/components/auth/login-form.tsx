@@ -70,10 +70,10 @@ export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
       {/* Visual Header */}
       <div className="flex flex-col space-y-2 text-center md:text-left">
         <h1 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl md:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-          Welcome back
+          Sagar Coaching Centre में आपका स्वागत है
         </h1>
         <p className="text-sm text-slate-400 font-sans tracking-wide">
-          Enter your credentials to access your secure compiler workspace.
+          माना कि अंधेरा घना है, पर दीया जलाना कहां मना है
         </p>
       </div>
 

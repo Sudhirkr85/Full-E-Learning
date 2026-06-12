@@ -129,7 +129,7 @@ export async function sendWelcomeEmail(toEmail: string, toName: string, data: We
     return await sendEmail({
       toEmail,
       toName,
-      subject: `Welcome to E-Learning, ${toName}! 🚀`,
+      subject: `Welcome to Sagar Coaching Centre, ${toName}! 🚀`,
       htmlContent: html,
       textContent: text
     });
@@ -262,7 +262,7 @@ export async function sendCombinedWelcomePaymentEmail(toEmail: string, toName: s
     return await sendEmail({
       toEmail,
       toName,
-      subject: `Welcome to E-Learning & Payment Confirmed! 🚀💳`,
+      subject: `Welcome to Sagar Coaching Centre & Payment Confirmed! 🚀💳`,
       htmlContent: html,
       textContent: text
     });

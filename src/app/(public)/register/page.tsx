@@ -69,13 +69,10 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             {/* Premium Typographical Title */}
             <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500 delay-100">
               <h2 className="font-display text-4xl xl:text-5xl font-extrabold tracking-tight leading-tight text-white">
-                From college directly to <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 shadow-sm">
-                  placement-ready.
-                </span>
+                Sagar Coaching Centre में आपका स्वागत है
               </h2>
               <p className="max-w-lg text-sm leading-relaxed text-slate-400 font-sans tracking-wide">
-                Unlock direct learning pathways designed by industry practitioners to build high-end software development competencies.
+                माना कि अंधेरा घना है, पर दीया जलाना कहां मना है
               </p>
             </div>
 

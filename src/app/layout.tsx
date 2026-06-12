@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     default:  "Sagar Coaching Centre | NMMS, Navodaya, Sainik School Online Coaching India",
     template: "%s | Sagar Coaching Centre",
   },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
   description:
     "India ke sabse trusted scholarship coaching. NMMS, Navodaya, Sainik School, Shrestha NETS, CMMSS online preparation by Shrvan Kumar Sagar, Bhagwanpur Supaul Bihar. All states.",
   keywords: [

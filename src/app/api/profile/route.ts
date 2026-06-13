@@ -31,6 +31,7 @@ export async function GET() {
         name: true,
         email: true,
         phone: true,
+        image: true,
         metadata: true,
       }
     });
@@ -53,6 +54,7 @@ export async function GET() {
         name: user.name ?? "",
         email: user.email ?? "",
         phone: user.phone ?? metaPhone ?? "",
+        image: user.image ?? "",
         addressLine1,
         addressLine2,
         city,

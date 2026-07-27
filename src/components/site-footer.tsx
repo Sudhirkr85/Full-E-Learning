@@ -37,11 +37,11 @@ export function SiteFooter() {
             </div>
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-              <a href="mailto:noreply@sagarcoachingcentre.com" className="hover:text-white transition">✉️ noreply@sagarcoachingcentre.com</a>
+              <a href="mailto:noreply@sagarcoaching.tech" className="hover:text-white transition">✉️ noreply@sagarcoaching.tech</a>
             </div>
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-              <a href="https://sagarcoachingcentre.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">🌐 sagarcoachingcentre.com</a>
+              <a href="https://sagarcoaching.tech" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">🌐 sagarcoaching.tech</a>
             </div>
           </div>
         </div>

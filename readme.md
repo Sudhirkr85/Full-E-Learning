@@ -381,7 +381,7 @@ R2_ENDPOINT="https://replace-with-cloudflare-account-id.r2.cloudflarestorage.com
 # Brevo Email System
 # -------------------------------------------------------------------------
 BREVO_API_KEY="replace-with-your-brevo-api-key"
-BREVO_SENDER_EMAIL="noreply@sagarcoachingcentre.com"
+BREVO_SENDER_EMAIL="noreply@sagarcoaching.tech"
 BREVO_SENDER_NAME="Sagar Coaching Centre"
 ```
 
@@ -409,7 +409,7 @@ npx prisma migrate dev
 ```bash
 npx tsx prisma/seed.ts
 ```
-*(Default admin email is set as `admin@sagarcoachingcentre.com` with password `Admin@123456` directly inside the seed script)*
+*(Default admin email is set as `admin@sagarcoaching.tech` with password `Admin@123456` directly inside the seed script)*
 
 ### 5. Start Development Server
 ```bash

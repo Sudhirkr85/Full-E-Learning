@@ -25,8 +25,8 @@ export const siteConfig = {
   phone: "+919110113671",
   phoneDisplay: "+91 91101 13671",
   whatsapp: "https://wa.me/919110113671",
-  email: "noreply@sagarcoachingcentre.com",
-  supportEmail: "support@sagarcoachingcentre.com",
+  email: "noreply@sagarcoaching.tech",
+  supportEmail: "support@sagarcoaching.tech",
   address: "NH 106, Bhagwanpur, Supaul, Bihar — 854338",
   city: "Bhagwanpur, Supaul",
   state: "Bihar",
@@ -230,7 +230,7 @@ export const siteConfig = {
 
   // ── Email / Branding ───────────────────────────────────────────────────────
   emailSenderName: "Sagar Coaching Centre",
-  emailSenderEmail: "noreply@sagarcoachingcentre.com",
+  emailSenderEmail: "noreply@sagarcoaching.tech",
 
   // ── App ────────────────────────────────────────────────────────────────────
   appName: "Sagar Coaching Centre",

@@ -14,8 +14,8 @@ import {
  * HTML email layouts for Indian student EdTech outcomes.
  */
 function getEmailLayout(title: string, preheaderText: string, bodyContentHtml: string): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sagarcoachingcentre.com";
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sagarcoaching.tech";
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoaching.tech";
 
   return `<!DOCTYPE html>
 <html>
@@ -211,7 +211,7 @@ function getEmailLayout(title: string, preheaderText: string, bodyContentHtml: s
             © ${new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved.
           </p>
           <p class="footer-text" style="color: #64748B;">
-            You received this transactional notification email because you registered or completed an action at sagarcoachingcentre.com.
+            You received this transactional notification email because you registered or completed an action at sagarcoaching.tech.
           </p>
         </td>
       </tr>
@@ -246,7 +246,7 @@ export function renderWelcomeEmail(data: WelcomeEmailData): { html: string; text
     <h2 class="title">Welcome aboard, ${data.name}! 👋</h2>
     <p class="greeting">We're absolutely thrilled to have you join our learning ecosystem.</p>
     <p class="text">
-      sagarcoachingcentre.com is built specifically to bridge the gap between academic theory and real-world tech stack production. 
+      sagarcoaching.tech is built specifically to bridge the gap between academic theory and real-world tech stack production. 
       You now have complete access to industry-aligned courses, real coding sandboxes, performance analytics, and blockchain-verified certifications.
     </p>
     <div class="cta-container">
@@ -269,7 +269,7 @@ export function renderWelcomeEmail(data: WelcomeEmailData): { html: string; text
 
   const text = `Welcome aboard, ${data.name}!
 
-We are absolutely thrilled to have you join our learning ecosystem. sagarcoachingcentre.com is built specifically to bridge the gap between academic theory and real-world tech stack production.
+We are absolutely thrilled to have you join our learning ecosystem. sagarcoaching.tech is built specifically to bridge the gap between academic theory and real-world tech stack production.
 
 Get started by exploring live courses:
 ${data.appUrl}/courses
@@ -593,7 +593,7 @@ The CRM Desk`;
  */
 export function renderPasswordResetEmail(data: PasswordResetEmailData): { html: string; text: string } {
   const title = "Password Reset Request";
-  const preheader = "Reset credentials for your sagarcoachingcentre.com account.";
+  const preheader = "Reset credentials for your sagarcoaching.tech account.";
 
   const html = getEmailLayout(
     title,
@@ -698,7 +698,7 @@ export function renderCombinedWelcomePaymentEmail(data: CombinedWelcomePaymentEm
 
   const text = `Hello ${data.name},
   
-Welcome to sagarcoachingcentre.com! We are absolutely thrilled to welcome you to our learning ecosystem. Your student account has been created, and we have successfully validated your payment transaction.
+Welcome to sagarcoaching.tech! We are absolutely thrilled to welcome you to our learning ecosystem. Your student account has been created, and we have successfully validated your payment transaction.
 
 Order Receipt Breakdown:
 Order Number: ${data.orderNumber}

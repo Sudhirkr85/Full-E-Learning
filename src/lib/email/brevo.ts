@@ -8,7 +8,7 @@ interface SendOrderConfirmationEmailParams {
 export async function sendOrderConfirmationEmail({ order, user }: SendOrderConfirmationEmailParams) {
   const firstName = user?.name ? user.name.split(" ")[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoaching.tech";
 
   // Check types of items purchased
   const hasPdf = order.items.some((item: any) => item.productType === "DIGITAL_RESOURCE");
@@ -175,7 +175,7 @@ export async function sendCourseEnrollmentEmail({
 }: SendCourseEnrollmentEmailParams) {
   const firstName = userName ? userName.trim().split(/\s+/)[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoaching.tech";
   const courseUrl = `${appUrl}/student/courses/${courseId}`;
 
   const htmlContent = `
@@ -281,7 +281,7 @@ export async function sendShippingDispatchedEmail({
 }: SendShippingDispatchedEmailParams) {
   const firstName = user?.name ? user.name.split(" ")[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoaching.tech";
 
   const productNames = order.items.map((item: any) => item.productName).join(", ");
 
@@ -392,7 +392,7 @@ export async function sendOrderDeliveredEmail(
 ) {
   const firstName = studentName ? studentName.split(" ")[0] : "Student";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoachingcentre.com";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL || "support@sagarcoaching.tech";
 
   const htmlContent = `
     <!DOCTYPE html>

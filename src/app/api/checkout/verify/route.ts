@@ -106,7 +106,7 @@ export async function POST(request: Request) {
           quantity: 1,
           totalPriceCents: course.priceCents
         }],
-        supportEmail: "support@sagarcoachingcentre.com"
+        supportEmail: "support@sagarcoaching.tech"
       });
     } catch (emailErr) {
       console.error("[EMAIL_DISPATCH_VERIFY_ERROR]", emailErr);

@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding admin account...");
 
-  const email = "admin@sagarcoachingcentre.com";
+  const email = "admin@sagarcoaching.tech";
   const password = "Admin@123456";
   const adminPassword = await hashPassword(password);
 

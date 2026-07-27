@@ -202,7 +202,7 @@ export function CertificatePDF({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.platformName}>{safePlatformName}</Text>
-            <Text style={{ fontSize: 8, color: "#38bdf8", letterSpacing: 2, marginTop: -6 }}>sagarcoachingcentre.com</Text>
+            <Text style={{ fontSize: 8, color: "#38bdf8", letterSpacing: 2, marginTop: -6 }}>sagarcoaching.tech</Text>
             <View style={styles.divider} />
             <Text style={styles.title}>CERTIFICATE OF EXCELLENCE</Text>
             <Text style={styles.subtitle}>Scholarship Exam Preparation</Text>
@@ -239,7 +239,7 @@ export function CertificatePDF({
           </View>
 
           <Text style={styles.footer}>
-            Verify at: sagarcoachingcentre.com/certificates/verify/{safeCertificateId}
+            Verify at: sagarcoaching.tech/certificates/verify/{safeCertificateId}
           </Text>
 
           <View style={styles.bottomBorderLine} />

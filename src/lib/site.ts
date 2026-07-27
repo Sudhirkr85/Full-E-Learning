@@ -9,7 +9,12 @@ export const siteConfig = {
   taglineEnglish: "India's Trusted Online Scholarship Exam Coaching",
   description:
     "Sagar Coaching Centre Bhagwanpur — India's most trusted online coaching for NMMS, Navodaya, Sainik School, Shrestha NETS, CMMSS and all scholarship exams. Founded by Shrvan Kumar Sagar, Supaul, Bihar. Online classes for students of all states.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://sagarcoaching.tech",
+  url:
+    process.env.NEXT_PUBLIC_APP_URL &&
+    !process.env.NEXT_PUBLIC_APP_URL.includes("vercel.app") &&
+    !process.env.NEXT_PUBLIC_APP_URL.includes("localhost")
+      ? process.env.NEXT_PUBLIC_APP_URL
+      : "https://sagarcoaching.tech",
   locale: "hi_IN",
 
   // ── Founder / Contact ──────────────────────────────────────────────────────

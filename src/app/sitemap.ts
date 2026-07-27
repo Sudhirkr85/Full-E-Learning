@@ -6,6 +6,7 @@ const staticPaths = ["/", "/courses", "/store", "/login", "/register", "/student
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const baseUrl = siteConfig.url.replace(/\/$/, "");
   let publishedCourses: Awaited<ReturnType<typeof getPublishedCourseSlugs>> = [];
 
   try {
@@ -18,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .concat(mainNav.map((item) => item.href))
     .concat(publishedCourses.map((course) => `/courses/${course.slug}`))
     .map((path) => ({
-      url: `${siteConfig.url}${path}`,
+      url: `${baseUrl}${path === "/" ? "" : path}`,
       lastModified: now,
       changeFrequency: path.startsWith("/courses/") ? "daily" : "weekly",
       priority: path === "/" ? 1 : path.startsWith("/courses/") ? 0.8 : 0.7

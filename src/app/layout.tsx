@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     type:        "website",
     locale:      "hi_IN",
-    url:         "https://sagarcoachingcentre.com",
+    url:         siteConfig.url,
     siteName:    "Sagar Coaching Centre",
     title:       "Sagar Coaching Centre | India's Trusted Scholarship Coaching",
     description: "NMMS, Navodaya, Sainik School, Shrestha NETS की तैयारी। Founded by Shrvan Kumar Sagar, Bhagwanpur Supaul Bihar. Online for all states.",

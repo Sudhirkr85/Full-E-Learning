@@ -1,3 +1,4 @@
+// Trigger redeployment: 2026-07-27
 import type { Metadata } from "next";
 
 export const siteConfig = {

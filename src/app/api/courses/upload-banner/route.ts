@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { uploadToR2 } from "@/lib/r2";
+import sharp from "sharp";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE_BYTES = 10 * 1024 * 1024; // Allow up to 10 MB input which will be compressed
 
 export async function POST(request: Request) {
   try {
@@ -29,22 +30,40 @@ export async function POST(request: Request) {
 
     if (file.size > MAX_SIZE_BYTES) {
       return NextResponse.json(
-        { error: "File too large. Maximum size is 5 MB." },
+        { error: "File too large. Maximum size is 10 MB." },
         { status: 400 }
       );
     }
 
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const rawBuffer = Buffer.from(arrayBuffer);
+
+    let processedBuffer: Buffer = rawBuffer;
+    let contentType = file.type;
+    let ext = file.type.split("/")[1] ?? "jpg";
+
+    // Perform server-side image compression & optimization using sharp
+    try {
+      if (file.type !== "image/gif") {
+        processedBuffer = await sharp(rawBuffer)
+          .resize(1920, 1080, { fit: "inside", withoutEnlargement: true })
+          .webp({ quality: 82, effort: 4 })
+          .toBuffer();
+        contentType = "image/webp";
+        ext = "webp";
+      }
+    } catch (sharpErr) {
+      console.warn("Sharp image processing fallback:", sharpErr);
+      processedBuffer = rawBuffer;
+    }
 
     // Generate a unique key for the banner
-    const ext = file.type.split("/")[1] ?? "jpg";
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
     const key = `banners/${session.user.id}/${Date.now()}_${sanitizedName}.${ext}`;
 
-    // Upload to Cloudflare R2
-    const imageUrl = await uploadToR2(key, buffer, file.type);
+    // Upload to S3/Cloudflare R2
+    const imageUrl = await uploadToR2(key, processedBuffer, contentType);
 
     return NextResponse.json({ imageUrl });
   } catch (error) {

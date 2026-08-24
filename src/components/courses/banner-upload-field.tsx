@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, Trash2 } from "lucide-react";
+import { compressImage } from "@/lib/image-compression";
 
 type BannerUploadFieldProps = {
   initialImageUrl: string | null;
@@ -25,8 +26,8 @@ export function BannerUploadField({ initialImageUrl, courseTitle }: BannerUpload
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("Maximum file size is 5 MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("Maximum file size is 10 MB.");
       return;
     }
 
@@ -34,8 +35,16 @@ export function BannerUploadField({ initialImageUrl, courseTitle }: BannerUpload
     setUploadError(null);
 
     try {
+      // Compress image client-side before upload
+      const optimizedFile = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 0.82,
+        targetFormat: "image/webp",
+      });
+
       const formData = new FormData();
-      formData.append("banner", file);
+      formData.append("banner", optimizedFile);
 
       const res = await fetch("/api/courses/upload-banner", {
         method: "POST",

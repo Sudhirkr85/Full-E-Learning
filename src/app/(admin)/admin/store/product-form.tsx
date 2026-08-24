@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Loader2, ArrowLeft, Image as ImageIcon, Upload, Trash2 } from "lucide-react";
+import { compressImage } from "@/lib/image-compression";
+import { compressPdfFile } from "@/lib/pdf-compression";
 import Link from "next/link";
 import { ProductType, ProductStatus } from "@prisma/client";
 import { createProductAction, updateProductAction } from "./actions";
@@ -63,8 +65,8 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("Maximum file size is 5 MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("Maximum file size is 10 MB.");
       return;
     }
 
@@ -72,8 +74,16 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
     setUploadError(null);
 
     try {
+      // Compress image client-side before sending
+      const optimizedImage = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 0.82,
+        targetFormat: "image/webp",
+      });
+
       const formData = new FormData();
-      formData.append("banner", file);
+      formData.append("banner", optimizedImage);
 
       const res = await fetch("/api/courses/upload-banner", {
         method: "POST",
@@ -113,6 +123,9 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
     setPdfUploadError(null);
 
     try {
+      // Optimize & compress PDF streams
+      const optimizedPdf = await compressPdfFile(file);
+
       // 1. Get presigned URL
       const res = await fetch("/api/courses/upload-pdf", {
         method: "POST",
@@ -120,9 +133,9 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type,
-          size: file.size
+          filename: optimizedPdf.name,
+          contentType: optimizedPdf.type,
+          size: optimizedPdf.size
         })
       });
 
@@ -138,9 +151,9 @@ export function ProductForm({ initialProduct, courses, digitalProducts }: Produc
       const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
-          "Content-Type": file.type
+          "Content-Type": optimizedPdf.type
         },
-        body: file
+        body: optimizedPdf
       });
 
       if (!uploadRes.ok) {

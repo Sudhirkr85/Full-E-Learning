@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { updateLessonAction } from "./actions";
 import { CustomPopup } from "@/components/courses/custom-popup";
+import { compressPdfFile } from "@/lib/pdf-compression";
 
 type LessonEditorModalProps = {
   courseId: string;
@@ -200,19 +201,22 @@ export function LessonEditorModal({
                       }
                       
                       const label = document.getElementById("edit-pdf-upload-label");
-                      if (label) label.innerText = "Uploading PDF...";
+                      if (label) label.innerText = "Optimizing & Uploading PDF...";
                       
                       try {
-                        // 1. Get presigned URL
+                        // 1. Optimize & compress PDF streams
+                        const optimizedFile = await compressPdfFile(file);
+
+                        // 2. Get presigned URL
                         const res = await fetch("/api/courses/upload-pdf", {
                           method: "POST",
                           headers: {
                             "Content-Type": "application/json",
                           },
                           body: JSON.stringify({
-                            filename: file.name,
-                            contentType: file.type,
-                            size: file.size
+                            filename: optimizedFile.name,
+                            contentType: optimizedFile.type,
+                            size: optimizedFile.size
                           })
                         });
 
@@ -224,13 +228,13 @@ export function LessonEditorModal({
                         const data = await res.json();
                         const { uploadUrl, pdfUrl } = data;
 
-                        // 2. Upload directly to R2
+                        // 3. Upload directly to R2
                         const uploadRes = await fetch(uploadUrl, {
                           method: "PUT",
                           headers: {
-                            "Content-Type": file.type
+                            "Content-Type": optimizedFile.type
                           },
-                          body: file
+                          body: optimizedFile
                         });
 
                         if (!uploadRes.ok) {

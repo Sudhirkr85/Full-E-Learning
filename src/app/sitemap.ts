@@ -1,68 +1,78 @@
 import type { MetadataRoute } from "next";
 import { mainNav, siteConfig } from "@/lib/site";
 import { getPublishedCourseSlugs } from "@/lib/courses/queries";
-import { getKeywordByIndex } from "@/lib/seo/generator";
+import { SEO_LOCATIONS } from "@/data/seo-locations";
+import { SEO_TOPICS } from "@/data/seo-topics";
+import { SEO_MODIFIERS } from "@/data/seo-modifiers";
+
+// Caching configurations for Vercel Free Tier static generation
+export const revalidate = 604800; // Cache sitemap for 7 days
+export const dynamic = "force-static";
 
 const staticPaths = ["/", "/courses", "/store", "/login", "/register", "/student/dashboard", "/teacher/dashboard", "/admin/dashboard"];
 
-export async function generateSitemaps() {
-  return [
-    { id: "static" },
-    { id: "topics-1" },
-    { id: "topics-2" },
-    { id: "topics-3" }
-  ];
-}
-
-export default async function sitemap({ id }: { id: string }): Promise<MetadataRoute.Sitemap> {
-  const resolvedId = id && typeof (id as any).then === "function" ? await (id as any) : id;
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const baseUrl = siteConfig.url.replace(/\/$/, "");
 
-  if (resolvedId === "topics-1" || resolvedId === "topics-2" || resolvedId === "topics-3") {
-    let start = 0;
-    let end = 40000;
-    if (resolvedId === "topics-2") {
-      start = 40000;
-      end = 80000;
-    } else if (resolvedId === "topics-3") {
-      start = 80000;
-      end = 120000;
-    }
+  // 1. Compile static routes
+  const sitemapEntries: MetadataRoute.Sitemap = staticPaths
+    .concat(mainNav.map((item) => item.href))
+    .map((path) => ({
+      url: `${baseUrl}${path === "/" ? "" : path}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: path === "/" ? 1.0 : 0.7
+    }));
 
-    const sitemapEntries: MetadataRoute.Sitemap = [];
-    for (let i = start; i < end; i++) {
-      const keywordData = getKeywordByIndex(i);
-      sitemapEntries.push({
-        url: `${baseUrl}/topic/${keywordData.slug}`,
-        lastModified: now,
-        changeFrequency: "weekly",
-        priority: 0.5
-      });
-    }
-    return sitemapEntries;
-  }
-
-  // Default fallback: static paths and courses
+  // 2. Fetch database courses
   let publishedCourses: Awaited<ReturnType<typeof getPublishedCourseSlugs>> = [];
-
   try {
     publishedCourses = await getPublishedCourseSlugs();
   } catch {
     publishedCourses = [];
   }
 
-  const allPaths = staticPaths
-    .concat(mainNav.map((item) => item.href))
-    .concat(publishedCourses.map((course) => `/courses/${course.slug}`));
+  publishedCourses.forEach((course) => {
+    sitemapEntries.push({
+      url: `${baseUrl}/courses/${course.slug}`,
+      lastModified: course.updatedAt || now,
+      changeFrequency: "daily",
+      priority: 0.8
+    });
+  });
 
-  // Deduplicate paths
-  const uniquePaths = Array.from(new Set(allPaths));
+  // 3. Programmatic SEO: City x Topic (e.g. /courses/delhi/sainik-school)
+  for (const location of SEO_LOCATIONS) {
+    for (const topic of SEO_TOPICS) {
+      sitemapEntries.push({
+        url: `${baseUrl}/courses/${location.city}/${topic.topic}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6
+      });
 
-  return uniquePaths.map((path) => ({
-    url: `${baseUrl}${path === "/" ? "" : path}`,
-    lastModified: now,
-    changeFrequency: path.startsWith("/courses/") ? "daily" : "weekly",
-    priority: path === "/" ? 1 : path.startsWith("/courses/") ? 0.8 : 0.7
-  }));
+      // 4. Programmatic SEO: City x Modifier x Topic (e.g. /courses/delhi/best/sainik-school)
+      for (const modifier of SEO_MODIFIERS) {
+        sitemapEntries.push({
+          url: `${baseUrl}/courses/${location.city}/${modifier.modifier}/${topic.topic}`,
+          lastModified: now,
+          changeFrequency: "weekly",
+          priority: 0.5
+        });
+      }
+    }
+  }
+
+  // Deduplicate entries by URL to be fully compliant
+  const seenUrls = new Set<string>();
+  const finalEntries = sitemapEntries.filter((entry) => {
+    if (seenUrls.has(entry.url)) {
+      return false;
+    }
+    seenUrls.add(entry.url);
+    return true;
+  });
+
+  return finalEntries;
 }

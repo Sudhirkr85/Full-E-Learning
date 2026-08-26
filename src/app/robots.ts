@@ -2,11 +2,19 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = siteConfig.url.replace(/\/$/, "");
   return {
     rules: {
       userAgent: "*",
-      allow: "/"
+      allow: "/",
+      disallow: [
+        "/admin/",
+        "/dashboard/",
+        "/api/",
+        "/checkout/",
+        "/_next/"
+      ]
     },
-    sitemap: `${siteConfig.url.replace(/\/$/, "")}/sitemap-index.xml`
+    sitemap: `${baseUrl}/sitemap.xml`
   };
 }

@@ -16,7 +16,7 @@ export const metadata: Metadata = makeMetadata({
   path: "/courses"
 });
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400; // Cache on Edge CDN for 24 hours
 
 type CoursesPageProps = {
   searchParams?: Promise<{

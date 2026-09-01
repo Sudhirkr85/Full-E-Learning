@@ -11,6 +11,8 @@ export const metadata: Metadata = makeMetadata({
   path: "/store"
 });
 
+export const revalidate = 86400; // Cache on Edge CDN for 24 hours
+
 export default async function StorePage() {
   const result = await getProductsAction();
   const products = result.success ? result.products : [];

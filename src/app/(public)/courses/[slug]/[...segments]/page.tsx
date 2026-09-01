@@ -145,12 +145,18 @@ export default async function ProgrammaticLandingPage({ params }: LandingPagePro
   const { city, topic, modifier } = context;
 
   // Retrieve actual courses from database to display as recommendations
-  const dbCourses = await prisma.course.findMany({
-    where: { status: "PUBLISHED" },
-    include: {
-      categories: { include: { category: true } }
-    }
-  });
+  let dbCourses: any[] = [];
+  try {
+    dbCourses = await prisma.course.findMany({
+      where: { status: "PUBLISHED" },
+      include: {
+        categories: { include: { category: true } }
+      }
+    });
+  } catch (err) {
+    console.error("[SEO_PAGE] Could not fetch courses from DB:", err);
+    dbCourses = [];
+  }
 
   // Relevancy check: promote the course matching this landing page's topic
   const sortedCourses = [...dbCourses].sort((a, b) => {

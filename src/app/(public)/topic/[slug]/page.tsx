@@ -19,6 +19,9 @@ import {
   ChevronRight
 } from "lucide-react";
 
+export const dynamicParams = true;
+export const revalidate = 604800; // Cache on Vercel Edge CDN for 7 days (0 Serverless cost)
+
 interface TopicPageProps {
   params: Promise<{
     slug: string;
@@ -99,16 +102,25 @@ export default async function TopicSEOPage({ params }: TopicPageProps) {
   const { state, exam, topic, material, index } = seoData;
 
   // Retrieve actual courses and products from the database to present as high-converting matches
-  const dbCourses = await prisma.course.findMany({
-    where: { status: "PUBLISHED" },
-    include: {
-      categories: { include: { category: true } }
-    }
-  });
-
-  const dbProducts = await prisma.product.findMany({
-    where: { status: "ACTIVE" }
-  });
+  let dbCourses: any[] = [];
+  let dbProducts: any[] = [];
+  try {
+    const [courses, products] = await Promise.all([
+      prisma.course.findMany({
+        where: { status: "PUBLISHED" },
+        include: {
+          categories: { include: { category: true } }
+        }
+      }),
+      prisma.product.findMany({
+        where: { status: "ACTIVE" }
+      })
+    ]);
+    dbCourses = courses;
+    dbProducts = products;
+  } catch (err) {
+    console.error("[TOPIC_PAGE] Could not fetch DB products/courses:", err);
+  }
 
   // Relevancy sorting based on the exam slug
   const matchedCourses = [...dbCourses].sort((a, b) => {

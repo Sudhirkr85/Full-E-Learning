@@ -8,7 +8,8 @@ import { makeMetadata } from "@/lib/site";
 import { verifyCertificateAction } from "@/lib/certificates/actions";
 import { Award, Calendar, CheckCircle2, ShieldCheck, User, BookOpen, Clock, AlertTriangle, ArrowLeft } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache on Edge CDN for 24 hours
 
 type VerifyPageProps = {
   params: Promise<{

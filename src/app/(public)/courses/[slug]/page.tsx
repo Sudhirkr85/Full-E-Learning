@@ -12,7 +12,8 @@ import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, Use
 import { CourseDetailClient } from "./course-detail-client";
 import { CourseReviewsClient } from "./course-reviews-client";
 
-export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache on Edge CDN for 24 hours
 
 type CourseDetailsPageProps = {
   params: Promise<{
@@ -61,41 +62,46 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
   const { slug } = await params;
   const session = await auth();
 
-  const course = await prisma.course.findFirst({
-    where: { slug, status: "PUBLISHED" },
-    include: {
-      categories: {
-        include: { category: true }
-      },
-      teachers: {
-        include: {
-          teacher: {
-            select: { id: true, name: true, image: true }
-          }
+  let course: any = null;
+  try {
+    course = await prisma.course.findFirst({
+      where: { slug, status: "PUBLISHED" },
+      include: {
+        categories: {
+          include: { category: true }
         },
-        take: 1,
-        orderBy: { sortOrder: "asc" }
-      },
-      sections: {
-        where: { isPublished: true },
-        orderBy: { orderIndex: "asc" },
-        include: {
-          lessons: {
-            where: { isPublished: true },
-            orderBy: { orderIndex: "asc" },
-            select: {
-              id: true,
-              title: true,
-              slug: true,
-              contentType: true,
-              isPreview: true,
-              orderIndex: true
+        teachers: {
+          include: {
+            teacher: {
+              select: { id: true, name: true, image: true }
+            }
+          },
+          take: 1,
+          orderBy: { sortOrder: "asc" }
+        },
+        sections: {
+          where: { isPublished: true },
+          orderBy: { orderIndex: "asc" },
+          include: {
+            lessons: {
+              where: { isPublished: true },
+              orderBy: { orderIndex: "asc" },
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                contentType: true,
+                isPreview: true,
+                orderIndex: true
+              }
             }
           }
         }
       }
-    }
-  });
+    });
+  } catch (err) {
+    console.error("[COURSE_PAGE] Could not fetch course:", err);
+  }
 
   if (!course) {
     return (
@@ -202,8 +208,8 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
 
   const categoryName = course.categories[0]?.category.name ?? "General";
   const teacher = course.teachers[0]?.teacher;
-  const sectionsCount = course.sections.length;
-  const lessonsCount = course.sections.reduce((count, section) => count + section.lessons.length, 0);
+  const sectionsCount = course.sections?.length || 0;
+  const lessonsCount = course.sections ? course.sections.reduce((count: number, section: { lessons?: unknown[] }) => count + (section.lessons?.length || 0), 0) : 0;
 
   const metadataObj = course.metadata && typeof course.metadata === "object" ? (course.metadata as { learningOutcomes?: unknown; highlights?: unknown }) : null;
   const learningOutcomes = Array.isArray(metadataObj?.learningOutcomes)

@@ -14,6 +14,9 @@ import { ReviewsClient } from "./reviews-client";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
+export const dynamicParams = true;
+export const revalidate = 86400; // Cache on Edge CDN for 24 hours
+
 type ProductPageProps = {
   params: Promise<{
     slug: string;

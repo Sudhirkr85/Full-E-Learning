@@ -33,6 +33,8 @@ export const metadata: Metadata = makeMetadata({
   path: "/"
 });
 
+export const revalidate = 86400; // Cache on Edge CDN for 24 hours
+
 export default async function HomePage() {
   const coursesResult = await getPublishedCourses();
   

@@ -10,8 +10,17 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/admin/",
         "/dashboard/",
-        "/api/",
+        "/student/",
+        "/teacher/",
+        "/profile/",
+        "/cart",
+        "/cart/",
         "/checkout/",
+        "/order/",
+        "/order-confirmation/",
+        "/verify/",
+        "/certificates/verify/",
+        "/api/",
         "/_next/"
       ]
     },

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -145,10 +146,12 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                   {/* Thumbnail Hero Section */}
                   <div className="relative h-48 w-full overflow-hidden shrink-0">
                     {course.coverImageUrl ? (
-                      <img 
+                      <Image 
                         src={course.coverImageUrl} 
                         alt={course.title} 
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105" 
                       />
                     ) : (
                       <div className={`h-full w-full bg-gradient-to-br ${categoryGradient(categoryName)} transition-transform duration-300 group-hover:scale-105`} />

@@ -34,9 +34,10 @@ export async function generateMetadata({ params }: TopicPageProps): Promise<Meta
 
   if (!seoData) {
     return makeMetadata({
-      title: "Explore Study Topics",
-      description: "Search and study for various competitive exams and school scholarship tests.",
-      path: `/topic/${slug}`
+      title: "Topic Not Found",
+      description: "The requested scholarship study topic could not be found.",
+      path: `/topic/${slug}`,
+      noIndex: true
     });
   }
 
@@ -51,6 +52,39 @@ export async function generateMetadata({ params }: TopicPageProps): Promise<Meta
     path: `/topic/${slug}`
   });
 }
+
+// Category-specific editorial guidance — one per subject area, not per page
+// Covers: why this subject matters for scholarship exams, common mistakes, and study tips
+const CATEGORY_EDITORIAL: Record<string, { heading: string; body: string }> = {
+  "Mathematics": {
+    heading: "Mathematics in NMMS & Scholarship Exams — What Actually Costs Students Marks",
+    body: "Mathematics is the single highest-differentiating section across all major scholarship exams including NMMS, JNVST Navodaya, and Sainik School AISSEE. Toppers consistently say they gained their merit list edge in Maths, not by memorising more formulas, but by reducing careless errors. The most common mistake Bihar and UP students make is skipping the verification step — they solve a problem, mark the answer, and move on without checking via a reverse method or rough estimation. In the NMMS SAT paper, typically 30–40% of marks are from Mathematics, so a 5-question careless error swing of 10 marks can mean the difference between qualifying and not. Study tip: after every chapter, create a one-page 'error log' — note the question, the mistake you made, and the correct approach. Reviewing this error log in the week before the exam is more effective than reading the textbook again. For this topic specifically, focus on NCERT Class 7 and Class 8 chapters and practice at least 20 timed questions before moving to the next."
+  },
+  "Science": {
+    heading: "Science (SAT) in Scholarship Exams — Understanding vs. Memorising",
+    body: "In the Scholastic Aptitude Test (SAT) section of NMMS, Navodaya, and Sainik School exams, Science questions are almost never definition-recall. They test whether a student can apply a concept to a new situation — for example, asking why a metal spoon heats up faster than a wooden one (Heat, Metals & Non-Metals), or what happens to a flame in the absence of oxygen (Combustion). The most common mistake is mugging chapter summaries without reading NCERT diagrams and activities. Diagrams in NCERT Class 7 and 8 Science chapters are directly converted into exam questions — a student who has studied the diagram of cell structure can answer three types of questions; one who has only read the text can answer one. Study tip: after finishing each NCERT Science chapter, close the book and try drawing the main diagram from memory. If you cannot, re-read that section. This technique forces recall rather than passive reading. Combine this with solving the 'In-Text Questions' and 'Exercise Questions' from NCERT — they are frequently paraphrased directly in scholarship papers."
+  },
+  "Social Science": {
+    heading: "Social Science in Scholarship Exams — Why History and Geography Questions Trip Students",
+    body: "Social Science (part of the SAT section in NMMS and similar exams) is often underestimated because students assume it requires only memorisation. In practice, examiners frame questions using unfamiliar contexts — for example, describing a historical event without naming it and asking students to identify it. This requires conceptual understanding, not just a list of dates and names. The most common mistake is preparing only Indian History and neglecting Geography and Political Science chapters. In recent Bihar NMMS papers, Geography chapters (Resources, Agriculture, Industries) and Civics chapters (Indian Constitution, Parliament) together account for nearly 40% of Social Science marks. Study tip: prepare a one-page 'cause-and-effect map' for major historical events and each Geography topic. For example: 'Colonialism → cash crop forcing → Bengal famine → 1857 Revolt → more administrative control.' These maps help answer inference-based questions that a simple date list cannot. Revise NCERT Class 8 History and Geography chapters at least twice, and focus on the 'Let Us Recall' and 'Let Us Discuss' questions at the end of each chapter."
+  },
+  "Reasoning": {
+    heading: "Mental Ability Test (MAT) — The Section Most Students Prepare Wrong",
+    body: "The Mental Ability Test (MAT) is unique to scholarship exams like NMMS and CMMSS, and it is the section where students from coaching-heavy backgrounds lose the most marks to self-taught students who practice differently. MAT questions test pattern recognition, spatial reasoning, analogy, classification, coding-decoding, and direction sense — none of which can be 'mugged up' from notes. The most common mistake is spending the first 20 minutes of study time reading theory about MAT types, rather than directly attempting questions. MAT is a skill, not knowledge — the only way to improve is through volume of practice. Study tip: solve at minimum 15–20 MAT questions per day for 30 days leading up to the exam. Variety matters more than repetition — cover analogy, classification, series, coding, direction, and blood relations in rotation. Timed practice is critical: in the NMMS paper, students get roughly 45 seconds per MAT question. If you are taking more than 90 seconds on any question during practice, flag it and move on — the same strategy applies in the exam."
+  },
+  "English Grammar": {
+    heading: "English in Scholarship Exams — Why Grammar Basics Win More Marks Than Vocabulary",
+    body: "In the NMMS and similar scholarship exams, the English component in the SAT section typically tests basic grammar rules — noun-pronoun agreement, correct tense usage, active/passive voice, and identifying errors in sentences — rather than advanced vocabulary or reading comprehension at the level of board exams. Students from Hindi-medium schools in Bihar often make the mistake of avoiding English questions entirely or spending too much time building a large vocabulary list. The real scoring opportunity is in grammar rules, which are consistent and learnable in a focused 3-week sprint. Study tip: pick 3 grammar rules per week and drill 20 fill-in-the-blank or error-correction questions on each rule daily. By exam week, you will have covered 9 core grammar rules — which is enough to attempt 80% of the English section with confidence. Use NCERT English textbooks for Class 6–8 as your base — the language level is calibrated exactly to what scholarship exams test."
+  },
+  "Hindi Grammar": {
+    heading: "Hindi Vyakaran in Scholarship Exams — Common Errors That Cost 5 Marks Every Year",
+    body: "Hindi Grammar (व्याकरण) appears in the SAT section of several scholarship exams including NMMS, CMMSS, and state-level scholarship tests. Despite being the medium of instruction for most students, Hindi Vyakaran is one of the most commonly dropped marks — particularly on topics like Sandhi Viched (joining and splitting of words), Karak (case markers), Samas (compound words), and Alankar (figures of speech). The most common mistake is assuming daily familiarity with Hindi means grammar rules are already known. A student who speaks Hindi fluently may still misidentify a 'Tatpurush Samas' from a 'Karmadharaya Samas' under exam pressure without deliberate study. Study tip: maintain a small notebook with 5 examples per grammar rule, written in your own hand. For Sandhi topics, practice recognising the joining rule from the joined word, not just writing the joined form — because exam questions test both directions. Bihar NMMS and CMMSS papers consistently include 4–6 Hindi grammar questions; securing these requires only two weeks of focused daily practice."
+  },
+  "General Knowledge": {
+    heading: "General Knowledge in Scholarship Exams — What the Exam Actually Tests",
+    body: "General Knowledge questions in scholarship exams like NMMS and Sainik School AISSEE are not random trivia — they are almost entirely drawn from Indian History, Indian Geography, Science & Technology, and Current Affairs related to government schemes, awards, and sports. Students make the critical mistake of trying to prepare GK from thick encyclopaedias or phone apps that test international trivia. Bihar state scholarship papers focus on: Indian national symbols, major rivers and their states, important dates in freedom struggle, India's five-year plans, and recently launched government education or welfare schemes. Study tip: maintain a one-page GK rapid-revision sheet updated weekly. Divide it into 5 sections: History, Geography, Science Facts, Polity, and Current Affairs. 15 minutes of GK revision each day — with active self-testing by covering answers and recalling — is more effective than one long GK cramming session per week. In the final two weeks before the exam, focus heavily on the current year's national awards (Padma, Bharat Ratna) and any recently launched national education programmes."
+  }
+};
 
 // Generate dynamic questions to keep the page interactive and boost dwell-time
 function getQuestionsForTopic(topicName: string, topicNameHi: string, examName: string) {
@@ -264,6 +298,19 @@ export default async function TopicSEOPage({ params }: TopicPageProps) {
                 ))}
               </div>
             </div>
+
+            {/* Category Editorial Guidance — Unique per subject category, genuine educational content */}
+            {CATEGORY_EDITORIAL[topic.category] && (
+              <div className="bg-gradient-to-br from-indigo-500/5 via-purple-500/3 to-transparent border border-indigo-500/20 rounded-2xl p-6 backdrop-blur-md">
+                <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2 text-indigo-200">
+                  <BookOpen className="h-6 w-6 text-indigo-400 shrink-0" />
+                  {CATEGORY_EDITORIAL[topic.category]!.heading}
+                </h2>
+                <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                  {CATEGORY_EDITORIAL[topic.category]!.body}
+                </p>
+              </div>
+            )}
 
             {/* Interactive MCQ Quiz Section */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">

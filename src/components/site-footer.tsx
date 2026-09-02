@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { footerNav, siteConfig } from "@/lib/site";
 import { Zap, Youtube, Facebook, Instagram, Send, Phone, MapPin, Mail, Globe, Play } from "lucide-react";
@@ -17,7 +18,7 @@ export function SiteFooter() {
         <div className="space-y-4">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#0b0f1e]">
-              <img src="/logo-circle-transparent.png" alt="Sagar Coaching Centre Logo" className="h-full w-full object-cover" />
+              <Image src="/logo-circle-transparent.png" alt="Sagar Coaching Centre Logo" width={32} height={32} className="h-full w-full object-cover" />
             </div>
             <span className="font-display text-base font-bold tracking-tight text-white">
               {siteConfig.name}
@@ -106,12 +107,13 @@ export function SiteFooter() {
       <div className="relative z-10 mt-12 border-t border-white/5 pt-8">
         <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 max-w-7xl mx-auto px-4">
           <p>
-            © 2025 Sagar Coaching Centre Bhagwanpur. All rights reserved. <br className="sm:hidden" />
+            © {new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved. <br className="sm:hidden" />
             Founder: Shrvan Kumar Sagar | जिला सुपौल, बिहार | Online Classes — All India
           </p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-300 transition">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-300 transition">Terms of Service</a>
+          <div className="flex flex-wrap gap-4 sm:gap-6">
+            <Link href="/privacy-policy" className="hover:text-slate-300 transition">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-300 transition">Terms of Service</Link>
+            <Link href="/refund-policy" className="hover:text-slate-300 transition">Refund Policy</Link>
           </div>
         </Container>
       </div>

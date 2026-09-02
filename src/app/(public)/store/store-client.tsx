@@ -15,6 +15,7 @@ import { Container } from "@/components/ui/container";
 import { createOrderAction, validateCouponAction } from "@/lib/store/actions";
 import type { Product, ProductType as PrismaProductType } from "@prisma/client";
 import { ProductWishlistButton } from "@/components/product-wishlist-button";
+import { loadRazorpayScript } from "@/lib/razorpay-client";
 
 const ProductType = {
   COURSE_ACCESS: "COURSE_ACCESS" as const,
@@ -578,6 +579,7 @@ export function StoreClient({ products, profileUser, userWishlistedProductIds = 
         }
       };
 
+      await loadRazorpayScript();
       const razorpay = new (window as any).Razorpay(options);
 
       razorpay.on('payment.failed', async (response: any) => {

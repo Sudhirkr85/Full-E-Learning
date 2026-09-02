@@ -1,31 +1,28 @@
 import type { MetadataRoute } from "next";
-import { mainNav, siteConfig } from "@/lib/site";
+import { siteConfig } from "@/lib/site";
 import { getPublishedCourseSlugs } from "@/lib/courses/queries";
-import { SEO_LOCATIONS } from "@/data/seo-locations";
-import { SEO_TOPICS } from "@/data/seo-topics";
-import { SEO_MODIFIERS } from "@/data/seo-modifiers";
+import { prisma } from "@/lib/prisma";
+import { CURATED_TOPIC_LIST } from "@/lib/seo/generator";
 
-// Caching configurations for Vercel Free Tier static generation
-export const revalidate = 604800; // Cache sitemap for 7 days
+// Caching configurations for Vercel static generation
+export const revalidate = 86400; // Cache sitemap for 24 hours
 export const dynamic = "force-static";
 
-const staticPaths = ["/", "/courses", "/store", "/login", "/register", "/student/dashboard", "/teacher/dashboard", "/admin/dashboard"];
+const publicStaticPaths = ["/", "/courses", "/store", "/privacy-policy", "/terms", "/refund-policy"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const baseUrl = siteConfig.url.replace(/\/$/, "");
 
-  // 1. Compile static routes
-  const sitemapEntries: MetadataRoute.Sitemap = staticPaths
-    .concat(mainNav.map((item) => item.href))
-    .map((path) => ({
-      url: `${baseUrl}${path === "/" ? "" : path}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: path === "/" ? 1.0 : 0.7
-    }));
+  // 1. Clean public static routes
+  const sitemapEntries: MetadataRoute.Sitemap = publicStaticPaths.map((path) => ({
+    url: `${baseUrl}${path === "/" ? "" : path}`,
+    lastModified: now,
+    changeFrequency: path === "/" ? "daily" : "weekly",
+    priority: path === "/" ? 1.0 : 0.8
+  }));
 
-  // 2. Fetch database courses
+  // 2. Published database courses
   let publishedCourses: Awaited<ReturnType<typeof getPublishedCourseSlugs>> = [];
   try {
     publishedCourses = await getPublishedCourseSlugs();
@@ -37,32 +34,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemapEntries.push({
       url: `${baseUrl}/courses/${course.slug}`,
       lastModified: course.updatedAt || now,
-      changeFrequency: "daily",
+      changeFrequency: "weekly",
       priority: 0.8
     });
   });
 
-  // 3. Programmatic SEO: City x Topic (e.g. /courses/delhi/sainik-school)
-  for (const location of SEO_LOCATIONS) {
-    for (const topic of SEO_TOPICS) {
-      sitemapEntries.push({
-        url: `${baseUrl}/courses/${location.city}/${topic.topic}`,
-        lastModified: now,
-        changeFrequency: "weekly",
-        priority: 0.6
-      });
-
-      // 4. Programmatic SEO: City x Modifier x Topic (e.g. /courses/delhi/best/sainik-school)
-      for (const modifier of SEO_MODIFIERS) {
-        sitemapEntries.push({
-          url: `${baseUrl}/courses/${location.city}/${modifier.modifier}/${topic.topic}`,
-          lastModified: now,
-          changeFrequency: "weekly",
-          priority: 0.5
-        });
-      }
-    }
+  // 3. Published store products
+  let publishedProducts: Array<{ slug: string; updatedAt: Date }> = [];
+  try {
+    publishedProducts = await prisma.product.findMany({
+      where: { status: { in: ["PUBLISHED", "ACTIVE"] } },
+      select: { slug: true, updatedAt: true }
+    });
+  } catch {
+    publishedProducts = [];
   }
+
+  publishedProducts.forEach((product) => {
+    sitemapEntries.push({
+      url: `${baseUrl}/store/${product.slug}`,
+      lastModified: product.updatedAt || now,
+      changeFrequency: "weekly",
+      priority: 0.8
+    });
+  });
+
+  // 4. Curated distinct educational topic study guides
+  CURATED_TOPIC_LIST.forEach((topicItem) => {
+    sitemapEntries.push({
+      url: `${baseUrl}/topic/${topicItem.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6
+    });
+  });
 
   // Deduplicate entries by URL to be fully compliant
   const seenUrls = new Set<string>();

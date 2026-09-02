@@ -4,7 +4,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteConfig } from "@/lib/site";
 import { Toaster } from "sonner";
-import Script from "next/script";
 import { MobileContactBar } from "@/components/MobileContactBar";
 
 const spaceGrotesk = Space_Grotesk({
@@ -18,6 +17,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://sagarcoaching.tech"),
   title: {
     default:  "Sagar Coaching Centre | NMMS, Navodaya, Sainik School Online Coaching India",
     template: "%s | Sagar Coaching Centre",
@@ -65,16 +65,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="hi" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-[#0a0a0f] text-foreground overflow-x-hidden`}>
         <ThemeProvider>
           {children}
           <Toaster position="bottom-center" richColors />
         </ThemeProvider>
-        <Script 
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="lazyOnload"
-        />
         <MobileContactBar />
       </body>
     </html>

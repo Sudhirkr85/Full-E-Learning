@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,16 +20,34 @@ type VerifyPageProps = {
 
 export async function generateMetadata({ params }: VerifyPageProps): Promise<Metadata> {
   const { code } = await params;
+  const result = await verifyCertificateAction(code);
+
+  if (!result.success || !result.certificate) {
+    return makeMetadata({
+      title: "Certificate Not Found",
+      description: "The requested digital certificate could not be found or verified.",
+      path: `/certificates/verify/${code}`,
+      noIndex: true
+    });
+  }
+
+  const userName = result.certificate.enrollment.user.name || "Student";
+
   return makeMetadata({
-    title: `Verify Certificate ${code}`,
-    description: `Verify the authenticity of digital certificate ${code} issued by Sagar Coaching Centre Bhagwanpur.`,
+    title: `Verify Certificate - ${userName}`,
+    description: `Official digital certificate verification for ${userName} issued by Sagar Coaching Centre Bhagwanpur.`,
     path: `/certificates/verify/${code}`,
+    noIndex: false
   });
 }
 
 export default async function VerifyCertificatePage({ params }: VerifyPageProps) {
   const { code } = await params;
   const result = await verifyCertificateAction(code);
+
+  if (!result.success || !result.certificate) {
+    notFound();
+  }
 
   return (
     <section className="py-16 md:py-24 relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">

@@ -31,7 +31,7 @@ export function CertificatesClient({ initialCertificates }: CertificatesClientPr
 
   const handleShare = (verificationCode: string) => {
     const origin = window.location.origin;
-    const verifyUrl = `${origin}/verify/${verificationCode}`;
+    const verifyUrl = `${origin}/certificates/verify/${verificationCode}`;
     navigator.clipboard.writeText(verifyUrl);
     toast.success("Verification link copied to clipboard!");
   };
@@ -302,7 +302,7 @@ export function CertificatesClient({ initialCertificates }: CertificatesClientPr
                 asChild
                 className="border-white/10 text-slate-300 bg-white/5 hover:bg-white/10 text-xs"
               >
-                <Link href={`/verify/${selectedCert.verificationCode}`} target="_blank">
+                <Link href={`/certificates/verify/${selectedCert.verificationCode}`} target="_blank">
                   <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                   Open Public Verify Route
                 </Link>

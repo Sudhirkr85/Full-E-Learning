@@ -31,7 +31,6 @@ export const SEO_LOCATIONS: SeoLocation[] = [
   { city: "agra", label: "Agra", state: "Uttar Pradesh", region: "North" },
   { city: "gwalior", label: "Gwalior", state: "Madhya Pradesh", region: "Central" },
   { city: "jabalpur", label: "Jabalpur", state: "Madhya Pradesh", region: "Central" },
-  { city: "bhagalpur", label: "Bhagalpur", state: "Bihar", region: "East" },
   { city: "jamshedpur", label: "Jamshedpur", state: "Jharkhand", region: "East" },
   { city: "dhanbad", label: "Dhanbad", state: "Jharkhand", region: "East" },
   { city: "rohtak", label: "Rohtak", state: "Haryana", region: "North" },

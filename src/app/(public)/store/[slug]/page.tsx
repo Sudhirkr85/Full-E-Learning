@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
-import { makeMetadata } from "@/lib/site";
+import { makeMetadata, siteConfig } from "@/lib/site";
 import { getProductBySlugAction } from "@/lib/store/actions";
 import { DetailClient } from "./detail-client";
 import { ReviewsClient } from "./reviews-client";
@@ -54,6 +55,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const isPhysical = product.productType === "PHYSICAL";
   const deliveryText = isPhysical ? "Ships in 3-5 days" : "Instant Access";
   const validityText = isPhysical ? "Physical Product" : "Lifetime Pass";
+
+  const productReviews = await prisma.review.findMany({
+    where: { productId: product.id },
+    select: { rating: true }
+  });
 
   // Check user session
   const session = await auth();
@@ -158,10 +164,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           {/* Cover Media Container */}
           <div className="space-y-6">
             <div className="relative aspect-[16/10] w-full rounded-3xl overflow-hidden border border-white/10 bg-white/5 shadow-2xl">
-              <img
+              <Image
                 src={product.coverImageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
                 alt={product.title}
-                className="object-cover w-full h-full"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+                priority
               />
               <div className="absolute top-4 left-4">
                 <Badge className="bg-[#0d1117]/90 text-white border border-white/10 py-1.5 px-3 backdrop-blur-sm tracking-wide">
@@ -285,10 +294,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:shadow-violet-500/10 hover:border-violet-500/40 transition-all duration-300 flex flex-col h-full group">
                     <div className="relative aspect-video w-full overflow-hidden shrink-0 bg-[#0d1117]/60 border-b border-white/5">
                       {p.coverImageUrl ? (
-                        <img 
+                        <Image 
                           src={p.coverImageUrl} 
                           alt={p.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                          fill
+                          sizes="(max-width: 640px) 100vw, 33vw"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105" 
                         />
                       ) : (
                         <div className="h-full w-full bg-gradient-to-br from-violet-600/30 via-indigo-600/20 to-slate-900 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
@@ -315,6 +326,52 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
           </div>
         )}
+
+        {/* Structured Data: Product Schema */}
+        {(() => {
+          const ratingCount = productReviews.length;
+          const avgRating = ratingCount > 0
+            ? (productReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / ratingCount).toFixed(1)
+            : null;
+
+          const productSchema: Record<string, any> = {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.title,
+            "description": product.shortDescription || product.description || product.title,
+            "image": product.coverImageUrl ? [product.coverImageUrl] : undefined,
+            "sku": product.id,
+            "offers": {
+              "@type": "Offer",
+              "url": `${siteConfig.url}/store/${product.slug}`,
+              "priceCurrency": "INR",
+              "price": (product.priceCents / 100).toFixed(2),
+              "availability": (product.stockQuantity ?? 10) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              "seller": {
+                "@type": "EducationalOrganization",
+                "name": siteConfig.name,
+                "url": siteConfig.url
+              }
+            }
+          };
+
+          if (ratingCount > 0 && avgRating) {
+            productSchema.aggregateRating = {
+              "@type": "AggregateRating",
+              "ratingValue": avgRating,
+              "reviewCount": ratingCount,
+              "bestRating": "5",
+              "worstRating": "1"
+            };
+          }
+
+          return (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+            />
+          );
+        })()}
       </Container>
     </section>
   );

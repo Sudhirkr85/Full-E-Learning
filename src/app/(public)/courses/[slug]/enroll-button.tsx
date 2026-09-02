@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { toast } from "sonner";
 import { Loader2, PlayCircle, Lock, X, Ticket } from "lucide-react";
 import { createPortal } from "react-dom";
+import { loadRazorpayScript } from "@/lib/razorpay-client";
 
 interface EnrollButtonProps {
   courseId: string;
@@ -86,7 +87,7 @@ export function EnrollButton({
       // Let's modify the route /api/courses/enroll/free to return the enrollmentId or orderId, and then redirect to `/order/${id}/confirmation`
       // Let's see first if we can handle the redirect in both.
       if (data.enrollmentId) {
-        router.push(`/order/${data.enrollmentId}/confirmation`);
+        router.push(`/order-confirmation/${data.enrollmentId}`);
       } else {
         router.push(`/courses/${courseSlug}/learn`);
       }
@@ -156,7 +157,7 @@ export function EnrollButton({
             }
             await mutate();
             toast.warning("Payment cancelled.");
-            router.push(`/order/${enrollmentId}/confirmation`);
+            router.push(`/order-confirmation/${enrollmentId}`);
           }
         },
         handler: async (response: any) => {
@@ -178,20 +179,21 @@ export function EnrollButton({
             if (verifyRes.ok) {
               toast.success("Payment successful! Welcome to the course.");
               await mutate();
-              router.push(`/order/${enrollmentId}/confirmation`);
+              router.push(`/order-confirmation/${enrollmentId}`);
             } else {
               toast.error(verifyData.message || "Payment verification failed. If amount was deducted, contact support.");
-              router.push(`/order/${enrollmentId}/confirmation`);
+              router.push(`/order-confirmation/${enrollmentId}`);
             }
           } catch {
             toast.error("Payment verification failed. If amount was deducted, contact support.");
-            router.push(`/order/${enrollmentId}/confirmation`);
+            router.push(`/order-confirmation/${enrollmentId}`);
           } finally {
             setEnrollLoading(false);
           }
         }
       };
 
+      await loadRazorpayScript();
       const razorpay = new (window as any).Razorpay(options);
 
       razorpay.on('payment.failed', async (response: any) => {
@@ -209,7 +211,7 @@ export function EnrollButton({
         }
         await mutate();
         toast.error("Payment failed. Please try again or use a different method.");
-        router.push(`/order/${enrollmentId}/confirmation`);
+        router.push(`/order-confirmation/${enrollmentId}`);
       });
 
       razorpay.open();

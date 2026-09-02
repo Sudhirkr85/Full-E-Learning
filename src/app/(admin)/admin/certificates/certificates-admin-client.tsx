@@ -183,7 +183,7 @@ export function CertificatesAdminClient({ certificates: initialCertificates, met
                           asChild
                           className="h-8 border-white/10 hover:bg-white/5 text-[11px] text-slate-300"
                         >
-                          <Link href={`/verify/${cert.verificationCode}`} target="_blank">
+                          <Link href={`/certificates/verify/${cert.verificationCode}`} target="_blank">
                             <ExternalLink className="h-3.5 w-3.5 mr-1" />
                             Verify
                           </Link>

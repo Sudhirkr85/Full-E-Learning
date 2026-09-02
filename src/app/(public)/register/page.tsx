@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { makeMetadata, siteConfig } from "@/lib/site";
 import { auth } from "@/auth";
@@ -57,7 +58,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             {/* Immersive Header Badge */}
             <div className="flex items-center gap-2.5 animate-in fade-in duration-300">
               <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#0b0f1e] shadow-[0_0_25px_rgba(99,102,241,0.15)]">
-                <img src="/logo-circle-transparent.png" alt="Sagar Coaching Centre Logo" className="h-full w-full object-cover" />
+                <Image src="/logo-circle-transparent.png" alt="Sagar Coaching Centre Logo" width={40} height={40} className="h-full w-full object-cover" />
               </div>
               <span className="font-display text-xl font-bold tracking-tight text-white">
                 {siteConfig.name}

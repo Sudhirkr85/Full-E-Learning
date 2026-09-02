@@ -192,178 +192,84 @@ const BASE_TOPICS = [
   { slug: "indian-history-gk", name: "Indian History GK", nameHi: "भारतीय इतिहास सामान्य ज्ञान", category: "General Knowledge" }
 ];
 
-// Generate exactly 400 topics dynamically from 100 base topics * 4 variations
-export const TOPICS: Topic[] = [];
+// Curate exactly 100 distinct educational topic study guides
+export const TOPICS: Topic[] = BASE_TOPICS.map((base) => ({
+  slug: base.slug,
+  name: base.name,
+  nameHi: base.nameHi,
+  category: base.category
+}));
 
-BASE_TOPICS.forEach((base) => {
-  // Variation 1: Standard Topic
-  TOPICS.push({
-    slug: base.slug,
-    name: base.name,
-    nameHi: base.nameHi,
-    category: base.category
-  });
-
-  // Variation 2: Important Questions
-  TOPICS.push({
-    slug: `${base.slug}-important-questions`,
-    name: `${base.name} Important Questions`,
-    nameHi: `${base.nameHi} महत्वपूर्ण प्रश्नोत्तर`,
-    category: base.category
-  });
-
-  // Variation 3: Solved Mock Test
-  TOPICS.push({
-    slug: `${base.slug}-solved-mock-test`,
-    name: `${base.name} Solved Mock Test`,
-    nameHi: `${base.nameHi} सॉल्व्ड मॉक टेस्ट`,
-    category: base.category
-  });
-
-  // Variation 4: Syllabus & Notes
-  TOPICS.push({
-    slug: `${base.slug}-syllabus-notes`,
-    name: `${base.name} Syllabus & Notes`,
-    nameHi: `${base.nameHi} सिलेबस और नोट्स`,
-    category: base.category
-  });
-});
-
-/**
- * Returns structured metadata for a programmatic SEO slug in O(1) time
- */
-export function getTopicBySlug(slug: string): {
-  state: State;
-  exam: Exam;
-  topic: Topic;
-  material: Material;
-  index: number;
-} | null {
-  // Check that slug fits the minimum pattern
-  if (!slug) return null;
-
-  // Let's identify the State from the beginning of the slug (longest match first)
-  let foundState: State | null = null;
-  const sortedStates = [...STATES].sort((a, b) => b.slug.length - a.slug.length);
-  for (const s of sortedStates) {
-    if (slug.startsWith(`${s.slug}-`)) {
-      foundState = s;
-      break;
-    }
-  }
-  if (!foundState) return null;
-
-  // Let's identify the Material from the end of the slug
-  let foundMaterial: Material | null = null;
-  const sortedMaterials = [...MATERIALS].sort((a, b) => b.slug.length - a.slug.length);
-  for (const m of sortedMaterials) {
-    if (slug.endsWith(`-${m.slug}`)) {
-      foundMaterial = m;
-      break;
-    }
-  }
-  if (!foundMaterial) return null;
-
-  // Now, strip State prefix and Material suffix to extract the exam + topic content
-  const middle = slug.slice(foundState.slug.length + 1, slug.length - foundMaterial.slug.length - 1);
-
-  // Now identify the Exam from the beginning of the middle string
-  let foundExam: Exam | null = null;
-  const sortedExams = [...EXAMS].sort((a, b) => b.slug.length - a.slug.length);
-  for (const e of sortedExams) {
-    if (middle.startsWith(`${e.slug}-`)) {
-      foundExam = e;
-      break;
-    }
-  }
-  if (!foundExam) return null;
-
-  // The remaining portion of the middle string is the Topic slug
-  const topicSlug = middle.slice(foundExam.slug.length + 1);
-  const foundTopic = TOPICS.find((t) => t.slug === topicSlug);
-  if (!foundTopic) return null;
-
-  // Re-calculate the original index of this combination
-  const stateIdx = STATES.indexOf(foundState);
-  const examIdx = EXAMS.indexOf(foundExam);
-  const topicIdx = TOPICS.indexOf(foundTopic);
-  const materialIdx = MATERIALS.indexOf(foundMaterial);
-
-  // Index formula
-  const index = stateIdx + (10 * examIdx) + (100 * topicIdx) + (40000 * materialIdx);
-
-  return {
-    state: foundState,
-    exam: foundExam,
-    topic: foundTopic,
-    material: foundMaterial,
-    index
-  };
-}
-
-/**
- * Returns dynamic SEO data for a specific index from 0 to 119,999
- */
-export function getKeywordByIndex(i: number): {
+export interface CuratedTopicItem {
   slug: string;
   state: State;
   exam: Exam;
   topic: Topic;
   material: Material;
-} {
-  const stateIdx = i % 10;
-  const examIdx = Math.floor(i / 10) % 10;
-  const topicIdx = Math.floor(i / 100) % 400;
-  const materialIdx = Math.floor(i / 40000) % 30;
+  index: number;
+}
 
-  const state = STATES[stateIdx]!;
-  const exam = EXAMS[examIdx]!;
-  const topic = TOPICS[topicIdx]!;
-  const material = MATERIALS[materialIdx]!;
+// Map each base topic to a primary exam syllabus context
+const DEFAULT_STATE: State = STATES[0]!; // Bihar (Home Center)
+const DEFAULT_MATERIAL: Material = MATERIALS[2]!; // Chapter Study Notes & Summary
 
-  const slug = `${state.slug}-${exam.slug}-${topic.slug}-${material.slug}`;
+export const CURATED_TOPIC_LIST: CuratedTopicItem[] = BASE_TOPICS.map((base, idx) => {
+  let exam = EXAMS[0]!; // NMMS Scholarship
+  if (base.category === "Reasoning") {
+    exam = EXAMS[0]!; // NMMS MAT
+  } else if (base.category === "Mathematics" && idx % 3 === 1) {
+    exam = EXAMS[1]!; // Navodaya JNVST
+  } else if (base.category === "Science" && idx % 3 === 2) {
+    exam = EXAMS[2]!; // Sainik School AISSEE
+  }
+
+  const slug = `bihar-${exam.slug}-${base.slug}-study-notes`;
 
   return {
     slug,
-    state,
+    state: DEFAULT_STATE,
     exam,
-    topic,
-    material
+    topic: {
+      slug: base.slug,
+      name: base.name,
+      nameHi: base.nameHi,
+      category: base.category
+    },
+    material: DEFAULT_MATERIAL,
+    index: idx
   };
+});
+
+/**
+ * Returns structured metadata for a curated educational topic slug
+ */
+export function getTopicBySlug(slug: string): CuratedTopicItem | null {
+  if (!slug) return null;
+
+  // 1. Direct match with curated slugs
+  const directMatch = CURATED_TOPIC_LIST.find((item) => item.slug === slug);
+  if (directMatch) return directMatch;
+
+  // 2. Fallback match by base topic slug
+  const matchedBase = BASE_TOPICS.find((base) => slug.includes(base.slug));
+  if (matchedBase) {
+    return CURATED_TOPIC_LIST.find((item) => item.topic.slug === matchedBase.slug) || null;
+  }
+
+  return null;
 }
 
 /**
- * Generates semantic related links (e.g. 15 other topic landing pages) deterministically
+ * Generates semantic related links (4-6 topics) strictly within the same subject category
  */
-export function getRelatedSlugs(currentIndex: number, count = 15): string[] {
-  const related: string[] = [];
-  
-  const stateIdx = currentIndex % 10;
-  const examIdx = Math.floor(currentIndex / 10) % 10;
-  const topicIdx = Math.floor(currentIndex / 100) % 400;
-  const materialIdx = Math.floor(currentIndex / 40000) % 30;
+export function getRelatedSlugs(currentIndex: number, count = 6): string[] {
+  const currentItem = CURATED_TOPIC_LIST[currentIndex] || CURATED_TOPIC_LIST[0];
+  if (!currentItem) return [];
 
-  // 1. Same topic, same exam, different states (5 links)
-  for (let s = 1; s <= 5; s++) {
-    const nextStateIdx = (stateIdx + s) % 10;
-    const nextIdx = nextStateIdx + (10 * examIdx) + (100 * topicIdx) + (40000 * materialIdx);
-    related.push(getKeywordByIndex(nextIdx).slug);
-  }
+  const sameCategory = CURATED_TOPIC_LIST.filter(
+    (item) => item.topic.category === currentItem.topic.category && item.slug !== currentItem.slug
+  );
 
-  // 2. Same state, same exam, different topics (5 links)
-  for (let t = 1; t <= 5; t++) {
-    const nextTopicIdx = (topicIdx + t * 7) % 400;
-    const nextIdx = stateIdx + (10 * examIdx) + (100 * nextTopicIdx) + (40000 * materialIdx);
-    related.push(getKeywordByIndex(nextIdx).slug);
-  }
-
-  // 3. Same state, same topic, different materials (5 links)
-  for (let m = 1; m <= 5; m++) {
-    const nextMaterialIdx = (materialIdx + m * 3) % 30;
-    const nextIdx = stateIdx + (10 * examIdx) + (100 * topicIdx) + (40000 * nextMaterialIdx);
-    related.push(getKeywordByIndex(nextIdx).slug);
-  }
-
-  const currentSlug = getKeywordByIndex(currentIndex).slug;
-  return Array.from(new Set(related)).filter(slug => slug !== currentSlug).slice(0, count);
+  return sameCategory.slice(0, count).map((item) => item.slug);
 }
+

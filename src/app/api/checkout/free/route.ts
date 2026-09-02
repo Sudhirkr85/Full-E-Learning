@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      redirectUrl: `/order/${newEnrollment.id}/confirmation`
+      redirectUrl: `/order-confirmation/${newEnrollment.id}`
     });
   } catch (err: any) {
     console.error("[FREE_CHECKOUT_API_ERROR]", err);

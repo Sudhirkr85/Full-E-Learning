@@ -204,15 +204,17 @@ export default async function ProgrammaticLandingPage({ params }: LandingPagePro
     },
     "hasCourseInstance": {
       "@type": "CourseInstance",
-      "courseMode": modifier?.modifier === "online" ? "online" : "blended",
-      "courseWorkload": `PT${topic.duration.replace(/\D/g, "")}M`,
+      "courseMode": "online",
+      "courseWorkload": `P${topic.duration.replace(/\D/g, "") || "6"}M`,
       "location": {
         "@type": "Place",
-        "name": `${city.label} Center`,
+        "name": "Sagar Coaching Centre Bhagwanpur",
         "address": {
           "@type": "PostalAddress",
-          "addressLocality": city.label,
-          "addressRegion": city.state,
+          "streetAddress": "Bhagwanpur",
+          "addressLocality": "Supaul",
+          "addressRegion": "Bihar",
+          "postalCode": "852131",
           "addressCountry": "IN"
         }
       }

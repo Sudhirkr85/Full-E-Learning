@@ -14,6 +14,7 @@ const ProductType = {
   PHYSICAL: "PHYSICAL" as const,
 };
 import { Button } from "@/components/ui/button";
+import { loadRazorpayScript } from "@/lib/razorpay-client";
 
 export default function MobileCartPage() {
   const router = useRouter();
@@ -410,6 +411,7 @@ export default function MobileCartPage() {
         }
       };
 
+      await loadRazorpayScript();
       const razorpay = new (window as any).Razorpay(options);
 
       razorpay.on('payment.failed', async (response: any) => {

@@ -6,8 +6,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = makeMetadata({
-  title: "Learning Store",
-  description: "Explore advanced Next.js playbooks, premium glassmorphism Tailwind CSS kits, course bundles, and learning resources.",
+  title: "Book Store & Study Material | Sagar Coaching Centre",
+  description: "Buy official NMMS exam preparation books, previous years' question banks, model practice papers, and Navodaya entrance study materials by Shrvan Kumar Sagar.",
   path: "/store"
 });
 

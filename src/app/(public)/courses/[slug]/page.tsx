@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 import { EnrollButton } from "./enroll-button";
 import { WishlistButton } from "@/components/wishlist-button";
-import { makeMetadata } from "@/lib/site";
+import { makeMetadata, siteConfig } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
 import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, UserCircle2 } from "lucide-react";
 import { CourseDetailClient } from "./course-detail-client";
@@ -51,9 +53,18 @@ export async function generateMetadata({ params }: CourseDetailsPageProps): Prom
     }
   });
 
+  if (!course) {
+    return makeMetadata({
+      title: "Course Not Found",
+      description: "The requested scholarship course could not be found.",
+      path: `/courses/${slug}`,
+      noIndex: true
+    });
+  }
+
   return makeMetadata({
-    title: course?.title ?? slug.replaceAll("-", " "),
-    description: course?.excerpt ?? course?.description ?? "Published course detail page with enrollment, lesson access, and progress tracking.",
+    title: course.title,
+    description: course.excerpt ?? course.description ?? "Published course detail page with enrollment, lesson access, and progress tracking.",
     path: `/courses/${slug}`
   });
 }
@@ -104,18 +115,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
   }
 
   if (!course) {
-    return (
-      <section className="py-16 md:py-24">
-        <Container>
-          <Badge variant="secondary">Course not found</Badge>
-          <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight md:text-5xl">Course unavailable</h1>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">This course is not published yet or no longer exists.</p>
-          <Button className="mt-6" asChild>
-            <Link href="/courses">Back to courses</Link>
-          </Button>
-        </Container>
-      </section>
-    );
+    notFound();
   }
 
   const enrollment = session?.user?.id
@@ -231,11 +231,16 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
               {/* Premium Media Card Thumbnail */}
               <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl group shrink-0">
                 {course.coverImageUrl ? (
-                  <img 
-                    src={course.coverImageUrl} 
-                    alt={course.title} 
-                    className="w-full max-h-80 object-cover transition-transform duration-500 group-hover:scale-105" 
-                  />
+                  <div className="relative w-full aspect-video max-h-80">
+                    <Image
+                      src={course.coverImageUrl}
+                      alt={course.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      priority
+                    />
+                  </div>
                 ) : (
                   <div className={`w-full max-h-80 h-72 bg-gradient-to-br ${categoryGradient(categoryName)} transition-transform duration-500 group-hover:scale-105`} />
                 )}
@@ -269,7 +274,13 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
 
               <div className="flex items-center gap-3 text-sm text-slate-300 font-semibold mt-1">
                 {teacher?.image ? (
-                  <img src={teacher.image} alt={teacher.name ?? "Instructor"} className="h-9 w-9 rounded-full object-cover border border-white/10" />
+                  <Image
+                    src={teacher.image}
+                    alt={teacher.name ?? "Instructor"}
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded-full object-cover border border-white/10"
+                  />
                 ) : (
                   <div className="h-9 w-9 rounded-full border border-white/15 bg-white/5 flex items-center justify-center text-xs font-bold text-indigo-400">{teacher?.name ? initials(teacher.name) : <UserCircle2 className="h-4.5 w-4.5" />}</div>
                 )}
@@ -349,6 +360,59 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
           </div>
         </div>
       </div>
+
+      {/* Structured Data: Course Schema */}
+      {(() => {
+        const ratingCount = courseReviews?.length || 0;
+        const avgRating = ratingCount > 0
+          ? (courseReviews.reduce((acc, r) => acc + r.rating, 0) / ratingCount).toFixed(1)
+          : null;
+
+        const courseSchema: Record<string, any> = {
+          "@context": "https://schema.org",
+          "@type": "Course",
+          "name": course.title,
+          "description": course.excerpt || course.description || course.title,
+          "provider": {
+            "@type": "EducationalOrganization",
+            "name": siteConfig.name,
+            "url": siteConfig.url
+          },
+          "hasCourseInstance": {
+            "@type": "CourseInstance",
+            "courseMode": "online",
+            "location": {
+              "@type": "Place",
+              "name": "Sagar Coaching Centre Bhagwanpur",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "NH 106, Bhagwanpur",
+                "addressLocality": "Supaul",
+                "addressRegion": "Bihar",
+                "postalCode": "852131",
+                "addressCountry": "IN"
+              }
+            }
+          }
+        };
+
+        if (ratingCount > 0 && avgRating) {
+          courseSchema.aggregateRating = {
+            "@type": "AggregateRating",
+            "ratingValue": avgRating,
+            "reviewCount": ratingCount,
+            "bestRating": "5",
+            "worstRating": "1"
+          };
+        }
+
+        return (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
+          />
+        );
+      })()}
     </div>
   );
 }

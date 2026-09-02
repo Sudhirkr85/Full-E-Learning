@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { 
   ArrowRight, 
@@ -28,8 +29,8 @@ import { prisma } from "@/lib/prisma";
 import { HeroSection } from "@/components/home/HeroSection";
 
 export const metadata: Metadata = makeMetadata({
-  title: "Home",
-  description: siteConfig.hero.subheadline,
+  title: "NMMS, Navodaya & Sainik School Coaching | Sagar Coaching Centre",
+  description: "India's trusted online coaching for NMMS Scholarship, Jawahar Navodaya Vidyalaya (JNVST), Sainik School (AISSEE), and Shrestha NETS exams. Online preparation and books by Shrvan Kumar Sagar.",
   path: "/"
 });
 
@@ -198,9 +199,11 @@ export default async function HomePage() {
                     <div className="space-y-4">
                       {/* Cover image or gradient placeholder */}
                       {course.coverImageUrl ? (
-                        <img
+                        <Image
                           src={course.coverImageUrl}
                           alt={course.title}
+                          width={600}
+                          height={338}
                           className="w-full aspect-video object-cover rounded-xl"
                         />
                       ) : (
@@ -344,9 +347,11 @@ export default async function HomePage() {
                   <div className="space-y-4">
                     {/* Cover image or gradient placeholder */}
                     {product.coverImageUrl ? (
-                      <img
+                      <Image
                         src={product.coverImageUrl}
                         alt={product.title}
+                        width={600}
+                        height={338}
                         className="w-full aspect-video object-cover rounded-xl"
                       />
                     ) : (
@@ -849,6 +854,68 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Structured Data: EducationalOrganization & WebSite */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "EducationalOrganization",
+              "@id": `${siteConfig.url}/#organization`,
+              "name": "Sagar Coaching Centre Bhagwanpur",
+              "alternateName": "Sagar Coaching",
+              "url": siteConfig.url,
+              "logo": `${siteConfig.url}/logo-circle-transparent.png`,
+              "description": "India's trusted online coaching for NMMS, Navodaya, Sainik School, and Shrestha NETS scholarship exams.",
+              "founder": {
+                "@type": "Person",
+                "name": "Shrvan Kumar Sagar",
+                "jobTitle": "Founder & Head Teacher"
+              },
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "NH 106, Bhagwanpur",
+                "addressLocality": "Supaul",
+                "addressRegion": "Bihar",
+                "postalCode": "852131",
+                "addressCountry": "IN"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+91-9110113671",
+                "contactType": "customer service",
+                "areaServed": "IN",
+                "availableLanguage": ["Hindi", "English"]
+              },
+              "sameAs": [
+                "https://www.youtube.com/@sagarcoachingcentre",
+                "https://facebook.com/sagarcoachingcentre",
+                "https://instagram.com/sagarcoachingcentre"
+              ]
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "@id": `${siteConfig.url}/#website`,
+              "url": siteConfig.url,
+              "name": "Sagar Coaching Centre",
+              "description": "Online Scholarship & Entrance Exam Coaching Portal",
+              "publisher": {
+                "@id": `${siteConfig.url}/#organization`
+              },
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": `${siteConfig.url}/courses?category={search_term_string}`
+                },
+                "query-input": "required name=search_term_string"
+              }
+            }
+          ])
+        }}
+      />
     </div>
   );
 }

@@ -31,9 +31,29 @@ import {
   Landmark
 } from "lucide-react";
 
+import { unstable_cache } from "next/cache";
+
 // Page level configurations for Vercel Free Tier caching and ISR
 export const dynamicParams = true;
 export const revalidate = 604800; // Cache on Edge CDN for 7 days (0 Serverless cost)
+
+const getCachedPublishedCourses = unstable_cache(
+  async () => {
+    try {
+      return await prisma.course.findMany({
+        where: { status: "PUBLISHED" },
+        include: {
+          categories: { include: { category: true } }
+        }
+      });
+    } catch (err) {
+      console.error("[SEO_PAGE] Could not fetch courses from DB:", err);
+      return [];
+    }
+  },
+  ["seo_location_published_courses"],
+  { revalidate: 3600 }
+);
 
 interface LandingPageProps {
   params: Promise<{
@@ -144,19 +164,8 @@ export default async function ProgrammaticLandingPage({ params }: LandingPagePro
 
   const { city, topic, modifier } = context;
 
-  // Retrieve actual courses from database to display as recommendations
-  let dbCourses: any[] = [];
-  try {
-    dbCourses = await prisma.course.findMany({
-      where: { status: "PUBLISHED" },
-      include: {
-        categories: { include: { category: true } }
-      }
-    });
-  } catch (err) {
-    console.error("[SEO_PAGE] Could not fetch courses from DB:", err);
-    dbCourses = [];
-  }
+  // Retrieve cached courses from database without exhausting Neon connection pool
+  const dbCourses = await getCachedPublishedCourses();
 
   // Relevancy check: promote the course matching this landing page's topic
   const sortedCourses = [...dbCourses].sort((a, b) => {

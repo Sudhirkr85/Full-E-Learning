@@ -223,11 +223,15 @@ export const CURATED_TOPIC_LIST: CuratedTopicItem[] = BASE_TOPICS.map((base, idx
     exam = EXAMS[2]!; // Sainik School AISSEE
   }
 
-  const slug = `bihar-${exam.slug}-${base.slug}-study-notes`;
+  // Distribute 100 topics across 10 major states (exactly 10 topics per state = 100 total pages)
+  const stateIndex = Math.floor(idx / 10) % STATES.length;
+  const state = STATES[stateIndex] || DEFAULT_STATE;
+
+  const slug = `${state.slug}-${exam.slug}-${base.slug}-study-notes`;
 
   return {
     slug,
-    state: DEFAULT_STATE,
+    state,
     exam,
     topic: {
       slug: base.slug,
@@ -242,21 +246,11 @@ export const CURATED_TOPIC_LIST: CuratedTopicItem[] = BASE_TOPICS.map((base, idx
 
 /**
  * Returns structured metadata for a curated educational topic slug
+ * Strict matching only: any old / unknown slug immediately returns null -> 404
  */
 export function getTopicBySlug(slug: string): CuratedTopicItem | null {
   if (!slug) return null;
-
-  // 1. Direct match with curated slugs
-  const directMatch = CURATED_TOPIC_LIST.find((item) => item.slug === slug);
-  if (directMatch) return directMatch;
-
-  // 2. Fallback match by base topic slug
-  const matchedBase = BASE_TOPICS.find((base) => slug.includes(base.slug));
-  if (matchedBase) {
-    return CURATED_TOPIC_LIST.find((item) => item.topic.slug === matchedBase.slug) || null;
-  }
-
-  return null;
+  return CURATED_TOPIC_LIST.find((item) => item.slug === slug) || null;
 }
 
 /**

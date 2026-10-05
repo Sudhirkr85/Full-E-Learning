@@ -5,7 +5,7 @@ import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/prisma";
-import { getTopicBySlug, getRelatedSlugs } from "@/lib/seo/generator";
+import { getTopicBySlug, getRelatedSlugs, CURATED_TOPIC_LIST } from "@/lib/seo/generator";
 import { makeMetadata } from "@/lib/site";
 import { 
   BookOpen, 
@@ -19,8 +19,15 @@ import {
   ChevronRight
 } from "lucide-react";
 
-export const dynamicParams = true;
-export const revalidate = 604800; // Cache on Vercel Edge CDN for 7 days (0 Serverless cost)
+// Pre-render exactly the 100 curated state-wise topic guides at build time
+export const dynamicParams = false;
+export const revalidate = 604800; // Cache on Vercel Edge CDN for 7 days
+
+export async function generateStaticParams() {
+  return CURATED_TOPIC_LIST.map((topicItem) => ({
+    slug: topicItem.slug
+  }));
+}
 
 interface TopicPageProps {
   params: Promise<{
@@ -125,6 +132,32 @@ function getQuestionsForTopic(topicName: string, topicNameHi: string, examName: 
   ];
 }
 
+import { unstable_cache } from "next/cache";
+
+const getTopicFeaturedData = unstable_cache(
+  async () => {
+    try {
+      const [courses, products] = await Promise.all([
+        prisma.course.findMany({
+          where: { status: "PUBLISHED" },
+          include: {
+            categories: { include: { category: true } }
+          }
+        }),
+        prisma.product.findMany({
+          where: { status: "ACTIVE" }
+        })
+      ]);
+      return { courses, products };
+    } catch (err) {
+      console.error("[TOPIC_PAGE] Could not fetch DB products/courses:", err);
+      return { courses: [], products: [] };
+    }
+  },
+  ["topic_page_featured_data"],
+  { revalidate: 3600 }
+);
+
 export default async function TopicSEOPage({ params }: TopicPageProps) {
   const { slug } = await params;
   const seoData = getTopicBySlug(slug);
@@ -135,26 +168,8 @@ export default async function TopicSEOPage({ params }: TopicPageProps) {
 
   const { state, exam, topic, material, index } = seoData;
 
-  // Retrieve actual courses and products from the database to present as high-converting matches
-  let dbCourses: any[] = [];
-  let dbProducts: any[] = [];
-  try {
-    const [courses, products] = await Promise.all([
-      prisma.course.findMany({
-        where: { status: "PUBLISHED" },
-        include: {
-          categories: { include: { category: true } }
-        }
-      }),
-      prisma.product.findMany({
-        where: { status: "ACTIVE" }
-      })
-    ]);
-    dbCourses = courses;
-    dbProducts = products;
-  } catch (err) {
-    console.error("[TOPIC_PAGE] Could not fetch DB products/courses:", err);
-  }
+  // Retrieve cached courses and products without exhausting Neon connection limits
+  const { courses: dbCourses, products: dbProducts } = await getTopicFeaturedData();
 
   // Relevancy sorting based on the exam slug
   const matchedCourses = [...dbCourses].sort((a, b) => {

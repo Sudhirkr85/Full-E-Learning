@@ -24,9 +24,8 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
 
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
-  const [isGithubPending, startGithubTransition] = useTransition();
 
-  const isAnyPending = isPending || isGooglePending || isGithubPending;
+  const isAnyPending = isPending || isGooglePending;
 
   // Real-time password strength checklist calculations (calculated inline for perfect reactivity)
   const criteria = [
@@ -92,19 +91,6 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
         await loginWithGoogleAction();
       } catch (err) {
         console.error("Google Auth error:", err);
-      }
-    });
-  };
-
-  const handleGithubLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isAnyPending) return;
-
-    startGithubTransition(async () => {
-      try {
-        await loginWithGithubAction();
-      } catch (err) {
-        console.error("GitHub Auth error:", err);
       }
     });
   };

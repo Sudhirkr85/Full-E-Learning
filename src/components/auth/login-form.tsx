@@ -20,9 +20,8 @@ export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
   
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
-  const [isGithubPending, startGithubTransition] = useTransition();
 
-  const isAnyPending = isPending || isGooglePending || isGithubPending;
+  const isAnyPending = isPending || isGooglePending;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -47,19 +46,6 @@ export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
         await loginWithGoogleAction();
       } catch (err) {
         console.error("Google Auth error:", err);
-      }
-    });
-  };
-
-  const handleGithubLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isAnyPending) return;
-
-    startGithubTransition(async () => {
-      try {
-        await loginWithGithubAction();
-      } catch (err) {
-        console.error("GitHub Auth error:", err);
       }
     });
   };

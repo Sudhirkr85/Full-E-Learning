@@ -11,7 +11,7 @@ export const metadata: Metadata = makeMetadata({
   path: "/store"
 });
 
-export const revalidate = 86400; // Cache on Edge CDN for 24 hours
+export const dynamic = "force-dynamic";
 
 export default async function StorePage() {
   const result = await getProductsAction();
@@ -22,30 +22,34 @@ export default async function StorePage() {
   let userWishlistedProductIds: string[] = [];
 
   if (currentUser) {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: currentUser.id },
-      select: {
-        email: true,
-        name: true,
-        phone: true,
-        metadata: true,
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: currentUser.id },
+        select: {
+          email: true,
+          name: true,
+          phone: true,
+          metadata: true,
+        }
+      });
+
+      if (dbUser) {
+        const meta = (dbUser.metadata as Record<string, any>) || {};
+        profileUser = {
+          email: dbUser.email || "",
+          name: dbUser.name || "",
+          phone: dbUser.phone || meta.phone || "",
+        };
       }
-    });
 
-    if (dbUser) {
-      const meta = (dbUser.metadata as Record<string, any>) || {};
-      profileUser = {
-        email: dbUser.email || "",
-        name: dbUser.name || "",
-        phone: dbUser.phone || meta.phone || "",
-      };
+      const dbWishlists = await prisma.productWishlist.findMany({
+        where: { userId: currentUser.id },
+        select: { productId: true }
+      });
+      userWishlistedProductIds = dbWishlists.map(w => w.productId);
+    } catch {
+      // Graceful fallback on cold start
     }
-
-    const dbWishlists = await prisma.productWishlist.findMany({
-      where: { userId: currentUser.id },
-      select: { productId: true }
-    });
-    userWishlistedProductIds = dbWishlists.map(w => w.productId);
   }
 
   return (

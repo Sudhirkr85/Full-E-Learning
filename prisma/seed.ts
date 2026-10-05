@@ -1,7 +1,18 @@
+import dns from "node:dns";
 import { PrismaClient, UserRole, CourseLevel, CourseStatus, ProductType, ProductStatus } from "@prisma/client";
 import { hashPassword } from "../src/lib/password";
 
-const prisma = new PrismaClient();
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch {}
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 async function main() {
   console.log("Seeding admin account...");

@@ -4,15 +4,20 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { slug } = await params;
+    const { courseId } = await params;
     const session = await auth();
 
-    // Fetch the course with its sections and lessons
-    const course = await prisma.course.findUnique({
-      where: { slug },
+    // Fetch the course with its sections and lessons by ID or slug
+    const course = await prisma.course.findFirst({
+      where: {
+        OR: [
+          { id: courseId },
+          { slug: courseId }
+        ]
+      },
       include: {
         sections: {
           orderBy: { orderIndex: "asc" },

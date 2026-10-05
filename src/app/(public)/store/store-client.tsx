@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
@@ -663,13 +664,13 @@ export function StoreClient({ products, profileUser, userWishlistedProductIds = 
         <Container>
           <div className="max-w-3xl">
             <Badge variant="outline" className="border-amber-500/30 text-amber-500 bg-amber-500/[0.05] tracking-wide uppercase px-3 py-1 text-xs">
-              Digital Resources & Materials
+              Official Study Books & Resources
             </Badge>
             <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-slate-100">
-              The Learning <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500">Store</span>
+              Sagar Coaching <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500">Book Store</span>
             </h1>
             <p className="mt-4 text-base md:text-lg text-slate-300 leading-relaxed max-w-2xl">
-              Equip your study setup with premium architected design playbooks, complete responsive UI component bundles, full course access passes, and training bundles.
+              NMMS, Navodaya, NTSE aur State Scholarship Exams ki sarvashreshth taiyari ke liye official guide books, solved papers aur model practice sets.
             </p>
           </div>
 
@@ -766,11 +767,14 @@ export function StoreClient({ products, profileUser, userWishlistedProductIds = 
                   className="flex flex-col bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:-translate-y-1.5 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-300"
                 >
                   {/* Card Image */}
-                  <div className="relative aspect-[16/10] bg-muted overflow-hidden">
-                    <img
-                      src={product.coverImageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
+                  <div className="relative aspect-[4/3] bg-gradient-to-b from-slate-900/90 via-slate-800/40 to-slate-950/90 flex items-center justify-center p-3 overflow-hidden border-b border-white/5 group-hover:border-violet-500/20 transition-colors">
+                    <div className="absolute inset-0 bg-radial-gradient from-violet-500/10 via-transparent to-transparent pointer-events-none" />
+                    <Image
+                      src={product.coverImageUrl || "/images/products/bihar-nmms-guide-book-2027-28.webp"}
                       alt={product.title}
-                      className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
+                      width={400}
+                      height={500}
+                      className="object-contain max-h-full w-auto max-w-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-transform duration-500 hover:scale-[1.04] relative z-10"
                     />
                     <div className="absolute top-3 left-3">
                       <Badge className="bg-slate-900/90 text-white hover:bg-slate-900 backdrop-blur-sm flex items-center gap-1">

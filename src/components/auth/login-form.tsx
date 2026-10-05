@@ -2,11 +2,11 @@
 
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Loader2, Chrome, Github, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, Chrome, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { loginAction, loginWithGoogleAction, loginWithGithubAction } from "@/app/(public)/login/actions";
+import { loginAction, loginWithGoogleAction } from "@/app/(public)/login/actions";
 
 interface LoginFormProps {
   errorMessage?: string | null;
@@ -190,38 +190,20 @@ export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
       </div>
 
       {/* Custom Glowing Social buttons */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="w-full">
         <form onSubmit={handleGoogleLogin} className="w-full">
           <Button
             type="submit"
             variant="outline"
             disabled={isAnyPending}
-            className="w-full h-11 rounded-xl border-white/5 bg-slate-950/40 hover:bg-slate-900/60 hover:border-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:text-white text-slate-300 transition-all duration-300 flex items-center justify-center gap-2 text-xs font-semibold disabled:opacity-50"
+            className="w-full h-11 rounded-xl border-white/10 bg-slate-900/80 hover:bg-slate-800 hover:border-indigo-500/40 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:text-white text-slate-200 transition-all duration-300 flex items-center justify-center gap-2 text-xs font-semibold disabled:opacity-50"
           >
             {isGooglePending ? (
-              <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+              <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
             ) : (
               <>
-                <Chrome className="h-4 w-4 text-cyan-400 fill-cyan-400/10" />
-                Google
-              </>
-            )}
-          </Button>
-        </form>
-
-        <form onSubmit={handleGithubLogin} className="w-full">
-          <Button
-            type="submit"
-            variant="outline"
-            disabled={isAnyPending}
-            className="w-full h-11 rounded-xl border-white/5 bg-slate-950/40 hover:bg-slate-900/60 hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:text-white text-slate-300 transition-all duration-300 flex items-center justify-center gap-2 text-xs font-semibold disabled:opacity-50"
-          >
-            {isGithubPending ? (
-              <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
-            ) : (
-              <>
-                <Github className="h-4 w-4 text-purple-400 fill-purple-400/10" />
-                GitHub
+                <Chrome className="h-4 w-4 text-indigo-400" />
+                Continue with Google
               </>
             )}
           </Button>

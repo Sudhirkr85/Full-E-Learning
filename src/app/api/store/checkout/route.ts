@@ -20,7 +20,21 @@ export async function POST(req: Request) {
     // Validate all items exist in DB
     const validItems = [];
     for (const item of items) {
-      const product = await prisma.product.findUnique({ where: { id: item.productId } });
+      let product = await prisma.product.findFirst({
+        where: {
+          OR: [
+            { id: item.productId },
+            { slug: item.productId }
+          ]
+        }
+      });
+      
+      if (!product && (item.productId === "bihar-nmms-exam-book-2027-28" || item.productId === "bihar-nmms-exam-book-2027-28-id" || item.productId === "b8407d00-6a09-4a57-9d5c-1e254b39bc86")) {
+        product = await prisma.product.findFirst({
+          where: { slug: "bihar-nmms-exam-book-2027-28" }
+        });
+      }
+
       if (!product || (product.status !== "PUBLISHED" && product.status !== "ACTIVE")) continue;
       validItems.push({ product, quantity: item.quantity });
     }

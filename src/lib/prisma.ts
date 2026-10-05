@@ -1,5 +1,13 @@
 import "server-only";
+import dns from "node:dns";
 import { PrismaClient } from "@prisma/client";
+
+// Ensure IPv4 is resolved first on networks where IPv6 is advertising but not routed
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch {
+  // Ignore in environments where not supported
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: ReturnType<typeof buildPrismaClient> | undefined;

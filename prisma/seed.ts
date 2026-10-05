@@ -48,219 +48,123 @@ async function main() {
   }
   console.log("✅ Categories seeded successfully");
 
-  // Seed Courses
-  console.log("Seeding courses...");
-
-  const coursesToSeed = [
-    {
-      title: "NMMS Exam Complete Preparation 2025-26",
-      slug: "nmms-exam-complete-preparation",
-      priceCents: 49900,
-      currency: "INR",
-      level: CourseLevel.BEGINNER,
-      status: CourseStatus.PUBLISHED,
-      language: "Hindi",
-      description: `राष्ट्रीय आय सह मेधा छात्रवृत्ति परीक्षा (NMMS) की सम्पूर्ण तैयारी। Class 8 के छात्रों के लिए। Select होने पर Class 9–12 तक ₹12,000 प्रति वर्ष की Government Scholarship। सभी राज्यों के Pattern को cover करता है।
-
-इस course में शामिल है:
-• MAT — Analogy, Classification, Numerical Series, Pattern, Hidden Figures
-• SAT — Science, Mathematics, Social Science (Class 7 & 8 NCERT)
-• Bihar, UP, MP, Rajasthan, Maharashtra NMMS Previous Year Papers
-• Full Mock Tests & Model Papers
-• Shrvan Kumar Sagar Sir द्वारा Live Classes`,
-      metadata: {
-        isFeatured: true,
-        level: "BEGINNER",
-        language: "Hindi",
-        targetAudience: "Class 8 students of government schools — all states of India",
-        requirements: ["Class 7 pass with 55% marks (50% for SC/ST)", "Family income below ₹3.5 lakh/year", "Government or government-aided school student"],
-        outcomes: ["NMMS Scholarship ₹12,000/year (Class 9-12)", "MAT & SAT complete mastery", "Previous year paper practice"],
-        tags: ["NMMS", "Scholarship", "Class 8", "All India", "MAT", "SAT", "Megha Chhatravriti"],
-      }
+  // Unpublish / hide any courses (as requested: no courses right now, only book for sale)
+  console.log("Setting any existing courses to DRAFT...");
+  await prisma.course.updateMany({
+    data: {
+      status: CourseStatus.DRAFT,
     },
-    {
-      title: "Navodaya Vidyalaya Entrance (JNVST) Class 6",
-      slug: "navodaya-vidyalaya-class-6-jnvst",
-      priceCents: 49900,
-      currency: "INR",
-      level: CourseLevel.BEGINNER,
-      status: CourseStatus.PUBLISHED,
-      language: "Hindi",
-      description: `Jawahar Navodaya Vidyalaya Selection Test (JNVST) Class 6 की सम्पूर्ण तैयारी। Select होने पर Class 6–12 तक Free Residential Education — Board, Lodging, Uniform, Books सब Free। All India level exam।
-
-इस course में शामिल है:
-• Mental Ability Test (40 Questions, 50 Marks)
-• Arithmetic Test (20 Questions, 25 Marks)
-• Language Test (20 Questions, 25 Marks)
-• All India JNVST Previous Year Papers
-• Mock Tests & Model Papers
-• Shrvan Kumar Sagar Sir द्वारा Live Classes`,
-      metadata: {
-        isFeatured: true,
-        level: "BEGINNER",
-        language: "Hindi",
-        targetAudience: "Class 5 students — all states of India",
-        requirements: ["Currently studying in Class 5", "Government or recognised school student"],
-        outcomes: ["Free residential education Class 6-12", "CBSE curriculum at zero cost", "All India exposure & migration policy"],
-        tags: ["Navodaya", "JNVST", "Class 6", "All India", "Free Education", "Residential School"],
-      }
-    },
-    {
-      title: "Sainik School & Simultala Awasiya Entrance",
-      slug: "sainik-school-simultala-entrance",
-      priceCents: 49900,
-      currency: "INR",
-      level: CourseLevel.BEGINNER,
-      status: CourseStatus.PUBLISHED,
-      language: "Hindi",
-      description: `Sainik School Entrance Exam (AISSEE) और Simultala Awasiya Vidyalaya Entrance की तैयारी। Sainik School एक All India level NTA conducted exam है।
-
-इस course में शामिल है:
-• Mathematics — Number System, Algebra, Geometry
-• General Knowledge & Current Affairs
-• Language — Hindi & English
-• Intelligence Test
-• Simultala Bihar Board Entrance Pattern
-• AISSEE Previous Year Papers & Mock Tests`,
-      metadata: {
-        isFeatured: false,
-        level: "BEGINNER",
-        language: "Hindi",
-        targetAudience: "Class 5-6 students — all states of India",
-        requirements: ["Currently in Class 5 or 6"],
-        outcomes: ["Sainik School admission", "Military school quality education", "Foundation for NDA career"],
-        tags: ["Sainik School", "AISSEE", "Simultala", "Class 5", "Class 6", "All India"],
-      }
-    },
-    {
-      title: "Shrestha NETS & CMMSS Scholarship Preparation",
-      slug: "shrestha-nets-cmmss-scholarship",
-      priceCents: 49900,
-      currency: "INR",
-      level: CourseLevel.BEGINNER,
-      status: CourseStatus.PUBLISHED,
-      language: "Hindi",
-      description: `Shrestha NETS (SC students के लिए Top CBSE Residential Schools में Full Scholarship) और CMMSS Exam की तैयारी।
-
-Shrestha NETS:
-• SC Community के Class 8 और Class 10 के छात्रों के लिए
-• Select होने पर Top Private CBSE Schools में Full Scholarship (Fees + Hostel Free)
-• All India level exam
-
-CMMSS Exam:
-• Class 8 के छात्रों के लिए ₹12,000/year Scholarship
-
-इस course में शामिल है:
-• MAT & SAT Complete Preparation
-• Shrestha NETS Previous Papers
-• CMMSS Model Papers
-• Shrvan Kumar Sagar Sir द्वारा Live Classes`,
-      metadata: {
-        isFeatured: false,
-        level: "BEGINNER",
-        language: "Hindi",
-        targetAudience: "SC Category Class 8 and Class 10 students — all states",
-        requirements: ["SC Category student", "Class 8 or Class 10"],
-        outcomes: ["Full scholarship in top CBSE school", "Free hostel + tuition fees", "Quality residential education"],
-        tags: ["Shrestha NETS", "CMMSS", "SC Scholarship", "Class 8", "Class 10", "All India"],
-      }
-    }
-  ];
-
-  for (const course of coursesToSeed) {
-    await prisma.course.upsert({
-      where: { slug: course.slug },
-      update: {
-        title: course.title,
-        description: course.description,
-        priceCents: course.priceCents,
-        currency: course.currency,
-        level: course.level,
-        status: course.status,
-        language: course.language,
-        metadata: course.metadata,
-      },
-      create: {
-        title: course.title,
-        slug: course.slug,
-        description: course.description,
-        priceCents: course.priceCents,
-        currency: course.currency,
-        level: course.level,
-        status: course.status,
-        language: course.language,
-        metadata: course.metadata,
-      },
-    });
-  }
-
-  console.log("✅ 4 Courses seeded successfully");
+  });
+  console.log("✅ All courses set to DRAFT (hidden from public store & catalog)");
 
   // Seed store products
-  console.log("Seeding store products...");
-  
-  const bookProduct = {
-    title: "BIHAR NMMSE — Bihar Exam Book 2026",
-    slug: "bihar-nmmse-exam-book-2026",
-    description: `Bihar NMMS Scholarship Exam की सबसे Best Book। Shrvan Kumar Sagar Sir द्वारा co-authored।
+  console.log("Seeding official NMMS 2027-28 Guide Book...");
 
-📚 Book Details:
-• Publisher: Raghav Prakashan
-• Authors: Shrvan Kumar Sagar, Vinod Kumar, Ajay Kumar
-• Pages: 350 | ISBN: 9789360136772
-• Language: Hindi | Edition: 2025
+  // Archive any old placeholder product slugs
+  await prisma.product.updateMany({
+    where: {
+      slug: { not: "bihar-nmms-exam-book-2027-28" }
+    },
+    data: {
+      status: ProductStatus.ARCHIVED
+    }
+  });
 
-📖 इस Book में क्या है:
-• MAT (Mental Ability Test) — Complete Chapter-wise Theory
-• SAT — Science, Mathematics, Social Science (NCERT Based)
-• Bihar NMMS Previous Year Solved Papers (5+ years)
-• 1000+ Practice Questions with Solutions
-• 5 Full Model Test Papers`,
-    priceCents: 39500, // ₹395
-    originalPriceCents: 50000, // ₹500
+  const nmmsBookProduct = {
+    title: "Bihar NMMS Exam Book 2027-28 — राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा (तृतीय संशोधित संस्करण)",
+    slug: "bihar-nmms-exam-book-2027-28",
+    shortDescription: "बिहार राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा (NMMS) एवं मॉडल स्कूल प्रवेश परीक्षा 2027-28 के लिए सम्पूर्ण गाइड बुक। MAT एवं SAT का सम्पूर्ण पाठ्यक्रम, 2021-2026 के 6 वर्षों के हल प्रश्न पत्र।",
+    description: `राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा 2027-28 (Bihar NMMS Exam & Model School Exam) की सबसे सम्पूर्ण एवं प्रामाणिक गाइड बुक। 
+
+कक्षा 8 में अध्ययनरत् विद्यार्थियों के लिए विशेष रूप से तैयार की गई यह पुस्तक परीक्षा में शत-प्रतिशत सफलता दिलाने में सहायक है। इस पुस्तक में नवीनतम पाठ्यक्रम के आधार पर मानसिक योग्यता (MAT) और शैक्षिक अभिरुचि (SAT) के सभी विषयों का विस्तृत विवरण दिया गया है।
+
+📚 पुस्तक की मुख्य विशेषताएँ (Key Highlights):
+• नवीनतम पाठ्यक्रम पर आधारित राज्य स्तरीय (बिहार व अन्य राज्य) अध्ययन सामग्री
+• भाग 1: मानसिक योग्यता परीक्षण (MAT) — सादृश्यता, वर्गीकरण, संख्या व अक्षर श्रृंखला, कोडिंग-डिकोडिंग, वेन आरेख, रक्त संबंध, दिशा ज्ञान एवं अशाब्दिक तर्कशक्ति (Non-Verbal Reasoning)
+• भाग 2: शैक्षिक अभिरुचि परीक्षण (SAT) — विज्ञान (भौतिकी, रसायन, जीव विज्ञान), गणित, सामाजिक विज्ञान (इतिहास, भूगोल, नागरिक शास्त्र) — NCERT कक्षा 7 एवं 8 पर आधारित
+• 2021, 2022, 2023, 2024, 2025, 2026 (6 वर्षों) के सम्पूर्ण हल प्रश्न पत्र (Solved Previous Years Papers)
+• 1000+ अभ्यास प्रश्न विस्तृत व्याख्या एवं शॉर्टकट ट्रिक्स सहित
+• 5 फुल लेंथ मॉडल प्रैक्टिस टेस्ट पेपर्स
+
+📖 पुस्तक विवरण (Book Specifications):
+• प्रकाशक (Publisher): राघव प्रकाशन (Raghav Prakashan) / सागर कोचिंग सेंटर
+• लेखक (Authors): श्रवण कुमार सागर (Shrvan Kumar Sagar), विनोद कुमार (Vinod Kumar), अजय कुमार (Ajay Kumar)
+• संस्करण (Edition): तृतीय संशोधित संस्करण 2027-28 (3rd Revised Edition)
+• भाषा (Language): हिंदी (Hindi Medium)
+• लक्षित वर्ग (Target Group): कक्षा 8 के विद्यार्थी (Class 8 Students)
+• डिलीवरी (Delivery): पूरे भारत में सुरक्षित होम डिलीवरी (Fast Home Delivery Across India)`,
+    priceCents: 35000, // ₹350
+    originalPriceCents: 49900, // ₹499 (MRP)
     currency: "INR",
     productType: ProductType.PHYSICAL,
     status: ProductStatus.ACTIVE,
-    stockQuantity: 100,
+    stockQuantity: 500,
     shippingRequired: true,
+    coverImageUrl: "/images/products/bihar-nmms-guide-book-2027-28.webp",
     metadata: {
       isFeatured: true,
       isActive: true,
-      weight: 400,
-      tags: ["NMMS Book", "Bihar", "Class 8", "Scholarship", "Study Material", "Hindi Medium"],
+      edition: "3rd Revised Edition 2027-28",
+      publisher: "Raghav Prakashan",
+      authors: ["Shrvan Kumar Sagar", "Vinod Kumar", "Ajay Kumar"],
+      language: "Hindi",
+      targetExam: "NMMS Scholarship Exam & Model School Entrance",
+      targetClass: "Class 8",
+      weightGrams: 450,
+      tags: [
+        "NMMS Book",
+        "Bihar NMMS 2027-28",
+        "Rashtriya Aay Sah Medha Chhatravriti",
+        "Shrvan Kumar Sagar",
+        "MAT SAT Solved Papers",
+        "NMMS Guide Book",
+        "Class 8 Scholarship Book",
+        "Raghav Prakashan"
+      ],
+      features: [
+        "MAT & SAT Complete NCERT Syllabus",
+        "2021-2026 6 Years Solved Papers",
+        "1000+ Practice MCQs with Step-by-Step Solutions",
+        "Special Shortcuts & Tricks by Sagar Sir",
+        "Fast Home Delivery Across All States"
+      ]
     }
   };
 
   await prisma.product.upsert({
-    where: { slug: bookProduct.slug },
+    where: { slug: nmmsBookProduct.slug },
     update: {
-      title: bookProduct.title,
-      description: bookProduct.description,
-      priceCents: bookProduct.priceCents,
-      originalPriceCents: bookProduct.originalPriceCents,
-      currency: bookProduct.currency,
-      productType: bookProduct.productType,
-      status: bookProduct.status,
-      stockQuantity: bookProduct.stockQuantity,
-      shippingRequired: bookProduct.shippingRequired,
-      metadata: bookProduct.metadata,
+      title: nmmsBookProduct.title,
+      description: nmmsBookProduct.description,
+      shortDescription: nmmsBookProduct.shortDescription,
+      priceCents: nmmsBookProduct.priceCents,
+      originalPriceCents: nmmsBookProduct.originalPriceCents,
+      currency: nmmsBookProduct.currency,
+      productType: nmmsBookProduct.productType,
+      status: nmmsBookProduct.status,
+      stockQuantity: nmmsBookProduct.stockQuantity,
+      shippingRequired: nmmsBookProduct.shippingRequired,
+      coverImageUrl: nmmsBookProduct.coverImageUrl,
+      metadata: nmmsBookProduct.metadata,
     },
     create: {
-      title: bookProduct.title,
-      slug: bookProduct.slug,
-      description: bookProduct.description,
-      priceCents: bookProduct.priceCents,
-      originalPriceCents: bookProduct.originalPriceCents,
-      currency: bookProduct.currency,
-      productType: bookProduct.productType,
-      status: bookProduct.status,
-      stockQuantity: bookProduct.stockQuantity,
-      shippingRequired: bookProduct.shippingRequired,
-      metadata: bookProduct.metadata,
+      title: nmmsBookProduct.title,
+      slug: nmmsBookProduct.slug,
+      description: nmmsBookProduct.description,
+      shortDescription: nmmsBookProduct.shortDescription,
+      priceCents: nmmsBookProduct.priceCents,
+      originalPriceCents: nmmsBookProduct.originalPriceCents,
+      currency: nmmsBookProduct.currency,
+      productType: nmmsBookProduct.productType,
+      status: nmmsBookProduct.status,
+      stockQuantity: nmmsBookProduct.stockQuantity,
+      shippingRequired: nmmsBookProduct.shippingRequired,
+      coverImageUrl: nmmsBookProduct.coverImageUrl,
+      metadata: nmmsBookProduct.metadata,
     },
   });
 
-  console.log("✅ Store products seeded successfully");
+  console.log("✅ Official NMMS Book (₹350, WebP) seeded successfully as active product");
 }
 
 main()

@@ -289,20 +289,37 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <BookOpen className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[11px] font-bold tracking-widest text-indigo-400 uppercase">OFFICIAL STUDY GUIDE</span>
+                <span className="text-[11px] font-bold tracking-widest text-indigo-400 uppercase">
+                  {product.slug === "bihar-nmms-practice-set-book" ? "OFFICIAL PRACTICE BOOK" : "OFFICIAL STUDY GUIDE"}
+                </span>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-white font-display">
-                  बिहार NMMS छात्रवृत्ति परीक्षा 2027-28: संपूर्ण गाइड एवं हल प्रश्न पत्र
+                  {product.slug === "bihar-nmms-practice-set-book"
+                    ? "बिहार NMMS 11 प्रैक्टिस सेट एवं 5 सॉल्वड पेपर्स (2021-2025)"
+                    : "बिहार NMMS छात्रवृत्ति परीक्षा 2027-28: संपूर्ण गाइड एवं हल प्रश्न पत्र"}
                 </h2>
               </div>
             </div>
 
             <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed">
-              <p>
-                <strong>राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा (National Means-cum-Merit Scholarship Scheme - NMMSS) 2027-28</strong> में सम्मिलित होने वाले कक्षा 8वीं के छात्र-छात्राओं के लिए यह पुस्तक एक संपूर्ण और अचूक मार्गदर्शिका है। <strong>सागर कोचिंग सेंटर (Sagar Coaching Centre)</strong> और <strong>राघव प्रकाशन</strong> द्वारा विशेष रूप से तैयार की गई यह पुस्तक नवीनतम परीक्षा पैटर्न और SCERT बिहार / NCERT पाठ्यक्रम पर आधारित है।
-              </p>
-              <p>
-                NMMS परीक्षा उत्तीर्ण करने वाले मेधावी विद्यार्थियों को केंद्र सरकार द्वारा कक्षा 9वीं से 12वीं तक <strong>प्रति वर्ष ₹12,000 (कुल ₹48,000)</strong> की छात्रवृत्ति प्रदान की जाती है। इस पुस्तक की सहायता से छात्र परीक्षा के दोनों अनिवार्य भागों—<strong>मानसिक योग्यता परीक्षण (MAT)</strong> और <strong>शैक्षिक अभिरुचि परीक्षण (SAT)</strong> में 100% सफलता प्राप्त कर सकते हैं।
-              </p>
+              {product.slug === "bihar-nmms-practice-set-book" ? (
+                <>
+                  <p>
+                    <strong>राज्य स्तरीय (बिहार) राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा (NMMS)</strong> की तैयारी कर रहे कक्षा 8वीं के विद्यार्थियों के लिए यह पुस्तक सर्वोत्तम अभ्यास सामग्री है। इसमें <strong>2021 से 2025 तक के 5 वर्षों के ओरिजिनल सॉल्वड पेपर्स</strong> और <strong>11 फुल-लेंथ मॉडल प्रैक्टिस सेट्स</strong> दिए गए हैं।
+                  </p>
+                  <p>
+                    पुस्तक में परीक्षा के दोनों अनिवार्य भागों—<strong>भाग 1 : मानसिक योग्यता परीक्षण (MAT)</strong> और <strong>भाग 2 : शैक्षिक अभिरुचि परीक्षण (SAT)</strong>—के नवीनतम पैटर्न पर आधारित प्रश्नों का समावेश है। लेखक <strong>विनोद कुमार, अजय कुमार एवं श्रवण कुमार सागर</strong> के मार्गदर्शन में यह पुस्तक <strong>राघव प्रकाशन</strong> द्वारा प्रकाशित की गई है।
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    <strong>राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा (National Means-cum-Merit Scholarship Scheme - NMMSS) 2027-28</strong> में सम्मिलित होने वाले कक्षा 8वीं के छात्र-छात्राओं के लिए यह पुस्तक एक संपूर्ण और अचूक मार्गदर्शिका है। <strong>सागर कोचिंग सेंटर (Sagar Coaching Centre)</strong> और <strong>राघव प्रकाशन</strong> द्वारा विशेष रूप से तैयार की गई यह पुस्तक नवीनतम परीक्षा पैटर्न और SCERT बिहार / NCERT पाठ्यक्रम पर आधारित है।
+                  </p>
+                  <p>
+                    NMMS परीक्षा उत्तीर्ण करने वाले मेधावी विद्यार्थियों को केंद्र सरकार द्वारा कक्षा 9वीं से 12वीं तक <strong>प्रति वर्ष ₹12,000 (कुल ₹48,000)</strong> की छात्रवृत्ति प्रदान की जाती है। इस पुस्तक की सहायता से छात्र परीक्षा के दोनों अनिवार्य भागों—<strong>मानसिक योग्यता परीक्षण (MAT)</strong> और <strong>शैक्षिक अभिरुचि परीक्षण (SAT)</strong> में 100% सफलता प्राप्त कर सकते हैं।
+                  </p>
+                </>
+              )}
             </div>
 
             {/* MAT & SAT Syllabus Breakdown Grid */}
@@ -314,7 +331,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   <h3 className="text-base font-bold text-white">मानसिक योग्यता परीक्षण (MAT) — 90 अंक</h3>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed mb-3">
-                  तर्कशक्ति और मानसिक क्षमता की जांच हेतु 90 बहुविकल्पीय प्रश्न (MCQs) शॉर्टकट ट्रिक्स के साथ:
+                  {product.slug === "bihar-nmms-practice-set-book"
+                    ? "11 मॉडल सेट्स और 5 सॉल्वड पेपर्स में MAT के सभी 90 प्रश्नों का संपूर्ण अभ्यास:"
+                    : "तर्कशक्ति और मानसिक क्षमता की जांच हेतु 90 बहुविकल्पीय प्रश्न (MCQs) शॉर्टकट ट्रिक्स के साथ:"}
                 </p>
                 <ul className="space-y-1.5 text-xs text-slate-300">
                   <li className="flex items-start gap-2">
@@ -327,7 +346,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                    <span><strong>विशेष ट्रिक्स:</strong> कम समय में सटीक उत्तर हल करने के लिए श्रवण सर के शॉर्टकट मेथड्स</span>
+                    <span><strong>शॉर्टकट ट्रिक्स:</strong> परीक्षा में 90 मिनट में पूरे 90 प्रश्नों को सही हल करने की तकनीक</span>
                   </li>
                 </ul>
               </div>
@@ -344,7 +363,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <ul className="space-y-1.5 text-xs text-slate-300">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                    <span><strong>विज्ञान (35 अंक):</strong> भौतिक विज्ञान, रसायन विज्ञान, जीव विज्ञान के अध्यायवार नोट्स</span>
+                    <span><strong>विज्ञान (35 अंक):</strong> भौतिक विज्ञान, रसायन विज्ञान एवं जीव विज्ञान के संभावित प्रश्न</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
@@ -352,7 +371,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                    <span><strong>गणित (20 अंक):</strong> संख्या पद्धति, बीजगणित, ज्यामिति, क्षेत्रमिति, अंकगणित के सूत्र व हल</span>
+                    <span><strong>गणित (20 अंक):</strong> संख्या पद्धति, बीजगणित, ज्यामिति, क्षेत्रमिति के मॉडल प्रश्न व हल</span>
                   </li>
                 </ul>
               </div>
@@ -371,9 +390,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <div className="h-10 w-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 mb-4">
                   <Award className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2">6 वर्षों के हल प्रश्न पत्र (2021-2026)</h3>
+                <h3 className="text-base font-bold text-white mb-2">
+                  {product.slug === "bihar-nmms-practice-set-book" ? "5 वर्षों के हल प्रश्न पत्र (2021-2025)" : "6 वर्षों के हल प्रश्न पत्र (2021-2026)"}
+                </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  विगत 6 वर्षों के सभी ओरिजिनल पेपर्स का चरणबद्ध व्याख्या सहित हल, जिससे पिछले वर्षों के रिपीटेड प्रश्नों में पूरे अंक मिलें।
+                  विगत वर्षों के सभी ओरिजिनल पेपर्स का चरणबद्ध व्याख्या सहित हल, जिससे परीक्षा में पूरे अंक प्राप्त हों।
                 </p>
               </div>
 
@@ -381,9 +402,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4">
                   <Layers className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2">अध्यायवार थ्योरी व फॉर्मूला बैंक</h3>
+                <h3 className="text-base font-bold text-white mb-2">
+                  {product.slug === "bihar-nmms-practice-set-book" ? "11 फुल-लेंथ मॉडल प्रैक्टिस सेट्स" : "अध्यायवार थ्योरी व फॉर्मूला बैंक"}
+                </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  कक्षा 7 व 8 के विज्ञान, गणित और सामाजिक विज्ञान के हर अध्याय का सरल हिंदी में सारांश और महत्वपूर्ण फॉर्मूले।
+                  {product.slug === "bihar-nmms-practice-set-book"
+                    ? "नवीनतम परीक्षा पैटर्न के अनुसार 11 मॉडल टेस्ट सेट्स टाइम-मैनेजमेंट और स्पीड सुधारने के लिए।"
+                    : "कक्षा 7 व 8 के विज्ञान, गणित और सामाजिक विज्ञान के हर अध्याय का सरल हिंदी में सारांश और महत्वपूर्ण फॉर्मूले।"}
                 </p>
               </div>
 
@@ -391,9 +416,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <div className="h-10 w-10 rounded-xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4">
                   <FileText className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2">मॉडल प्रैक्टिस सेट्स & OMR प्रैक्टिस</h3>
+                <h3 className="text-base font-bold text-white mb-2">OMR शीट प्रैक्टिस सेट्स</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  परीक्षा में समय प्रबंधन (Time Management) और OMR शीट भरने की सही रणनीति सीखने के लिए मॉडल टेस्ट पेपर्स।
+                  परीक्षा में समय प्रबंधन (Time Management) और OMR शीट भरने की सही रणनीति सीखने के लिए विशेष अभ्यास।
                 </p>
               </div>
 
@@ -403,7 +428,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">10,000+ सफल छात्रों का भरोसा</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  बिहार के विभिन्न जिलों के टॉपर्स और सागर कोचिंग सेंटर के मेधावी छात्र-छात्राओं द्वारा सर्वाधिक अनुशंसित गाइड बुक।
+                  बिहार के विभिन्न जिलों के टॉपर्स और सागर कोचिंग सेंटर के मेधावी छात्र-छात्राओं द्वारा सर्वाधिक अनुशंसित पुस्तक।
                 </p>
               </div>
 
@@ -411,9 +436,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <div className="h-10 w-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4">
                   <UserCheck className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-2">अनुभवी शिक्षकों द्वारा संकलित</h3>
+                <h3 className="text-base font-bold text-white mb-2">विशेषज्ञ शिक्षकों द्वारा संकलित</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  श्रवण कुमार सागर, विनोद कुमार एवं अजय कुमार के वर्षों के शिक्षण अनुभव और NMMS विशेषज्ञता से तैयार।
+                  विनोद कुमार, अजय कुमार एवं श्रवण कुमार सागर के संयुक्त अनुभव और NMMS विशेषज्ञता से तैयार।
                 </p>
               </div>
 
@@ -439,15 +464,17 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
                 <span className="text-slate-400 block mb-1">पुस्तक का नाम</span>
-                <span className="text-white font-bold text-sm">बिहार NMMS गाइड बुक</span>
+                <span className="text-white font-bold text-sm">
+                  {product.slug === "bihar-nmms-practice-set-book" ? "बिहार NMMS प्रैक्टिस सेट" : "बिहार NMMS गाइड बुक"}
+                </span>
               </div>
               <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
                 <span className="text-slate-400 block mb-1">लक्षित परीक्षा</span>
-                <span className="text-white font-bold text-sm">NMMS 2027-28 (Class 8)</span>
+                <span className="text-white font-bold text-sm">NMMS Scholarship (Class 8)</span>
               </div>
               <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
                 <span className="text-slate-400 block mb-1">लेखक गण</span>
-                <span className="text-white font-bold text-sm">श्रवण कुमार सागर व साथी</span>
+                <span className="text-white font-bold text-sm">विनोद, अजय व श्रवण सागर</span>
               </div>
               <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
                 <span className="text-slate-400 block mb-1">प्रकाशक</span>
@@ -459,7 +486,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </div>
               <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
                 <span className="text-slate-400 block mb-1">पृष्ठ संख्या (Pages)</span>
-                <span className="text-white font-bold text-sm">350+ Pages</span>
+                <span className="text-white font-bold text-sm">
+                  {product.slug === "bihar-nmms-practice-set-book" ? "180+ Pages" : "350+ Pages"}
+                </span>
               </div>
               <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
                 <span className="text-slate-400 block mb-1">बाइंडिंग प्रारूप</span>
@@ -467,7 +496,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </div>
               <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
                 <span className="text-slate-400 block mb-1">ऑफर मूल्य</span>
-                <span className="text-emerald-400 font-black text-sm">₹350 (MRP ₹499)</span>
+                <span className="text-emerald-400 font-black text-sm">
+                  ₹{price.toLocaleString("en-IN")} {originalPrice ? `(MRP ₹${originalPrice})` : ""}
+                </span>
               </div>
             </div>
           </div>
@@ -478,8 +509,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               SK
             </div>
             <div className="space-y-2 text-center md:text-left">
-              <span className="text-[10px] font-bold tracking-widest text-indigo-400 uppercase">LEAD AUTHOR & MENTOR</span>
-              <h3 className="text-lg font-bold text-white">श्रवण कुमार सागर (Sagar Coaching Centre)</h3>
+              <span className="text-[10px] font-bold tracking-widest text-indigo-400 uppercase">AUTHORS & MENTORS</span>
+              <h3 className="text-lg font-bold text-white">विनोद कुमार, अजय कुमार एवं श्रवण कुमार सागर</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
                 बिहार राज्य के हजारों ग्रामीण व शहरी विद्यार्थियों को NMMS, नवोदय विद्यालय और सैनिक स्कूल प्रवेश परीक्षा में मार्गदर्शन देकर टॉपर बनाने वाले प्रतिष्ठित शिक्षक। सागर कोचिंग सेंटर यूट्यूब चैनल और ऐप के माध्यम से लाखों छात्र गुणवत्तापूर्ण शिक्षा प्राप्त कर रहे हैं।
               </p>
@@ -497,10 +528,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
                 <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-indigo-400 shrink-0" />
-                  बिहार NMMS परीक्षा 2027-28 के लिए यह पुस्तक क्यों जरूरी है?
+                  {product.slug === "bihar-nmms-practice-set-book"
+                    ? "इस प्रैक्टिस सेट पुस्तक में कितने पेपर्स और सेट्स हैं?"
+                    : "बिहार NMMS परीक्षा के लिए यह पुस्तक क्यों जरूरी है?"}
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  इस पुस्तक में NMMS के पूरे MAT (रीजनिंग) और SAT (विज्ञान, गणित, सामाजिक विज्ञान) का संपूर्ण थ्योरी, शॉर्टकट ट्रिक्स और 2021 से 2026 तक के 6 वर्षों के हल प्रश्न पत्र शामिल हैं।
+                  {product.slug === "bihar-nmms-practice-set-book"
+                    ? "इसमें विगत 5 वर्षों (2021, 2022, 2023, 2024, 2025) के ओरिजिनल सॉल्वड पेपर्स तथा 11 फुल-लेंथ मॉडल प्रैक्टिस सेट्स हल सहित दिए गए हैं।"
+                    : "इस पुस्तक में NMMS के पूरे MAT (रीजनिंग) और SAT (विज्ञान, गणित, सामाजिक विज्ञान) का संपूर्ण थ्योरी, शॉर्टकट ट्रिक्स और हल प्रश्न पत्र शामिल हैं।"}
                 </p>
               </div>
 
@@ -517,20 +552,20 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
                 <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-indigo-400 shrink-0" />
-                  क्या इस किताब में पिछले वर्षों के ओरिजिनल हल प्रश्न पत्र हैं?
+                  क्या इसमें OMR शीट अभ्यास की सुविधा है?
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  हाँ, इसमें वर्ष 2021, 2022, 2023, 2024, 2025 एवं 2026 के सभी हल प्रश्न पत्र सरल हिंदी व्याख्या के साथ दिए गए हैं।
+                  हाँ, सभी प्रैक्टिस सेट्स परीक्षा जैसे OMR फॉर्मेट और टाइम बाउंड प्रैक्टिस के लिए डिजाइन किए गए हैं।
                 </p>
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
                 <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-indigo-400 shrink-0" />
-                  क्या यह पुस्तक बिहार बोर्ड (SCERT) के बच्चों के लिए सही है?
+                  क्या यह पुस्तक कक्षा 8वीं के बच्चों के लिए उपयुक्त है?
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  बिल्कुल! यह पुस्तक शत-प्रतिशत बिहार SCERT व NCERT कक्षा 7 और 8 के पाठ्यक्रम पर आधारित है।
+                  बिल्कुल! यह पुस्तक शत-प्रतिशत कक्षा 8 में अध्ययनरत् विद्यार्थियों के लिए बिहार SCERT व NCERT सिलेबस पर आधारित है।
                 </p>
               </div>
             </div>

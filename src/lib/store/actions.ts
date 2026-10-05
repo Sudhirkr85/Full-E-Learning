@@ -35,6 +35,40 @@ const FALLBACK_NMMS_BOOK = {
   updatedAt: new Date("2026-10-05"),
 };
 
+const FALLBACK_PRACTICE_SET = {
+  id: "c9518e11-7b12-4d89-8e2b-2f365c49cd97",
+  title: "Bihar NMMS 11 Practice Sets & 5 Solved Papers (2021-2025)",
+  slug: "bihar-nmms-practice-set-book",
+  description: "राज्य स्तरीय बिहार राष्ट्रीय आय-सह-मेधा छात्रवृत्ति परीक्षा (NMMS) के लिए 11 मॉडल प्रैक्टिस सेट्स और 2021 से 2025 तक के 5 सॉल्वड पेपर्स व्याख्या सहित हल। MAT और SAT दोनों भागों के लिए कक्षा 8 के छात्रों हेतु सर्वश्रेष्ठ पुस्तक।",
+  priceCents: 15000,
+  originalPriceCents: 25000,
+  productType: "PHYSICAL" as ProductType,
+  status: "ACTIVE" as ProductStatus,
+  coverImageUrl: "/images/products/bihar-nmms-practice-set-book.webp",
+  metadata: {
+    format: "Paperback",
+    language: "Hindi",
+    edition: "2026-27 Latest Practice Edition",
+    pages: 180,
+    publisher: "Raghav Prakashan",
+    authors: ["Vinod Kumar", "Ajay Kumar", "Shrvan Kumar Sagar"],
+    exam: "Bihar NMMS (Rashtriya Aay-Sah-Medha Chhatravritti Pariksha - Class 8)",
+    subjects: ["Mental Ability Test (MAT)", "Scholastic Aptitude Test (SAT)"],
+    features: [
+      "5 Solved Papers (2021, 2022, 2023, 2024, 2025) with Detailed Solutions",
+      "11 Full-Length Model Practice Sets (MAT + SAT)",
+      "Class 8 NCERT / SCERT Syllabus Based",
+      "Real Exam OMR Sheet Practice",
+      "Authored by Vinod Kumar, Ajay Kumar & Shrvan Kumar Sagar",
+      "Fast Doorstep Delivery Across India"
+    ]
+  },
+  createdAt: new Date("2026-10-01"),
+  updatedAt: new Date("2026-10-05"),
+};
+
+const ALL_FALLBACK_PRODUCTS = [FALLBACK_NMMS_BOOK, FALLBACK_PRACTICE_SET];
+
 /**
  * Fetch active products from the database with optional filters.
  */
@@ -74,7 +108,7 @@ export async function getProductsAction(filters?: {
     if (!products || (Array.isArray(products) && products.length === 0)) {
       return {
         success: true,
-        products: [FALLBACK_NMMS_BOOK as any],
+        products: ALL_FALLBACK_PRODUCTS as any,
       };
     }
 
@@ -86,7 +120,7 @@ export async function getProductsAction(filters?: {
     console.error("[GET_PRODUCTS_ERROR]", err);
     return {
       success: true,
-      products: [FALLBACK_NMMS_BOOK as any],
+      products: ALL_FALLBACK_PRODUCTS as any,
     };
   }
 }
@@ -121,6 +155,12 @@ export async function getProductBySlugAction(slug: string) {
           product: FALLBACK_NMMS_BOOK as any,
         };
       }
+      if (slug === "bihar-nmms-practice-set-book") {
+        return {
+          success: true,
+          product: FALLBACK_PRACTICE_SET as any,
+        };
+      }
       return {
         success: false,
         error: "Product not found or currently unavailable.",
@@ -138,6 +178,12 @@ export async function getProductBySlugAction(slug: string) {
       return {
         success: true,
         product: FALLBACK_NMMS_BOOK as any,
+      };
+    }
+    if (slug === "bihar-nmms-practice-set-book") {
+      return {
+        success: true,
+        product: FALLBACK_PRACTICE_SET as any,
       };
     }
     return {

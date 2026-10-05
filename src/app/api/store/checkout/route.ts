@@ -35,6 +35,12 @@ export async function POST(req: Request) {
         });
       }
 
+      if (!product && (item.productId === "bihar-nmms-practice-set-book" || item.productId === "c9518e11-7b12-4d89-8e2b-2f365c49cd97")) {
+        product = await prisma.product.findFirst({
+          where: { slug: "bihar-nmms-practice-set-book" }
+        });
+      }
+
       if (!product || (product.status !== "PUBLISHED" && product.status !== "ACTIVE")) continue;
       validItems.push({ product, quantity: item.quantity });
     }

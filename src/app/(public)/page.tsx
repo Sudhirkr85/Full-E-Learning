@@ -28,6 +28,7 @@ import { makeMetadata, siteConfig } from "@/lib/site";
 import { getPublishedCourses } from "@/lib/courses/queries";
 import { prisma } from "@/lib/prisma";
 import { HeroSection } from "@/components/home/HeroSection";
+import { VipTelegramSection } from "@/components/vip-telegram-section";
 
 export const metadata: Metadata = makeMetadata({
   title: "NMMS, Navodaya & Sainik School Coaching | Sagar Coaching Centre",
@@ -246,6 +247,9 @@ export default async function HomePage() {
 
           </div>
         </section>
+
+        {/* 3.5. NMMS VIP TELEGRAM ALERT CHANNEL BANNER */}
+        <VipTelegramSection />
 
         {/* 4. ACTIVE LEARNING / शिक्षा क्रांति */}
         <section className="py-20 md:py-24 bg-slate-50 border-b border-slate-200">

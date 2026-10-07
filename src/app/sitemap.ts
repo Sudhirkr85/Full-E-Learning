@@ -8,7 +8,7 @@ import { CURATED_TOPIC_LIST } from "@/lib/seo/generator";
 export const revalidate = 86400; // Cache sitemap for 24 hours
 export const dynamic = "force-static";
 
-const publicStaticPaths = ["/", "/courses", "/store", "/privacy-policy", "/terms", "/refund-policy"];
+const publicStaticPaths = ["/", "/courses", "/store", "/vip-telegram", "/privacy-policy", "/terms", "/refund-policy"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

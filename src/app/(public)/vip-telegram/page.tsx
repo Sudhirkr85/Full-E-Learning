@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 export const metadata: Metadata = {
   ...makeMetadata({
     title: "NMMS 2026-27 VIP Telegram Alert Channel | All States SCERT Notifications & Papers",
-    description: "Join official NMMS 2026-27 VIP Telegram Alert Channel by Sagar Coaching Centre Bhagwanpur. Instant SCERT Notifications, Admit Cards, Results, Answer Keys & Model Papers for all 36 states for ₹49.",
+    description: "Join official NMMS 2026-27 VIP Telegram Alert Channel by Sagar Coaching Centre Bhagwanpur. Instant SCERT Notifications, Admit Cards, Results, Answer Keys & Model Papers for all states for ₹49.",
     path: "/vip-telegram",
   }),
   keywords: [
@@ -50,26 +50,25 @@ const COVERED_STATES = [
   "उत्तर प्रदेश (UP)",
   "मध्य प्रदेश (MP)",
   "राजस्थान (Rajasthan)",
+  "झारखंड (Jharkhand)",
   "हरियाणा (Haryana)",
   "दिल्ली (Delhi)",
+  "छत्तीसगढ़ (Chhattisgarh)",
   "महाराष्ट्र (Maharashtra)",
   "गुजरात (Gujarat)",
   "पश्चिम बंगाल (West Bengal)",
   "ओडिशा (Odisha)",
-  "झारखंड (Jharkhand)",
-  "छत्तीसगढ़ (Chhattisgarh)",
   "पंजाब (Punjab)",
   "उत्तराखंड (Uttarakhand)",
   "हिमाचल प्रदेश (HP)",
   "असम (Assam)",
-  "कर्नाटक (Karnataka)",
-  "अन्य सभी 36 राज्य व UTs"
+  "अन्य सभी राज्य (All India)"
 ];
 
 const FAQS = [
   {
     q: "NMMS 2026-27 VIP Telegram Alert Channel क्या है?",
-    a: "यह सागर कोचिंग सेंटर भगवानपुर (श्रवण कुमार सागर) द्वारा संचालित एक प्रीमियम ऑफिशियल टेलीग्राम चैनल है, जहाँ भारत के सभी 36 राज्यों के NMMS परीक्षा नोटिफिकेशन, आवेदन तिथि, एडमिट कार्ड, मॉडल प्रश्न पत्र, आंसर की और मेरिट लिस्ट सबसे पहले 1-क्लिक PDF के रूप में उपलब्ध कराई जाती है।"
+    a: "यह सागर कोचिंग सेंटर भगवानपुर (श्रवण कुमार सागर) द्वारा संचालित एक प्रीमियम ऑफिशियल टेलीग्राम चैनल है, जहाँ भारत के सभी राज्यों के NMMS परीक्षा नोटिफिकेशन, आवेदन तिथि, एडमिट कार्ड, मॉडल प्रश्न पत्र, आंसर की और मेरिट लिस्ट सबसे पहले 1-क्लिक PDF के रूप में उपलब्ध कराई जाती है।"
   },
   {
     q: "भुगतान करने के बाद चैनल का लिंक कैसे मिलेगा?",
@@ -81,7 +80,7 @@ const FAQS = [
   },
   {
     q: "क्या इसमें सभी राज्यों के ओरिजिनल नोटिफिकेशन और मॉडल पेपर्स मिलेंगे?",
-    a: "हाँ! बिहार, उत्तर प्रदेश, मध्य प्रदेश, राजस्थान, हरियाणा, दिल्ली सहित सभी 36 राज्यों और केंद्र शासित प्रदेशों के आधिकारिक SCERT व राज्य शिक्षा बोर्ड के ओरिजिनल ऑथेंटिक नोटिफिकेशन्स और 100% वेरिफाइड पीडीएफ पेपर्स मिलेंगे।"
+    a: "हाँ! बिहार, उत्तर प्रदेश, मध्य प्रदेश, राजस्थान, झारखंड, हरियाणा, दिल्ली सहित भारत के सभी राज्यों के आधिकारिक SCERT व राज्य शिक्षा बोर्ड के ओरिजिनल ऑथेंटिक नोटिफिकेशन्स और 100% वेरिफाइड पीडीएफ पेपर्स मिलेंगे।"
   },
   {
     q: "यदि भुगतान में कोई समस्या आए तो सहायता कहाँ से मिलेगी?",
@@ -97,7 +96,7 @@ export default function VipTelegramPage() {
         "@type": "Product",
         "@id": `${siteConfig.url}/vip-telegram#product`,
         "name": "NMMS 2026-27 VIP Telegram Alert Channel",
-        "description": "All 36 States Official SCERT Notifications, Admit Cards, Results & Model Papers for NMMS Scholarship Examination 2026-27 by Sagar Coaching Centre Bhagwanpur.",
+        "description": "All States Official SCERT Notifications, Admit Cards, Results & Model Papers for NMMS Scholarship Examination 2026-27 by Sagar Coaching Centre Bhagwanpur.",
         "image": `${siteConfig.url}/logo-circle-transparent.png`,
         "brand": {
           "@type": "Brand",

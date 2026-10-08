@@ -212,7 +212,7 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
                   NMMS 2026-27 Special
                 </span>
                 <span className="text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
-                  All 36 States Covered
+                  All States Covered (सभी राज्य)
                 </span>
               </div>
 
@@ -222,7 +222,7 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
                   NMMS 2026-27 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300">VIP Telegram Alert Channel</span>
                 </h2>
                 <p className="text-sm sm:text-base text-slate-300 font-medium leading-relaxed">
-                  सभी 36 राज्यों के Official Notifications, Admit Cards, Results, Answer Keys और Model Papers सबसे पहले पाएं।
+                  सभी राज्यों (All States) के Official Notifications, Admit Cards, Results, Answer Keys और Model Papers सबसे पहले पाएं।
                 </p>
               </div>
 

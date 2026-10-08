@@ -51,6 +51,7 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
     const base = [
       { label: "Courses", href: "/courses" },
       { label: "Store", href: "/store" },
+      { label: "VIP Alerts", href: "/vip-telegram", isSpecial: true },
     ];
 
     if (!user) {
@@ -103,13 +104,18 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative text-sm font-medium transition-colors duration-200 py-1 group",
+                  "relative text-sm font-medium transition-colors duration-200 py-1 flex items-center gap-1.5 group",
                   isActive(item.href)
                     ? "text-white font-semibold"
                     : "text-slate-400 hover:text-white"
                 )}
               >
                 {item.label}
+                {item.isSpecial && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
+                    ₹49
+                  </span>
+                )}
                 {/* Dynamic bottom active bar line */}
                 <span
                   className={cn(

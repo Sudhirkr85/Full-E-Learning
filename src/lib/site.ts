@@ -269,12 +269,14 @@ export const mainNav = [
   { label: "Home", href: "/" },
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },
+  { label: "VIP Alerts", href: "/vip-telegram" },
   { label: "Login", href: "/login" }
 ];
 
 export const footerNav = [
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },
+  { label: "VIP Telegram Channel", href: "/vip-telegram" },
   { label: "Register", href: "/register" }
 ];
 

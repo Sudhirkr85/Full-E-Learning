@@ -91,6 +91,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
     const base = [
       { label: "Courses", href: "/courses" },
       { label: "Store", href: "/store" },
+      { label: "VIP Telegram Alerts", href: "/vip-telegram", isSpecial: true },
     ];
 
     if (!user) {
@@ -234,13 +235,18 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                   href={item.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center px-4 min-h-[44px] text-sm font-semibold rounded-lg transition-all duration-200 border border-transparent",
+                    "flex items-center justify-between px-4 min-h-[44px] text-sm font-semibold rounded-lg transition-all duration-200 border border-transparent",
                     isActive(item.href)
                       ? "bg-white/10 text-white border-white/5"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
                   )}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.isSpecial && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      ₹49
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>

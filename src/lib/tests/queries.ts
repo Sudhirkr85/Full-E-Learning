@@ -261,8 +261,66 @@ export async function getStudentAttemptReview(attemptId: string, userId: string)
     },
   });
 
+  // Calculate Real-Time Rank & Leaderboard statistics
+  const allGradedAttempts = await prisma.attempt.findMany({
+    where: {
+      testId: attempt.testId,
+      status: AttemptStatus.GRADED,
+    },
+    select: {
+      id: true,
+      userId: true,
+      scorePercent: true,
+      correctAnswersCount: true,
+      timeSpentSeconds: true,
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: [
+      { correctAnswersCount: "desc" },
+      { timeSpentSeconds: "asc" },
+    ],
+  });
+
+  // Calculate distinct candidate ranking (best attempt per user)
+  const bestAttemptsByUser = new Map<string, typeof allGradedAttempts[0]>();
+  for (const att of allGradedAttempts) {
+    if (!bestAttemptsByUser.has(att.userId)) {
+      bestAttemptsByUser.set(att.userId, att);
+    }
+  }
+
+  const sortedCandidates = Array.from(bestAttemptsByUser.values()).sort((a, b) => {
+    if (b.correctAnswersCount !== a.correctAnswersCount) {
+      return b.correctAnswersCount - a.correctAnswersCount;
+    }
+    return (a.timeSpentSeconds ?? 0) - (b.timeSpentSeconds ?? 0);
+  });
+
+  const totalCandidates = Math.max(1, sortedCandidates.length);
+  const userRankIndex = sortedCandidates.findIndex((c) => c.userId === attempt.userId);
+  const userRank = userRankIndex >= 0 ? userRankIndex + 1 : 1;
+  const percentile = Math.round(((totalCandidates - userRank + 1) / totalCandidates) * 100);
+
+  // Top 5 Leaderboard
+  const leaderboard = sortedCandidates.slice(0, 5).map((c, idx) => ({
+    rank: idx + 1,
+    name: c.user?.name || "Student",
+    scorePercent: c.scorePercent ?? 0,
+    timeSpentSeconds: c.timeSpentSeconds ?? 0,
+  }));
+
   return {
     attempt,
     questions: gradedQuestions,
+    ranking: {
+      userRank,
+      totalCandidates,
+      percentile,
+      leaderboard,
+    },
   };
 }

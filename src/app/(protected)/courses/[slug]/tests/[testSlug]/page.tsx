@@ -213,19 +213,20 @@ export default async function TestPortalPage({ params, searchParams }: TestPorta
             totalQuestionsCount: review.attempt.totalQuestionsCount,
             timeSpentSeconds: review.attempt.timeSpentSeconds,
           }}
-          questions={review.questions.map((q) => ({
+          ranking={(review as any).ranking}
+          questions={review.questions.map((q: any) => ({
             id: q.id,
             prompt: q.prompt,
             kind: q.kind,
             points: q.points,
             explanation: q.explanation,
-            options: q.options.map((o) => ({
+            options: q.options.map((o: any) => ({
               id: o.id,
               label: o.label,
               isCorrect: o.isCorrect,
               explanation: o.explanation,
             })),
-            answers: q.answers.map((a) => ({
+            answers: q.answers.map((a: any) => ({
               selectedOptionId: a.selectedOptionId,
               answerText: a.answerText,
               isCorrect: a.isCorrect,

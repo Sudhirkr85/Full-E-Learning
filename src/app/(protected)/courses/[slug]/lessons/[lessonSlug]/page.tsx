@@ -252,6 +252,60 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
     }
   }
 
+  // Calculate ranking if in quiz review mode
+  let quizRanking = null;
+  if (quizTest && quizReviewAttempt && quizReviewAttempt.status === "GRADED") {
+    const allGradedAttempts = await prisma.attempt.findMany({
+      where: {
+        testId: quizTest.id,
+        status: "GRADED",
+      },
+      select: {
+        id: true,
+        userId: true,
+        scorePercent: true,
+        correctAnswersCount: true,
+        timeSpentSeconds: true,
+        user: { select: { name: true } },
+      },
+      orderBy: [
+        { correctAnswersCount: "desc" },
+        { timeSpentSeconds: "asc" },
+      ],
+    });
+
+    const bestAttemptsByUser = new Map<string, typeof allGradedAttempts[0]>();
+    for (const att of allGradedAttempts) {
+      if (!bestAttemptsByUser.has(att.userId)) {
+        bestAttemptsByUser.set(att.userId, att);
+      }
+    }
+
+    const sortedCandidates = Array.from(bestAttemptsByUser.values()).sort((a, b) => {
+      if (b.correctAnswersCount !== a.correctAnswersCount) {
+        return b.correctAnswersCount - a.correctAnswersCount;
+      }
+      return (a.timeSpentSeconds ?? 0) - (b.timeSpentSeconds ?? 0);
+    });
+
+    const totalCandidates = Math.max(1, sortedCandidates.length);
+    const userRankIndex = sortedCandidates.findIndex((c) => c.userId === quizReviewAttempt.userId);
+    const userRank = userRankIndex >= 0 ? userRankIndex + 1 : 1;
+    const percentile = Math.round(((totalCandidates - userRank + 1) / totalCandidates) * 100);
+
+    quizRanking = {
+      userRank,
+      totalCandidates,
+      percentile,
+      leaderboard: sortedCandidates.slice(0, 5).map((c, idx) => ({
+        rank: idx + 1,
+        name: c.user?.name || "Student",
+        scorePercent: c.scorePercent ?? 0,
+        timeSpentSeconds: c.timeSpentSeconds ?? 0,
+      })),
+    };
+  }
+
   const isEnrolled = Boolean(bundle.enrollment && (bundle.enrollment.status === "ACTIVE" || bundle.enrollment.status === "COMPLETED"));
   const isStaff = currentUser?.role === "ADMIN" || currentUser?.role === "TEACHER";
   const isGuest = !currentUser;
@@ -274,6 +328,7 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
         quizActiveAttempt={quizActiveAttempt}
         quizReviewAttempt={quizReviewAttempt}
         quizQuestions={quizQuestions}
+        quizRanking={quizRanking}
         isEnrolled={isEnrolled}
         isStaff={isStaff}
         isGuest={isGuest}

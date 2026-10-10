@@ -21,7 +21,8 @@ import {
   FileText, 
   RotateCcw,
   Sparkles,
-  Loader2
+  Loader2,
+  Trophy
 } from "lucide-react";
 import Link from "next/link";
 import { CustomPopup } from "@/components/courses/custom-popup";
@@ -82,6 +83,17 @@ type TestPortalClientProps = {
   activeAttempt?: AttemptData | null;
   questions?: QuestionData[];
   reviewAttempt?: AttemptData | null;
+  ranking?: {
+    userRank: number;
+    totalCandidates: number;
+    percentile: number;
+    leaderboard: Array<{
+      rank: number;
+      name: string;
+      scorePercent: number;
+      timeSpentSeconds: number;
+    }>;
+  };
 };
 
 export default function TestPortalClient({
@@ -94,6 +106,7 @@ export default function TestPortalClient({
   activeAttempt = null,
   questions = [],
   reviewAttempt = null,
+  ranking,
 }: TestPortalClientProps) {
   const router = useRouter();
   
@@ -746,6 +759,104 @@ export default function TestPortalClient({
             </Button>
           </CardFooter>
         </Card>
+
+        {/* Real-Time Rank & State Leaderboard Section */}
+        {ranking && (
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Rank Card */}
+            <Card className="border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 via-background to-background shadow-lg">
+              <CardContent className="p-6 text-center space-y-2">
+                <div className="text-xs font-bold text-indigo-400 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                  <Trophy className="h-4 w-4" /> State Rank
+                </div>
+                <div className="text-3xl font-black text-white">
+                  #{ranking.userRank}
+                  <span className="text-xs font-normal text-muted-foreground ml-1">/ {ranking.totalCandidates}</span>
+                </div>
+                <Badge variant="secondary" className="bg-indigo-500/10 text-indigo-300 border-indigo-500/20 text-[10px]">
+                  Top {100 - ranking.percentile <= 1 ? 1 : 100 - ranking.percentile}% Percentile
+                </Badge>
+              </CardContent>
+            </Card>
+
+            {/* Total Students Attempted */}
+            <Card className="border-border/60 bg-background shadow-lg">
+              <CardContent className="p-6 text-center space-y-2">
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-1.5">
+                  Total Students
+                </div>
+                <div className="text-3xl font-black text-white">
+                  {ranking.totalCandidates}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Candidates completed this test
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Performance Level */}
+            <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 via-background to-background shadow-lg">
+              <CardContent className="p-6 text-center space-y-2">
+                <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                  Exam Readiness
+                </div>
+                <div className="text-2xl font-black text-white">
+                  {reviewAttempt.scorePercent && reviewAttempt.scorePercent >= 70 ? "Merit Zone" : reviewAttempt.scorePercent && reviewAttempt.scorePercent >= 40 ? "Qualified" : "Practice Needed"}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Based on UP NMMS cut-off standard
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Top Rankers Leaderboard */}
+        {ranking && ranking.leaderboard.length > 0 && (
+          <Card className="border-border/60 shadow-xl overflow-hidden">
+            <CardHeader className="p-5 border-b border-border/40 bg-muted/5 flex flex-row items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-amber-400" />
+                  Top Candidates Leaderboard
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Real-time top scorers in this mock test
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-xs">
+                Live State Roster
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border/20 text-xs">
+                {ranking.leaderboard.map((lead) => (
+                  <div key={lead.rank} className="flex items-center justify-between px-6 py-3.5 hover:bg-muted/10 transition">
+                    <div className="flex items-center gap-3">
+                      <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-[11px] ${
+                        lead.rank === 1 ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
+                        lead.rank === 2 ? "bg-slate-300/20 text-slate-300 border border-slate-300/30" :
+                        lead.rank === 3 ? "bg-amber-700/20 text-amber-600 border border-amber-700/30" :
+                        "bg-muted text-muted-foreground"
+                      }`}>
+                        #{lead.rank}
+                      </span>
+                      <span className="font-semibold text-foreground">{lead.name}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-muted-foreground text-[11px]">
+                        {Math.floor(lead.timeSpentSeconds / 60)}m {lead.timeSpentSeconds % 60}s
+                      </span>
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-bold">
+                        {lead.scorePercent}%
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Detailed Graded Question Review Panel */}
         <div className="space-y-6">

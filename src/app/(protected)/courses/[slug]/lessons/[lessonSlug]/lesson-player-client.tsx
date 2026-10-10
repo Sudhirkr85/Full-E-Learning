@@ -48,6 +48,7 @@ type LessonPlayerClientProps = {
   quizActiveAttempt?: any;
   quizReviewAttempt?: any;
   quizQuestions?: any[];
+  quizRanking?: any;
   isEnrolled: boolean;
   isStaff: boolean;
   isGuest?: boolean;
@@ -65,6 +66,7 @@ export function LessonPlayerClient({
   quizActiveAttempt,
   quizReviewAttempt,
   quizQuestions = [],
+  quizRanking = null,
   isEnrolled,
   isStaff,
   isGuest = false
@@ -459,6 +461,7 @@ export function LessonPlayerClient({
                     attempts={quizAttempts}
                     activeAttempt={quizActiveAttempt}
                     reviewAttempt={quizReviewAttempt}
+                    ranking={quizRanking}
                     questions={quizQuestions}
                     onRefresh={() => {
                       window.location.reload();

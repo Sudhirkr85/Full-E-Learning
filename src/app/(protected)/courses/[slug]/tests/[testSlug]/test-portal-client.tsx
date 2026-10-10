@@ -34,6 +34,28 @@ type OptionData = {
   explanation?: string | null;
 };
 
+export function QuestionPromptDisplay({ prompt }: { prompt: string }) {
+  const imgRegex = /\[img:\s*([^\]]+)\]/i;
+  const match = prompt.match(imgRegex);
+
+  if (match) {
+    const textBefore = prompt.replace(imgRegex, "").trim();
+    const imgSrc = match[1].trim();
+
+    return (
+      <div className="space-y-4">
+        {textBefore && <p className="leading-relaxed">{textBefore}</p>}
+        <div className="flex justify-center p-3 bg-white/95 dark:bg-zinc-900 rounded-xl border border-border/50 shadow-sm max-w-lg mx-auto">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imgSrc} alt="Question figure" className="max-h-64 object-contain rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  return <span className="leading-relaxed">{prompt}</span>;
+}
+
 type QuestionData = {
   id: string;
   prompt: string;
@@ -520,7 +542,7 @@ export default function TestPortalClient({
                     <Badge variant="outline" className="text-xs text-muted-foreground">{currentQuestion.points} Points</Badge>
                   </div>
                   <CardTitle className="text-xl font-medium leading-relaxed leading-7 text-foreground">
-                    {currentQuestion.prompt}
+                    <QuestionPromptDisplay prompt={currentQuestion.prompt} />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -897,7 +919,7 @@ export default function TestPortalClient({
                         )}
                       </div>
                       <CardTitle className="text-lg pt-2 font-medium leading-relaxed">
-                        {q.prompt}
+                        <QuestionPromptDisplay prompt={q.prompt} />
                       </CardTitle>
                     </div>
                   </div>

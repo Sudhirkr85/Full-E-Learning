@@ -33,6 +33,29 @@ type OptionData = {
   value?: string | null;
 };
 
+export function QuestionPromptDisplay({ prompt }: { prompt: string }) {
+  const imgRegex = /\[img:\s*([^\]]+)\]/i;
+  const match = prompt.match(imgRegex);
+
+  if (match) {
+    const textBefore = prompt.replace(imgRegex, "").trim();
+    const imgSrc = match[1].trim();
+
+    return (
+      <div className="space-y-4">
+        {textBefore && <p className="leading-relaxed">{textBefore}</p>}
+        <div className="flex justify-center p-3 bg-white/95 dark:bg-zinc-900 rounded-xl border border-white/10 shadow-sm max-w-lg mx-auto">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imgSrc} alt="Question figure" className="max-h-64 object-contain rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  return <span className="leading-relaxed">{prompt}</span>;
+}
+
+
 type QuestionData = {
   id: string;
   prompt: string;
@@ -554,7 +577,9 @@ export default function ClassroomQuizPortal({
                     <Badge variant="secondary">Question {currentQuestionIdx + 1} of {activeQuestions.length}</Badge>
                     <span className="text-[10px] font-mono text-slate-500">{currentQuestion.points} Marks</span>
                   </div>
-                  <CardTitle className="text-sm md:text-base font-bold text-white leading-relaxed">{currentQuestion.prompt}</CardTitle>
+                  <CardTitle className="text-sm md:text-base font-bold text-white leading-relaxed">
+                    <QuestionPromptDisplay prompt={currentQuestion.prompt} />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   {/* MCQ SELECTORS */}
@@ -864,7 +889,9 @@ export default function ClassroomQuizPortal({
                           <Badge variant="destructive" className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[9px] py-0 h-4">× Incorrect</Badge>
                         )}
                       </div>
-                      <CardTitle className="text-xs md:text-sm font-bold text-white pt-2 leading-relaxed">{q.prompt}</CardTitle>
+                      <CardTitle className="text-xs md:text-sm font-bold text-white pt-2 leading-relaxed">
+                        <QuestionPromptDisplay prompt={q.prompt} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="p-5 space-y-3 text-xs">
                       {/* MCQ EXPLANATIONS */}

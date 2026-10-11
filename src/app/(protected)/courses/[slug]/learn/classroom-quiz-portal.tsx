@@ -853,15 +853,15 @@ export default function ClassroomQuizPortal({
                     </div>
                   )}
                 </CardContent>
-                <CardFooter className="p-4 md:p-5 border-t border-white/5 bg-white/[0.01] flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <CardFooter className="p-3.5 sm:p-4 border-t border-white/5 bg-white/[0.01] flex items-center justify-between gap-1.5 sm:gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <Button 
                       onClick={() => setCurrentQuestionIdx(idx => Math.max(0, idx - 1))} 
                       disabled={isFirst} 
                       variant="outline" 
-                      className="h-9 text-xs rounded-xl border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-20 disabled:bg-transparent disabled:text-slate-500 disabled:border-white/5 transition-all"
+                      className="h-9 px-2.5 sm:px-3 text-xs rounded-xl border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-20 disabled:bg-transparent disabled:text-slate-500 disabled:border-white/5 transition-all whitespace-nowrap shrink-0"
                     >
-                      {lang === "hi" ? "← पिछला (Prev)" : "← Previous"}
+                      {lang === "hi" ? "← पिछला" : "← Previous"}
                     </Button>
 
                     <Button
@@ -872,36 +872,38 @@ export default function ClassroomQuizPortal({
                         !answers[currentQuestion.id]?.selectedOptionId &&
                         !(answers[currentQuestion.id]?.answerText && answers[currentQuestion.id]?.answerText?.trim())
                       }
-                      className="h-9 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 disabled:opacity-25 disabled:hover:bg-transparent transition-all"
+                      className="h-9 px-2 sm:px-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 disabled:opacity-25 disabled:hover:bg-transparent transition-all whitespace-nowrap shrink-0"
                     >
-                      {lang === "hi" ? "उत्तर साफ़ करें (Clear)" : "Clear Response"}
+                      {lang === "hi" ? "साफ़ करें" : "Clear"}
                     </Button>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => toggleMarkForReview(currentQuestion.id)}
-                      className={`h-9 text-xs rounded-xl transition-all flex items-center gap-1.5 ${
+                      className={`h-9 px-2.5 sm:px-3 text-xs rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                         reviewMarked[currentQuestion.id]
                           ? "border-purple-500/50 bg-purple-500/20 text-purple-300 font-semibold hover:bg-purple-500/30"
                           : "border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10"
                       }`}
                     >
                       <Bookmark className={`h-3.5 w-3.5 ${reviewMarked[currentQuestion.id] ? "fill-purple-400 text-purple-400" : ""}`} />
-                      {reviewMarked[currentQuestion.id]
-                        ? (lang === "hi" ? "चिह्न हटाएं (Unmark)" : "Unmark Review")
-                        : (lang === "hi" ? "बाद में देखें (Review)" : "Mark for Review")}
+                      <span>
+                        {reviewMarked[currentQuestion.id]
+                          ? (lang === "hi" ? "हटाएं" : "Unmark")
+                          : (lang === "hi" ? "बाद में देखें" : "Review")}
+                      </span>
                     </Button>
 
                     {isLast ? (
-                      <Button onClick={handleManualSubmit} disabled={isPending} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-9 px-4 rounded-xl font-bold shadow-lg shadow-indigo-600/30">
-                        {lang === "hi" ? "परीक्षा जमा करें (Submit)" : "Submit Assessment"}
+                      <Button onClick={handleManualSubmit} disabled={isPending} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-9 px-3.5 sm:px-4 rounded-xl font-bold shadow-lg shadow-indigo-600/30 whitespace-nowrap shrink-0">
+                        {lang === "hi" ? "परीक्षा जमा करें" : "Submit"}
                       </Button>
                     ) : (
-                      <Button onClick={() => setCurrentQuestionIdx(idx => Math.min(activeQuestions.length - 1, idx + 1))} className="h-9 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium">
-                        {lang === "hi" ? "अगला प्रश्न (Next) →" : "Next Question →"}
+                      <Button onClick={() => setCurrentQuestionIdx(idx => Math.min(activeQuestions.length - 1, idx + 1))} className="h-9 px-3 sm:px-4 text-xs rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold whitespace-nowrap shrink-0">
+                        {lang === "hi" ? "अगला →" : "Next →"}
                       </Button>
                     )}
                   </div>

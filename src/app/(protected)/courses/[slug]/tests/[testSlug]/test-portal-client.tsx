@@ -25,7 +25,9 @@ import {
   Trophy,
   ZoomIn,
   ZoomOut,
-  X
+  X,
+  Bookmark,
+  Languages
 } from "lucide-react";
 import Link from "next/link";
 import { CustomPopup } from "@/components/courses/custom-popup";
@@ -238,6 +240,35 @@ export default function TestPortalClient({
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paletteFilter, setPaletteFilter] = useState<string>("ALL");
+  const [lang, setLang] = useState<"hi" | "en">("hi");
+  const [fontScale, setFontScale] = useState<"md" | "lg" | "xl">("lg");
+  const [reviewMarked, setReviewMarked] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const savedLang = localStorage.getItem("preferred_quiz_lang");
+      if (savedLang === "en" || savedLang === "hi") setLang(savedLang);
+      const savedScale = localStorage.getItem("preferred_quiz_scale");
+      if (savedScale === "md" || savedScale === "lg" || savedScale === "xl") setFontScale(savedScale);
+    } catch {}
+  }, []);
+
+  const changeLang = (newLang: "hi" | "en") => {
+    setLang(newLang);
+    try { localStorage.setItem("preferred_quiz_lang", newLang); } catch {}
+  };
+
+  const changeFontScale = (scale: "md" | "lg" | "xl") => {
+    setFontScale(scale);
+    try { localStorage.setItem("preferred_quiz_scale", scale); } catch {}
+  };
+
+  const toggleMarkForReview = (questionId: string) => {
+    setReviewMarked((prev) => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }));
+  };
 
   // Custom Popup state
   const [popup, setPopup] = useState<{
@@ -395,7 +426,9 @@ export default function TestPortalClient({
   const handleManualSubmit = async () => {
     if (!activeAttempt) return;
     showConfirm(
-      "Are you sure you want to submit your answers and complete this attempt?",
+      lang === "hi"
+        ? "क्या आप वाकई अपनी परीक्षा समाप्त करके उत्तर जमा करना चाहते हैं? इसके बाद उत्तर बदले नहीं जा सकेंगे।"
+        : "Are you sure you want to submit your answers and complete this attempt?",
       async () => {
         setIsSubmitting(true);
         setError(null);
@@ -417,7 +450,7 @@ export default function TestPortalClient({
           setError(err.message || "Failed to submit answers.");
         }
       },
-      "Submit Quiz"
+      lang === "hi" ? "परीक्षा जमा करें (Submit)" : "Submit Quiz"
     );
   };
 
@@ -612,31 +645,93 @@ export default function TestPortalClient({
       );
     }
 
+    const promptTextClass = 
+      fontScale === "xl" ? "text-lg md:text-xl font-medium" :
+      fontScale === "lg" ? "text-base md:text-lg font-medium" :
+      "text-sm md:text-base font-medium";
+
+    const optionTextClass = 
+      fontScale === "xl" ? "text-base py-4" :
+      fontScale === "lg" ? "text-sm py-3.5" :
+      "text-xs py-3";
+
     return (
-      <div className="max-w-5xl mx-auto py-10 px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Top Timed Bar */}
-        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-card border border-border/60 shadow-lg sticky top-4 z-40">
+      <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        {/* Top Timed Bar with Language, Font Size & Submit controls */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 md:p-4 rounded-2xl bg-card border border-border/60 shadow-lg sticky top-4 z-40">
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
-              <span>Attempt #{activeAttempt.attemptNumber}</span>
-              <span className="text-xs text-muted-foreground font-normal">Started At: {new Date(activeAttempt.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span>{lang === "hi" ? `प्रयास #${activeAttempt.attemptNumber}` : `Attempt #${activeAttempt.attemptNumber}`}</span>
+              <span className="text-xs text-muted-foreground font-normal hidden sm:inline">
+                {lang === "hi" ? "शुरू:" : "Started:"} {new Date(activeAttempt.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
             </span>
-            <div className="hidden sm:flex items-center gap-1.5 text-sm font-medium">
-              <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-              Live active session
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              {lang === "hi" ? "सत्र सक्रिय है" : "Live session"}
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center flex-wrap gap-2 md:gap-3">
+            {/* Language Switcher */}
+            <button
+              type="button"
+              onClick={() => changeLang(lang === "hi" ? "en" : "hi")}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 hover:bg-muted text-xs font-semibold text-foreground border border-border transition-colors"
+              title={lang === "hi" ? "अंग्रेजी में बदलें" : "Switch to Hindi"}
+            >
+              <Languages className="h-3.5 w-3.5 text-primary" />
+              <span>{lang === "hi" ? "हिं / ENG" : "ENG / हिं"}</span>
+            </button>
+
+            {/* Font Size Resizer */}
+            <div className="flex items-center gap-0.5 bg-muted/60 p-1 rounded-lg border border-border text-xs">
+              <span className="text-[10px] text-muted-foreground px-1 font-mono hidden md:inline">
+                {lang === "hi" ? "अक्षर:" : "Font:"}
+              </span>
+              <button
+                type="button"
+                onClick={() => changeFontScale("md")}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${
+                  fontScale === "md" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={lang === "hi" ? "सामान्य अक्षर" : "Normal text"}
+              >
+                A-
+              </button>
+              <button
+                type="button"
+                onClick={() => changeFontScale("lg")}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${
+                  fontScale === "lg" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={lang === "hi" ? "मध्यम अक्षर (अनुशंसित)" : "Medium text"}
+              >
+                A
+              </button>
+              <button
+                type="button"
+                onClick={() => changeFontScale("xl")}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${
+                  fontScale === "xl" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={lang === "hi" ? "बड़ा अक्षर" : "Large text"}
+              >
+                A+
+              </button>
+            </div>
+
+            {/* Timer */}
             {test.timeLimitMinutes && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 font-mono font-bold animate-pulse text-sm">
-                <Clock className="h-4 w-4" />
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 font-mono font-bold animate-pulse text-xs">
+                <Clock className="h-3.5 w-3.5" />
                 {formatTimer(timeRemaining)}
               </div>
             )}
             
-            <Button onClick={handleManualSubmit} variant="default" size="sm">
-              Submit Quiz
+            {/* Submit Quiz in Header */}
+            <Button onClick={handleManualSubmit} variant="default" size="sm" className="font-bold text-xs h-8 px-3">
+              {lang === "hi" ? "परीक्षा जमा करें (Submit)" : "Submit Quiz"}
             </Button>
           </div>
         </div>
@@ -646,37 +741,55 @@ export default function TestPortalClient({
           <div className="space-y-4">
             {currentQuestion ? (
               <Card className="border-border/60 shadow-md">
-                <CardHeader className="p-6 border-b border-border/40 bg-muted/5">
+                <CardHeader className="p-5 md:p-6 border-b border-border/40 bg-muted/5">
                   <div className="flex items-center justify-between gap-4 mb-2">
-                    <Badge variant="outline">Question {currentQuestionIdx + 1} of {questions.length}</Badge>
-                    <Badge variant="outline" className="text-xs text-muted-foreground">{currentQuestion.points} Points</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-semibold text-xs">
+                        {lang === "hi" 
+                          ? `प्रश्न ${currentQuestionIdx + 1} / ${questions.length}` 
+                          : `Question ${currentQuestionIdx + 1} of ${questions.length}`}
+                      </Badge>
+                      {reviewMarked[currentQuestion.id] && (
+                        <Badge className="bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-500/30 text-[10px] font-medium flex items-center gap-1">
+                          <Bookmark className="h-3 w-3 fill-purple-500 text-purple-500" />
+                          {lang === "hi" ? "समीक्षा के लिए चिह्नित" : "Marked for Review"}
+                        </Badge>
+                      )}
+                    </div>
+                    <Badge variant="outline" className="text-xs text-muted-foreground font-mono">
+                      {currentQuestion.points} {lang === "hi" ? "अंक" : "Points"}
+                    </Badge>
                   </div>
-                  <CardTitle className="text-xl font-medium leading-relaxed leading-7 text-foreground">
+                  <CardTitle className={`leading-relaxed text-foreground ${promptTextClass}`}>
                     <QuestionPromptDisplay prompt={currentQuestion.prompt} />
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="p-5 md:p-6">
                   {/* SINGLE CHOICE & TRUE/FALSE OPTION SELECTIONS */}
                   {(currentQuestion.kind === QuestionType.SINGLE_CHOICE || currentQuestion.kind === QuestionType.TRUE_FALSE) && (
-                    <div className="grid gap-3">
-                      {currentQuestion.options.map((opt) => {
+                    <div className="grid gap-2.5">
+                      {currentQuestion.options.map((opt, optIdx) => {
                         const isSelected = answers[currentQuestion.id]?.selectedOptionId === opt.id;
+                        const optNumberLabel = `(${optIdx + 1})`;
                         return (
                           <button
                             key={opt.id}
                             type="button"
                             onClick={() => handleSingleChoiceSelect(currentQuestion.id, opt.id)}
-                            className={`w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between gap-3 text-sm ${
+                            className={`w-full text-left rounded-xl border transition-all flex items-center justify-between gap-3 px-4 ${optionTextClass} ${
                               isSelected
-                                ? "border-primary bg-primary/5 font-semibold text-primary"
-                                : "border-border hover:bg-muted/30"
+                                ? "border-primary bg-primary/10 font-semibold text-primary shadow ring-1 ring-primary"
+                                : "border-border hover:bg-muted/40 text-foreground"
                             }`}
                           >
-                            <span>{opt.label}</span>
+                            <div className="flex items-start gap-3">
+                              <span className="font-bold text-primary font-mono shrink-0">{optNumberLabel}</span>
+                              <span className="leading-snug">{opt.label}</span>
+                            </div>
                             <span className={`h-4 w-4 rounded-full border shrink-0 flex items-center justify-center ${
                               isSelected ? "border-primary bg-primary" : "border-border bg-background"
                             }`}>
-                              {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-background"></span>}
+                              {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground"></span>}
                             </span>
                           </button>
                         );
@@ -686,25 +799,29 @@ export default function TestPortalClient({
 
                   {/* MULTIPLE CHOICE OPTION SELECTIONS */}
                   {currentQuestion.kind === QuestionType.MULTIPLE_CHOICE && (
-                    <div className="grid gap-3">
-                      {currentQuestion.options.map((opt) => {
+                    <div className="grid gap-2.5">
+                      {currentQuestion.options.map((opt, optIdx) => {
                         const isSelected = (answers[currentQuestion.id]?.selectedOptionIds || []).includes(opt.id);
+                        const optNumberLabel = `(${optIdx + 1})`;
                         return (
                           <button
                             key={opt.id}
                             type="button"
                             onClick={() => handleMultipleChoiceSelect(currentQuestion.id, opt.id)}
-                            className={`w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between gap-3 text-sm ${
+                            className={`w-full text-left rounded-xl border transition-all flex items-center justify-between gap-3 px-4 ${optionTextClass} ${
                               isSelected
-                                ? "border-primary bg-primary/5 font-semibold text-primary"
-                                : "border-border hover:bg-muted/30"
+                                ? "border-primary bg-primary/10 font-semibold text-primary ring-1 ring-primary"
+                                : "border-border hover:bg-muted/40 text-foreground"
                             }`}
                           >
-                            <span>{opt.label}</span>
+                            <div className="flex items-start gap-3">
+                              <span className="font-bold text-primary font-mono shrink-0">{optNumberLabel}</span>
+                              <span className="leading-snug">{opt.label}</span>
+                            </div>
                             <span className={`h-4 w-4 rounded border shrink-0 flex items-center justify-center ${
                               isSelected ? "border-primary bg-primary" : "border-border bg-background"
                             }`}>
-                              {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-background" />}
+                              {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />}
                             </span>
                           </button>
                         );
@@ -715,53 +832,77 @@ export default function TestPortalClient({
                   {/* SHORT ANSWER TEXT ENTRY */}
                   {currentQuestion.kind === QuestionType.SHORT_ANSWER && (
                     <div className="space-y-2">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type Your Answer</label>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {lang === "hi" ? "अपना उत्तर यहाँ लिखें (Type Your Answer)" : "Type Your Answer"}
+                      </label>
                       <Input
                         value={answers[currentQuestion.id]?.answerText || ""}
                         onChange={(e) => handleShortAnswerChange(currentQuestion.id, e.target.value)}
-                        placeholder="Enter exact short answer text match..."
+                        placeholder={lang === "hi" ? "उत्तर दर्ज करें..." : "Enter exact short answer match..."}
                         className="h-12 text-base rounded-xl"
                       />
-                      <p className="text-xs text-muted-foreground">Short text matches are case-insensitive. Provide exact answers.</p>
+                      <p className="text-xs text-muted-foreground">
+                        {lang === "hi" ? "उत्तर में स्पेलिंग सही लिखें।" : "Short text matches are case-insensitive. Provide exact answers."}
+                      </p>
                     </div>
                   )}
                 </CardContent>
-                <CardFooter className="p-6 border-t border-border/40 bg-muted/5 flex items-center justify-between gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentQuestionIdx((prev) => Math.max(0, prev - 1))}
-                    disabled={isFirstQuestion}
-                    className="flex items-center gap-1"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => handleClearResponse(currentQuestion.id)}
-                    disabled={!isQuestionAnswered(currentQuestion.id)}
-                    className="text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-rose-500/15 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                  >
-                    उत्तर साफ़ करें (Clear)
-                  </Button>
-
-                  {isLastQuestion ? (
-                    <Button onClick={handleManualSubmit} variant="default" className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Submit Assessment
-                    </Button>
-                  ) : (
+                <CardFooter className="p-4 md:p-6 border-t border-border/40 bg-muted/5 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => setCurrentQuestionIdx((prev) => Math.min(questions.length - 1, prev + 1))}
-                      className="flex items-center gap-1"
+                      onClick={() => setCurrentQuestionIdx((prev) => Math.max(0, prev - 1))}
+                      disabled={isFirstQuestion}
+                      className="flex items-center gap-1 h-9 text-xs"
                     >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronLeft className="h-4 w-4" />
+                      {lang === "hi" ? "पिछला (Prev)" : "Previous"}
                     </Button>
-                  )}
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => handleClearResponse(currentQuestion.id)}
+                      disabled={!isQuestionAnswered(currentQuestion.id)}
+                      className="text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-rose-500/15 disabled:opacity-30 disabled:hover:bg-transparent transition-all h-9"
+                    >
+                      {lang === "hi" ? "उत्तर साफ़ करें (Clear)" : "Clear Response"}
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => toggleMarkForReview(currentQuestion.id)}
+                      className={`h-9 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
+                        reviewMarked[currentQuestion.id]
+                          ? "border-purple-500/50 bg-purple-500/15 text-purple-600 dark:text-purple-300 font-semibold hover:bg-purple-500/25"
+                          : "border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Bookmark className={`h-3.5 w-3.5 ${reviewMarked[currentQuestion.id] ? "fill-purple-500 text-purple-500" : ""}`} />
+                      {reviewMarked[currentQuestion.id]
+                        ? (lang === "hi" ? "चिह्न हटाएं (Unmark)" : "Unmark Review")
+                        : (lang === "hi" ? "बाद में देखें (Review)" : "Mark for Review")}
+                    </Button>
+
+                    {isLastQuestion ? (
+                      <Button onClick={handleManualSubmit} variant="default" className="flex items-center gap-1.5 h-9 font-bold text-xs shadow-md">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {lang === "hi" ? "परीक्षा जमा करें (Submit)" : "Submit Assessment"}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="default"
+                        onClick={() => setCurrentQuestionIdx((prev) => Math.min(questions.length - 1, prev + 1))}
+                        className="flex items-center gap-1 h-9 text-xs font-semibold"
+                      >
+                        {lang === "hi" ? "अगला प्रश्न (Next)" : "Next"}
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </CardFooter>
               </Card>
             ) : (
@@ -778,10 +919,10 @@ export default function TestPortalClient({
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
                     <FileText className="h-4 w-4 text-primary" />
-                    Quiz Navigator
+                    {lang === "hi" ? "प्रश्न सूची (Navigator)" : "Quiz Navigator"}
                   </CardTitle>
                   <Badge variant="outline" className="text-[10px] font-mono border-border text-muted-foreground">
-                    {questions.filter(q => isQuestionAnswered(q.id)).length} / {questions.length} Attempted
+                    {questions.filter(q => isQuestionAnswered(q.id)).length} / {questions.length} {lang === "hi" ? "हल किए" : "Attempted"}
                   </Badge>
                 </div>
 
@@ -793,7 +934,7 @@ export default function TestPortalClient({
                       onClick={() => setPaletteFilter("ALL")}
                       className={`flex-1 py-1 rounded transition text-center ${paletteFilter === "ALL" ? "bg-primary text-primary-foreground font-bold" : "hover:text-foreground"}`}
                     >
-                      All ({questions.length})
+                      {lang === "hi" ? `सभी (${questions.length})` : `All (${questions.length})`}
                     </button>
                     <button
                       type="button"
@@ -828,10 +969,15 @@ export default function TestPortalClient({
 
                     const isCurrent = idx === currentQuestionIdx;
                     const isAnswered = isQuestionAnswered(q.id);
+                    const isMarked = reviewMarked[q.id];
                     
                     let bgClass = "bg-muted/40 hover:bg-muted text-muted-foreground border-border";
                     if (isCurrent) {
-                      bgClass = "bg-primary text-primary-foreground border-primary font-bold shadow-md ring-1 ring-primary/40";
+                      bgClass = "bg-primary text-primary-foreground border-primary font-bold shadow-md ring-2 ring-primary/40";
+                    } else if (isMarked && isAnswered) {
+                      bgClass = "bg-purple-500/25 text-purple-700 dark:text-purple-300 border-purple-500/50 font-bold ring-1 ring-emerald-500/60";
+                    } else if (isMarked) {
+                      bgClass = "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40 font-bold";
                     } else if (isAnswered) {
                       bgClass = "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25 font-semibold";
                     }
@@ -840,25 +986,35 @@ export default function TestPortalClient({
                       <button
                         key={q.id}
                         onClick={() => setCurrentQuestionIdx(idx)}
-                        className={`h-8 w-full rounded-lg border text-xs flex items-center justify-center transition-all ${bgClass}`}
-                        title={`Question ${idx + 1}`}
+                        className={`h-8 w-full rounded-lg border text-xs flex items-center justify-center transition-all relative ${bgClass}`}
+                        title={lang === "hi" ? `प्रश्न ${idx + 1}` : `Question ${idx + 1}`}
                       >
                         {idx + 1}
+                        {isMarked && (
+                          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-purple-500 ring-1 ring-background" />
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
                 {/* Status Legend */}
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/40 text-[10px] text-muted-foreground">
+                <div className="grid grid-cols-2 gap-2 pt-3 mt-3 border-t border-border/40 text-[10px] text-muted-foreground">
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" /> Answered
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span>{lang === "hi" ? "हल किया (Done)" : "Answered"}</span>
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-primary" /> Active
+                    <span className="h-2.5 w-2.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>{lang === "hi" ? "समीक्षा (Review)" : "Review"}</span>
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-muted-foreground/30" /> Pending
+                    <span className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
+                    <span>{lang === "hi" ? "वर्तमान (Active)" : "Active"}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30 shrink-0" />
+                    <span>{lang === "hi" ? "शेष (Pending)" : "Pending"}</span>
                   </span>
                 </div>
               </CardContent>

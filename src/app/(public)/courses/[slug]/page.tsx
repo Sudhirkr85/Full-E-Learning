@@ -103,7 +103,8 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
                 slug: true,
                 contentType: true,
                 isPreview: true,
-                orderIndex: true
+                orderIndex: true,
+                thumbnailUrl: true
               }
             }
           }

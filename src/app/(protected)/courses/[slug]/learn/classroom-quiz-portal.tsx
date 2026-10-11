@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -562,8 +563,31 @@ export default function ClassroomQuizPortal({
 
     return (
       <Card className="border-white/5 bg-[#0a0a14]/60 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden text-left">
-        <CardHeader className="p-6 md:p-8 border-b border-white/5 bg-gradient-to-br from-indigo-950/20 to-slate-950/40">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+        <CardHeader className="p-6 md:p-8 border-b border-white/5 bg-gradient-to-br from-indigo-950/20 to-slate-950/40 space-y-4">
+          {/* Quiz Thumbnail Header */}
+          <div className="relative aspect-[21/9] w-full rounded-xl overflow-hidden border border-white/10 shadow-lg bg-slate-950">
+            <Image
+              src={
+                courseSlug.includes("bihar")
+                  ? "/images/courses/bihar-nmms-mock-test-series.webp"
+                  : "/images/courses/up-nmms-mock-test-series.webp"
+              }
+              alt={test.title}
+              fill
+              sizes="(max-width: 1024px) 100vw, 800px"
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs font-bold">
+              <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1">{test.title}</span>
+              <span className="bg-emerald-500/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 shadow">
+                Live Test
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             <Badge className="bg-indigo-500/10 text-indigo-300 border-indigo-500/20 text-[10px] font-bold uppercase tracking-wider">Assessment Quiz</Badge>
             <Badge variant="outline" className="border-white/10 text-slate-400 text-[10px] font-mono">
               {test.timeLimitMinutes ? `${test.timeLimitMinutes} Mins` : "No Time Limit"}

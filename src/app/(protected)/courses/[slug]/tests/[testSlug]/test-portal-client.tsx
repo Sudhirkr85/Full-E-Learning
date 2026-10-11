@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -485,8 +486,31 @@ export default function TestPortalClient({
         )}
 
         <Card className="overflow-hidden border-border/60 shadow-xl bg-gradient-to-br from-background via-background to-muted/10">
-          <CardHeader className="p-8 border-b border-border/40">
-            <div className="flex flex-wrap items-center gap-2 mb-4">
+          <CardHeader className="p-8 border-b border-border/40 space-y-4">
+            {/* Quiz Thumbnail Header */}
+            <div className="relative aspect-[21/9] w-full rounded-xl overflow-hidden border border-border shadow-md bg-muted/20">
+              <Image
+                src={
+                  courseSlug.includes("bihar")
+                    ? "/images/courses/bihar-nmms-mock-test-series.webp"
+                    : "/images/courses/up-nmms-mock-test-series.webp"
+                }
+                alt={test.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 800px"
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs font-bold">
+                <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1">{test.title}</span>
+                <span className="bg-emerald-500/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 shadow">
+                  Online Assessment
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="capitalize">{test.type.toLowerCase()}</Badge>
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
@@ -497,7 +521,7 @@ export default function TestPortalClient({
               </Badge>
             </div>
             <CardTitle className="text-3xl font-bold tracking-tight md:text-4xl">{test.title}</CardTitle>
-            <p className="mt-4 text-muted-foreground leading-relaxed text-base">{test.description ?? "Complete this assessment to test your understanding of the course materials and progress in your learning path."}</p>
+            <p className="mt-2 text-muted-foreground leading-relaxed text-base">{test.description ?? "Complete this assessment to test your understanding of the course materials and progress in your learning path."}</p>
           </CardHeader>
           <CardContent className="p-8 space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">

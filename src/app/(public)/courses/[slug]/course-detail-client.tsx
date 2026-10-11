@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Lock, Eye, CheckCircle } from "lucide-react";
+import { ChevronRight, Lock, Eye, CheckCircle, HelpCircle } from "lucide-react";
 
 type LessonItem = {
   id: string;
@@ -11,6 +12,7 @@ type LessonItem = {
   slug: string;
   contentType: string;
   isPreview: boolean;
+  thumbnailUrl?: string | null;
 };
 
 type SectionItem = {
@@ -115,19 +117,39 @@ export function CourseDetailClient({ slug, description, sections, isEnrolled, ou
                     {section.lessons.map((lesson) => (
                       <div
                         key={lesson.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-all duration-200 hover:bg-white/5 hover:border-white/10"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 sm:p-4 transition-all duration-200 hover:bg-white/5 hover:border-white/10"
                       >
-                        <div className="flex flex-wrap items-center gap-2 min-w-0">
-                          <span className="text-sm font-medium text-slate-200 truncate">{lesson.title}</span>
-                          <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold border-white/10 text-slate-400 px-2 py-0.5 rounded">
-                            {toLessonTypeLabel(lesson.contentType)}
-                          </Badge>
-                          {lesson.isPreview ? (
-                            <Badge variant="secondary" className="text-[10px] uppercase tracking-wider font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              Preview
-                            </Badge>
-                          ) : null}
+                        <div className="flex items-center gap-3 min-w-0">
+                          {lesson.thumbnailUrl ? (
+                            <div className="relative h-12 w-20 rounded-lg overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow">
+                              <Image
+                                src={lesson.thumbnailUrl}
+                                alt={lesson.title}
+                                fill
+                                sizes="80px"
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-10 w-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
+                              <HelpCircle className="h-5 w-5" />
+                            </div>
+                          )}
+
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <span className="text-sm font-medium text-slate-200 truncate">{lesson.title}</span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold border-white/10 text-slate-400 px-2 py-0.5 rounded">
+                                {toLessonTypeLabel(lesson.contentType)}
+                              </Badge>
+                              {lesson.isPreview ? (
+                                <Badge variant="secondary" className="text-[10px] uppercase tracking-wider font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded flex items-center gap-1">
+                                  <Eye className="h-3 w-3" />
+                                  Preview
+                                </Badge>
+                              ) : null}
+                            </div>
+                          </div>
                         </div>
                         <div className="self-start sm:self-center shrink-0">
                           {lesson.isPreview ? (

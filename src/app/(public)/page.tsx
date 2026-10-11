@@ -39,44 +39,39 @@ export const metadata: Metadata = makeMetadata({
 export const revalidate = 86400; // Cache on Edge CDN for 24 hours
 
 export default async function HomePage() {
-  const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
-
   const [coursesResult, dbProductsResult, dbReviewsResult] = await Promise.all([
-    Promise.race([getPublishedCourses().catch(() => []), timeoutPromise]),
-    Promise.race([
-      prisma.product.findMany({
-        where: { status: { in: ["ACTIVE", "PUBLISHED"] } },
-        take: 3,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          description: true,
-          priceCents: true,
-          originalPriceCents: true,
-          productType: true,
-          coverImageUrl: true,
-        },
-      }).catch(() => []),
-      timeoutPromise
-    ]),
-    Promise.race([
-      prisma.courseReview.findMany({
-        where: { status: "PUBLISHED", rating: { gte: 4 } },
-        take: 3,
-        orderBy: { reviewedAt: "desc" },
-        include: {
-          enrollment: {
-            include: {
-              user: { select: { name: true } },
-              course: { select: { title: true } }
-            }
+    getPublishedCourses().catch((err) => {
+      console.error("[HOMEPAGE] Failed to fetch courses:", err);
+      return [];
+    }),
+    prisma.product.findMany({
+      where: { status: { in: ["ACTIVE", "PUBLISHED"] } },
+      take: 3,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        priceCents: true,
+        originalPriceCents: true,
+        productType: true,
+        coverImageUrl: true,
+      },
+    }).catch(() => []),
+    prisma.courseReview.findMany({
+      where: { status: "PUBLISHED", rating: { gte: 4 } },
+      take: 3,
+      orderBy: { reviewedAt: "desc" },
+      include: {
+        enrollment: {
+          include: {
+            user: { select: { name: true } },
+            course: { select: { title: true } }
           }
         }
-      }).catch(() => []),
-      timeoutPromise
-    ])
+      }
+    }).catch(() => [])
   ]);
   
   const displayCourses = Array.isArray(coursesResult) ? coursesResult : [];
@@ -247,6 +242,119 @@ export default async function HomePage() {
 
           </div>
         </section>
+
+        {/* 3.1. FEATURED COURSES & ONLINE TEST SERIES */}
+        {displayCourses.length > 0 && (
+          <section className="py-16 md:py-24 bg-slate-50/70 border-b border-slate-200">
+            <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+              {/* Section Header */}
+              <div className="text-center max-w-3xl mx-auto space-y-3">
+                <Badge className="bg-indigo-50 border-indigo-200 text-indigo-700 text-xs px-3.5 py-1 rounded-full uppercase tracking-wider font-bold">
+                  Online Test Series & Courses
+                </Badge>
+                <h2 className="font-display text-3xl font-extrabold text-slate-900 sm:text-4xl tracking-tight">
+                  ऑनलाइन छात्रवृत्ति <span className="text-indigo-600">मॉक टेस्ट सीरीज</span>
+                </h2>
+                <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                  असली परीक्षा पैटर्न, टाइमर, और रियल-टाइम ऑल-स्टेट रैंक के साथ अभ्यास करें। तुरंत विस्तृत व्याख्या और स्कोर कार्ड प्राप्त करें।
+                </p>
+              </div>
+
+              {/* Courses Grid */}
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+                {displayCourses.map((course) => {
+                  const price = course.priceCents !== null ? Math.round(course.priceCents / 100) : 0;
+                  const categoryName = course.categories?.[0]?.category?.name ?? "Scholarship Exams";
+                  const sectionsCount = course._count?.sections ?? 0;
+
+                  return (
+                    <div
+                      key={course.id}
+                      className="group relative flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-xl hover:border-indigo-300 hover:-translate-y-1 transition-all duration-300"
+                    >
+                      <div className="space-y-4">
+                        {/* Course Thumbnail */}
+                        <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-inner group-hover:scale-[1.01] transition-transform duration-300">
+                          {course.coverImageUrl ? (
+                            <Image
+                              src={course.coverImageUrl}
+                              alt={course.title}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 flex items-center justify-center">
+                              <GraduationCap className="h-12 w-12 text-indigo-400 opacity-70" />
+                            </div>
+                          )}
+                          <span className="absolute top-3 left-3 rounded-full bg-black/70 border border-white/20 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                            {categoryName}
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <Link href={`/courses/${course.slug}`}>
+                          <h3 className="font-display text-lg font-bold text-slate-900 hover:text-indigo-600 transition duration-200 leading-snug line-clamp-2">
+                            {course.title}
+                          </h3>
+                        </Link>
+
+                        {/* Excerpt */}
+                        <p className="text-xs leading-relaxed text-slate-600 line-clamp-2">
+                          {course.subtitle || course.excerpt || "परीक्षा पैटर्न पर आधारित संपूर्ण टेस्ट सीरीज और हल।"}
+                        </p>
+
+                        {/* Info tags */}
+                        <div className="flex items-center gap-4 text-[11px] text-slate-500 pt-2 border-t border-slate-100">
+                          <span className="flex items-center gap-1 font-medium text-slate-700">
+                            <BookOpen className="h-3.5 w-3.5 text-indigo-500" />
+                            {sectionsCount} टेस्ट सेट्स
+                          </span>
+                          <span className="flex items-center gap-1 font-medium text-emerald-600 font-bold">
+                            <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+                            कंप्यूटर/मोबाइल फ्रेंडली
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Footer CTA */}
+                      <div className="mt-6 flex items-center justify-between pt-5 border-t border-slate-100">
+                        <div>
+                          <p className="text-[10px] text-slate-500 font-medium">फीस / रजिस्ट्रेशन</p>
+                          {price === 0 ? (
+                            <span className="inline-block mt-0.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-black text-emerald-700 uppercase tracking-wide">
+                              FREE / निःशुल्क
+                            </span>
+                          ) : (
+                            <p className="text-xl font-black text-slate-900 mt-0.5">₹{price.toLocaleString("en-IN")}</p>
+                          )}
+                        </div>
+
+                        <Button asChild size="sm" className="bg-indigo-600 text-white font-bold hover:bg-indigo-700 rounded-xl shadow-md hover:shadow-indigo-500/25 transition-all duration-300">
+                          <Link href={`/courses/${course.slug}`} className="flex items-center gap-1">
+                            टेस्ट दें
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Browse Catalog CTA */}
+              <div className="text-center pt-2">
+                <Button asChild variant="outline" className="border-slate-300 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold rounded-xl px-7 py-5 shadow-sm">
+                  <Link href="/courses" className="flex items-center gap-2">
+                    सभी कोर्सेज व टेस्ट देखें (All Courses)
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 3.5. NMMS VIP TELEGRAM ALERT CHANNEL BANNER */}
         <VipTelegramSection />

@@ -343,12 +343,27 @@ export default function TestPortalClient({
   };
 
   const handleSingleChoiceSelect = (questionId: string, optionId: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        selectedOptionId: optionId,
-      },
-    }));
+    setAnswers((prev) => {
+      if (prev[questionId]?.selectedOptionId === optionId) {
+        const copy = { ...prev };
+        delete copy[questionId];
+        return copy;
+      }
+      return {
+        ...prev,
+        [questionId]: {
+          selectedOptionId: optionId,
+        },
+      };
+    });
+  };
+
+  const handleClearResponse = (questionId: string) => {
+    setAnswers((prev) => {
+      const copy = { ...prev };
+      delete copy[questionId];
+      return copy;
+    });
   };
 
   const handleMultipleChoiceSelect = (questionId: string, optionId: string) => {
@@ -711,7 +726,7 @@ export default function TestPortalClient({
                     </div>
                   )}
                 </CardContent>
-                <CardFooter className="p-6 border-t border-border/40 bg-muted/5 flex items-center justify-between gap-4">
+                <CardFooter className="p-6 border-t border-border/40 bg-muted/5 flex items-center justify-between gap-2">
                   <Button
                     variant="outline"
                     onClick={() => setCurrentQuestionIdx((prev) => Math.max(0, prev - 1))}
@@ -720,6 +735,16 @@ export default function TestPortalClient({
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Previous
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleClearResponse(currentQuestion.id)}
+                    disabled={!isQuestionAnswered(currentQuestion.id)}
+                    className="text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-rose-500/15 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                  >
+                    उत्तर साफ़ करें (Clear)
                   </Button>
 
                   {isLastQuestion ? (

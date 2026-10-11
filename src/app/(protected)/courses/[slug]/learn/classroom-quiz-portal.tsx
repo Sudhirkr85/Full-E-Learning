@@ -485,12 +485,27 @@ export default function ClassroomQuizPortal({
   };
 
   const handleMCQSelect = (questionId: string, optionId: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        selectedOptionId: optionId,
-      },
-    }));
+    setAnswers((prev) => {
+      if (prev[questionId]?.selectedOptionId === optionId) {
+        const copy = { ...prev };
+        delete copy[questionId];
+        return copy;
+      }
+      return {
+        ...prev,
+        [questionId]: {
+          selectedOptionId: optionId,
+        },
+      };
+    });
+  };
+
+  const handleClearResponse = (questionId: string) => {
+    setAnswers((prev) => {
+      const copy = { ...prev };
+      delete copy[questionId];
+      return copy;
+    });
   };
 
   const handleFitbChange = (questionId: string, text: string) => {
@@ -719,7 +734,7 @@ export default function ClassroomQuizPortal({
                     </div>
                   )}
                 </CardContent>
-                <CardFooter className="p-5 border-t border-white/5 bg-white/[0.01] flex justify-between">
+                <CardFooter className="p-5 border-t border-white/5 bg-white/[0.01] flex items-center justify-between gap-2">
                   <Button 
                     onClick={() => setCurrentQuestionIdx(idx => Math.max(0, idx - 1))} 
                     disabled={isFirst} 
@@ -728,6 +743,20 @@ export default function ClassroomQuizPortal({
                   >
                     Previous
                   </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleClearResponse(currentQuestion.id)}
+                    disabled={
+                      !answers[currentQuestion.id]?.selectedOptionId &&
+                      !(answers[currentQuestion.id]?.answerText && answers[currentQuestion.id]?.answerText?.trim())
+                    }
+                    className="h-9 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                  >
+                    उत्तर साफ़ करें (Clear)
+                  </Button>
+
                   {isLast ? (
                     <Button onClick={handleManualSubmit} disabled={isPending} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-9 px-4 rounded-lg">
                       Submit Assessment

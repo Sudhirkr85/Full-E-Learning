@@ -19,7 +19,10 @@ import {
   FileText,
   RotateCcw,
   BookOpen,
-  Trophy
+  Trophy,
+  ZoomIn,
+  ZoomOut,
+  X
 } from "lucide-react";
 import { submitAttemptAction, startClassroomAttemptAction } from "@/lib/tests/actions";
 import { QuestionType, AttemptStatus } from "@prisma/client";
@@ -34,8 +37,20 @@ type OptionData = {
 };
 
 export function QuestionPromptDisplay({ prompt }: { prompt: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const imgRegex = /\[img:\s*([^\]]+)\]/i;
   const match = prompt.match(imgRegex);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   if (match) {
     const textBefore = prompt.replace(imgRegex, "").trim();
@@ -43,16 +58,95 @@ export function QuestionPromptDisplay({ prompt }: { prompt: string }) {
 
     return (
       <div className="space-y-4">
-        {textBefore && <p className="leading-relaxed">{textBefore}</p>}
-        <div className="flex justify-center p-3 bg-white/95 dark:bg-zinc-900 rounded-xl border border-white/10 shadow-sm max-w-lg mx-auto">
+        {textBefore && <p className="leading-relaxed whitespace-pre-line">{textBefore}</p>}
+        <div 
+          className="relative group flex justify-center p-3 bg-white/95 dark:bg-zinc-900 rounded-xl border border-white/10 shadow-sm max-w-lg mx-auto cursor-pointer hover:border-indigo-500/50 hover:shadow-indigo-500/10 transition-all select-none"
+          onClick={() => { setIsOpen(true); setZoomLevel(1); }}
+          title="चित्र बड़ा देखने के लिए क्लिक करें"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imgSrc} alt="Question figure" className="max-h-64 object-contain rounded" />
+          <img src={imgSrc} alt="Question figure" className="max-h-64 object-contain rounded transition-transform duration-200 group-hover:scale-[1.02]" />
+          
+          {/* Hover overlay hint */}
+          <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/80 backdrop-blur-md text-[11px] text-white font-semibold shadow-lg border border-white/10 group-hover:bg-indigo-600 group-hover:border-indigo-400 transition-colors">
+            <ZoomIn className="h-3.5 w-3.5" />
+            <span>🔍 बड़ा देखें (Click to Zoom)</span>
+          </div>
         </div>
+
+        {/* Fullscreen Lightbox Modal */}
+        {isOpen && (
+          <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-6 animate-in fade-in duration-200"
+            onClick={() => setIsOpen(false)}
+          >
+            <div 
+              className="relative max-w-5xl w-full max-h-[92vh] flex flex-col items-center justify-between p-4 bg-zinc-950/95 rounded-2xl border border-white/15 shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Controls bar */}
+              <div className="w-full flex items-center justify-between pb-3 mb-2 border-b border-white/10 text-xs">
+                <span className="font-semibold flex items-center gap-2 text-white">
+                  <Sparkles className="h-4 w-4 text-indigo-400" />
+                  <span>चित्र / आरेख विवरण (Full HD View)</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setZoomLevel((z) => Math.max(0.75, z - 0.25))}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition flex items-center gap-1 text-xs px-2.5"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">छोटा</span>
+                  </button>
+                  <span className="font-mono text-xs px-1.5 text-indigo-300 font-bold min-w-12 text-center">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setZoomLevel((z) => Math.min(2.5, z + 0.25))}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition flex items-center gap-1 text-xs px-2.5"
+                    title="Zoom In"
+                  >
+                    <ZoomIn className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">बड़ा</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white transition flex items-center gap-1 text-xs px-3 ml-2 font-bold"
+                    title="बंद करें (Close)"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>बंद करें</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable / Zoomed Image container */}
+              <div className="w-full flex-1 overflow-auto max-h-[75vh] flex items-center justify-center p-3 rounded-xl bg-white dark:bg-zinc-900 border border-white/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={imgSrc} 
+                  alt="Enlarged figure" 
+                  style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
+                  className="max-h-[70vh] object-contain transition-transform duration-150 select-none" 
+                />
+              </div>
+
+              <div className="w-full flex items-center justify-between pt-2.5 text-[11px] text-slate-400 font-mono">
+                <span>💡 सुझाव: ज़ूम बटन से बड़ा/छोटा करें</span>
+                <span>बाहर क्लिक करें या Esc दबाएं</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
-  return <span className="leading-relaxed">{prompt}</span>;
+  return <span className="leading-relaxed whitespace-pre-line">{prompt}</span>;
 }
 
 
@@ -170,6 +264,7 @@ export default function ClassroomQuizPortal({
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [paletteFilter, setPaletteFilter] = useState<string>("ALL");
 
   useEffect(() => {
     setMounted(true);
@@ -650,36 +745,93 @@ export default function ClassroomQuizPortal({
           </div>
 
           {/* Nav sidebar */}
-          <Card className="border-white/5 bg-[#0a0a14]/60 self-start">
-            <CardHeader className="p-4 border-b border-white/5">
-              <CardTitle className="text-xs font-bold uppercase text-white tracking-wider flex items-center gap-1">
-                <FileText className="h-4 w-4 text-indigo-400" />
-                Navigator
-              </CardTitle>
+          <Card className="border-white/5 bg-[#0a0a14]/60 self-start w-full">
+            <CardHeader className="p-3.5 border-b border-white/5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xs font-bold uppercase text-white tracking-wider flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-indigo-400" />
+                  Navigator
+                </CardTitle>
+                <Badge variant="outline" className="text-[10px] font-mono border-white/10 text-slate-300">
+                  {Object.values(answers).filter(a => a.selectedOptionId || (a.answerText && a.answerText.trim())).length} / {activeQuestions.length} हल किए
+                </Badge>
+              </div>
+
+              {/* Quick Section/Range Tabs for 90 Question Papers */}
+              {activeQuestions.length > 30 && (
+                <div className="flex items-center gap-1 p-1 bg-white/5 rounded-lg text-[10px] font-semibold text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => setPaletteFilter("ALL")}
+                    className={`flex-1 py-1 rounded transition text-center ${paletteFilter === "ALL" ? "bg-indigo-600 text-white font-bold" : "hover:text-white"}`}
+                  >
+                    सभी ({activeQuestions.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaletteFilter("1-30")}
+                    className={`flex-1 py-1 rounded transition text-center ${paletteFilter === "1-30" ? "bg-indigo-600 text-white font-bold" : "hover:text-white"}`}
+                  >
+                    1-30
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaletteFilter("31-60")}
+                    className={`flex-1 py-1 rounded transition text-center ${paletteFilter === "31-60" ? "bg-indigo-600 text-white font-bold" : "hover:text-white"}`}
+                  >
+                    31-60
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaletteFilter("61-90")}
+                    className={`flex-1 py-1 rounded transition text-center ${paletteFilter === "61-90" ? "bg-indigo-600 text-white font-bold" : "hover:text-white"}`}
+                  >
+                    61-90
+                  </button>
+                </div>
+              )}
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-4 gap-2">
+            <CardContent className="p-3">
+              <div className="grid grid-cols-6 gap-1.5 max-h-[300px] overflow-y-auto pr-1 select-none scrollbar-thin">
                 {activeQuestions.map((q, idx) => {
+                  if (paletteFilter === "1-30" && (idx < 0 || idx >= 30)) return null;
+                  if (paletteFilter === "31-60" && (idx < 30 || idx >= 60)) return null;
+                  if (paletteFilter === "61-90" && (idx < 60 || idx >= 90)) return null;
+
                   const isCurrent = idx === currentQuestionIdx;
                   const answered = isAnswered(q.id);
 
-                  let bgClass = "bg-white/5 border-white/5 text-slate-400";
+                  let bgClass = "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white";
                   if (isCurrent) {
-                    bgClass = "bg-indigo-600 border-indigo-500 text-white font-extrabold";
+                    bgClass = "bg-indigo-600 border-indigo-500 text-white font-black shadow-md shadow-indigo-500/20 ring-1 ring-white/30";
                   } else if (answered) {
-                    bgClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+                    bgClass = "bg-emerald-500/15 border-emerald-500/30 text-emerald-400 font-semibold hover:bg-emerald-500/25";
                   }
 
                   return (
                     <button
                       key={q.id}
                       onClick={() => setCurrentQuestionIdx(idx)}
-                      className={`h-9 w-full rounded-xl border text-xs flex items-center justify-center transition-all ${bgClass}`}
+                      className={`h-8 w-full rounded-lg border text-xs flex items-center justify-center transition-all ${bgClass}`}
+                      title={`Question ${idx + 1}`}
                     >
                       {idx + 1}
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Status Legend */}
+              <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/5 text-[10px] text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" /> हल किया
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-indigo-500" /> सक्रिय
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-white/20" /> शेष
+                </span>
               </div>
             </CardContent>
           </Card>

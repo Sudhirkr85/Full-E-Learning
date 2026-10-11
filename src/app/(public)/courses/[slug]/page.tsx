@@ -230,23 +230,21 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
           <div className="lg:col-span-2 flex flex-col gap-8">
             <div className="flex flex-col gap-5 text-left">
               {/* Premium Media Card Thumbnail */}
-              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl group shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl group shrink-0">
                 {course.coverImageUrl ? (
-                  <div className="relative w-full aspect-video max-h-80">
+                  <div className="relative w-full aspect-video">
                     <Image
                       src={course.coverImageUrl}
                       alt={course.title}
                       fill
                       sizes="(max-width: 1024px) 100vw, 66vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                       priority
                     />
                   </div>
                 ) : (
-                  <div className={`w-full max-h-80 h-72 bg-gradient-to-br ${categoryGradient(categoryName)} transition-transform duration-500 group-hover:scale-105`} />
+                  <div className={`w-full aspect-video bg-gradient-to-br ${categoryGradient(categoryName)} transition-transform duration-500 group-hover:scale-105`} />
                 )}
-                {/* Cinematic dark bottom gradient cover */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
               </div>
 
               <div className="flex flex-wrap gap-2.5">

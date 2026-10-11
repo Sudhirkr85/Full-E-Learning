@@ -157,8 +157,6 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                       <div className={`h-full w-full bg-gradient-to-br ${categoryGradient(categoryName)} transition-transform duration-300 group-hover:scale-105`} />
                     )}
 
-                    {/* Subtle vignette */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
                     {/* Wishlist Button absolute top-right */}
                     <div className="absolute top-3 right-3 z-20">

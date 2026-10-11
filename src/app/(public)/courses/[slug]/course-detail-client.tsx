@@ -117,56 +117,56 @@ export function CourseDetailClient({ slug, description, sections, isEnrolled, ou
                     {section.lessons.map((lesson) => (
                       <div
                         key={lesson.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 sm:p-4 transition-all duration-200 hover:bg-white/5 hover:border-white/10"
+                        className="group/lesson flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 sm:p-4 transition-all duration-300 hover:bg-white/[0.06] hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/10"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
                           {lesson.thumbnailUrl ? (
-                            <div className="relative h-12 w-20 rounded-lg overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow">
+                            <div className="relative h-14 w-24 rounded-xl overflow-hidden shrink-0 border border-white/15 bg-slate-900 shadow-md">
                               <Image
                                 src={lesson.thumbnailUrl}
                                 alt={lesson.title}
                                 fill
-                                sizes="80px"
-                                className="object-cover"
+                                sizes="96px"
+                                className="object-cover transition-transform duration-300 group-hover/lesson:scale-105"
                               />
                             </div>
                           ) : (
-                            <div className="h-10 w-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-indigo-400">
-                              <HelpCircle className="h-5 w-5" />
+                            <div className="h-12 w-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-400">
+                              <PlayCircle className="h-6 w-6" />
                             </div>
                           )}
 
                           <div className="flex flex-col gap-1 min-w-0">
-                            <span className="text-sm font-medium text-slate-200 truncate">{lesson.title}</span>
+                            <span className="text-sm sm:text-base font-bold text-white group-hover/lesson:text-indigo-300 transition-colors line-clamp-1">
+                              {lesson.title}
+                            </span>
                             <div className="flex flex-wrap items-center gap-2">
-                              <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold border-white/10 text-slate-400 px-2 py-0.5 rounded">
-                                {toLessonTypeLabel(lesson.contentType)}
+                              <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-extrabold border-indigo-500/30 text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-md">
+                                {lesson.contentType === "QUIZ" ? "मॉक टेस्ट • 90 प्रश्न" : toLessonTypeLabel(lesson.contentType)}
                               </Badge>
                               {lesson.isPreview ? (
-                                <Badge variant="secondary" className="text-[10px] uppercase tracking-wider font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded flex items-center gap-1">
-                                  <Eye className="h-3 w-3" />
-                                  Preview
-                                </Badge>
+                                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-extrabold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                                  100% Free
+                                </span>
                               ) : null}
                             </div>
                           </div>
                         </div>
-                        <div className="self-start sm:self-center shrink-0">
-                          {lesson.isPreview ? (
+
+                        {/* Action CTA with Pulsing Animated Glow */}
+                        <div className="w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+                          {lesson.isPreview || isEnrolled ? (
                             <Link
                               href={`/courses/${slug}/lessons/${lesson.slug}`}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/25 transition-all duration-200 hover:scale-[1.02]"
+                              className="relative group/btn w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_25px_rgba(99,102,241,0.6)] border border-indigo-400/30 transition-all duration-300 hover:scale-[1.03] active:scale-95"
                             >
-                              <PlayCircle className="h-3.5 w-3.5" />
-                              <span>टेस्ट शुरू करें</span>
-                            </Link>
-                          ) : isEnrolled ? (
-                            <Link
-                              href={`/courses/${slug}/lessons/${lesson.slug}`}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/25 transition-all duration-200 hover:scale-[1.02]"
-                            >
-                              <PlayCircle className="h-3.5 w-3.5" />
-                              <span>टेस्ट शुरू करें</span>
+                              {/* Pulsing glow aura */}
+                              <span className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 opacity-60 blur-sm group-hover/btn:opacity-100 transition-opacity -z-10 animate-pulse" />
+                              
+                              <PlayCircle className="h-4 w-4 fill-white/20 text-white shrink-0 group-hover/btn:scale-110 transition-transform" />
+                              <span className="tracking-wide">टेस्ट शुरू करें (Start Test)</span>
+                              <ChevronRight className="h-4 w-4 shrink-0 group-hover/btn:translate-x-1 transition-transform" />
                             </Link>
                           ) : (
                             <button
@@ -174,9 +174,9 @@ export function CourseDetailClient({ slug, description, sections, isEnrolled, ou
                               onClick={() => {
                                 document.getElementById("enroll-section")?.scrollIntoView({ behavior: "smooth" });
                               }}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-full border border-white/5 transition"
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-300 bg-white/5 hover:bg-white/10 px-4 py-2.5 rounded-xl border border-white/10 transition"
                             >
-                              <Lock className="h-3 w-3" />
+                              <Lock className="h-3.5 w-3.5" />
                               Locked
                             </button>
                           )}

@@ -25,7 +25,8 @@ import {
   ZoomOut,
   X,
   Bookmark,
-  Languages
+  Languages,
+  PlayCircle
 } from "lucide-react";
 import { submitAttemptAction, startClassroomAttemptAction } from "@/lib/tests/actions";
 import { QuestionType, AttemptStatus } from "@prisma/client";
@@ -565,7 +566,7 @@ export default function ClassroomQuizPortal({
       <Card className="border-white/5 bg-[#0a0a14]/60 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden text-left">
         <CardHeader className="p-6 md:p-8 border-b border-white/5 bg-gradient-to-br from-indigo-950/20 to-slate-950/40 space-y-4">
           {/* Quiz Thumbnail Header */}
-          <div className="relative aspect-[21/9] w-full rounded-xl overflow-hidden border border-white/10 shadow-lg bg-slate-950">
+          <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950">
             <Image
               src={
                 courseSlug.includes("bihar")
@@ -578,13 +579,6 @@ export default function ClassroomQuizPortal({
               className="object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs font-bold">
-              <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-1">{test.title}</span>
-              <span className="bg-emerald-500/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 shadow">
-                Live Test
-              </span>
-            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -672,11 +666,17 @@ export default function ClassroomQuizPortal({
           )}
         </CardContent>
 
-        <CardFooter className="p-6 border-t border-white/5 bg-white/[0.01] flex justify-end">
+        <CardFooter className="p-6 md:p-8 border-t border-white/5 bg-white/[0.01] flex justify-end">
           {hasAttemptsLeft ? (
-            <Button onClick={handleStartAttempt} disabled={isPending} className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs h-10 px-5 font-bold uppercase tracking-wider">
-              {isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-4 w-4" />}
-              Start Quiz Assessment
+            <Button 
+              onClick={handleStartAttempt} 
+              disabled={isPending} 
+              size="lg"
+              className="relative w-full sm:w-auto bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-sm h-12 px-8 font-black uppercase tracking-wider shadow-[0_0_25px_rgba(99,102,241,0.5)] border border-indigo-400/30 transition-all duration-300 hover:scale-[1.02] active:scale-95"
+            >
+              <span className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 opacity-60 blur-sm group-hover:opacity-100 transition-opacity -z-10 animate-pulse" />
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlayCircle className="mr-2 h-5 w-5" />}
+              <span>टेस्ट शुरू करें (Start Test Now)</span>
             </Button>
           ) : (
             <Button disabled className="bg-slate-900 border-white/5 text-slate-500 rounded-xl cursor-not-allowed">

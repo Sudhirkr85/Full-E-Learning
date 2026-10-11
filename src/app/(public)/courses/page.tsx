@@ -144,7 +144,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                   className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/20 shadow-[0_15px_30px_rgba(0,0,0,0.3)] hover:-translate-y-1.5 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 flex flex-col justify-between"
                 >
                   {/* Thumbnail Hero Section */}
-                  <div className="relative h-48 w-full overflow-hidden shrink-0">
+                  <div className="relative aspect-video w-full overflow-hidden shrink-0 bg-slate-900 border-b border-white/5">
                     {course.coverImageUrl ? (
                       <Image 
                         src={course.coverImageUrl} 
@@ -157,11 +157,11 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                       <div className={`h-full w-full bg-gradient-to-br ${categoryGradient(categoryName)} transition-transform duration-300 group-hover:scale-105`} />
                     )}
 
-                    {/* Dark gradient overlay on top */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+                    {/* Subtle vignette */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
                     {/* Wishlist Button absolute top-right */}
-                    <div className="absolute top-3.5 right-3.5 z-20">
+                    <div className="absolute top-3 right-3 z-20">
                       <WishlistButton
                         courseId={course.id}
                         initialWishlisted={userWishlistedIds.includes(course.id)}
@@ -170,26 +170,24 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                       />
                     </div>
 
-                    {/* Translucent category badge top-left */}
-                    <span className="absolute top-4 left-4 rounded-full bg-black/60 border border-white/10 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                    {/* Category badge top-left */}
+                    <span className="absolute top-3 left-3 rounded-full bg-black/70 border border-white/15 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300 shadow">
                       {categoryName ?? "General"}
                     </span>
-
-                    {/* Course title in white overlaid on the banner */}
-                    <div className="absolute bottom-4 left-4 right-4 z-10">
-                      <h3 className="line-clamp-2 text-sm sm:text-base font-bold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                        {course.title}
-                      </h3>
-                    </div>
                   </div>
 
                   {/* Body Content */}
-                  <div className="flex flex-col flex-1 justify-between p-6 gap-5">
-                    <div className="space-y-2.5">
+                  <div className="flex flex-col flex-1 justify-between p-5 sm:p-6 gap-4">
+                    <div className="space-y-2">
+                      <Link href={`/courses/${course.slug}`}>
+                        <h3 className="line-clamp-2 text-base sm:text-lg font-bold text-white hover:text-indigo-400 transition-colors tracking-tight leading-snug">
+                          {course.title}
+                        </h3>
+                      </Link>
                       <p className="line-clamp-2 text-xs text-slate-400 font-medium leading-relaxed">
                         {shortDescription ?? "Immersive published EdTech course pathway ready for immediate enrollment."}
                       </p>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider pt-1">
                         {sectionsCount} sections <span className="text-slate-700">•</span> by {teacherName}
                       </div>
                     </div>

@@ -57,6 +57,24 @@ const coursePreviewSelect = {
       sections: true,
       enrollments: true
     }
+  },
+  sections: {
+    where: { isPublished: true },
+    orderBy: { orderIndex: "asc" as const },
+    take: 1,
+    select: {
+      id: true,
+      lessons: {
+        where: { isPublished: true },
+        orderBy: { orderIndex: "asc" as const },
+        take: 1,
+        select: {
+          id: true,
+          slug: true,
+          title: true
+        }
+      }
+    }
   }
 } as const;
 

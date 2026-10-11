@@ -177,10 +177,17 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
 
           const isTakingPhase = quizActiveAttempt && (!quizReviewAttempt || quizReviewAttempt.status === "IN_PROGRESS");
           
-          quizQuestions = await Promise.all(quizTest.questions.map(async (q) => {
-            const answers = activeAttemptId ? await prisma.attemptAnswer.findMany({
-              where: { attemptId: activeAttemptId, questionId: q.id }
-            }) : [];
+          const allAttemptAnswers = activeAttemptId ? await prisma.attemptAnswer.findMany({
+            where: { attemptId: activeAttemptId }
+          }) : [];
+          const answersByQuestionId = new Map<string, typeof allAttemptAnswers[0]>();
+          for (const ans of allAttemptAnswers) {
+            answersByQuestionId.set(ans.questionId, ans);
+          }
+
+          quizQuestions = quizTest.questions.map((q) => {
+            const userAns = answersByQuestionId.get(q.id);
+            const answers = userAns ? [userAns] : [];
 
             return {
               id: q.id,
@@ -202,7 +209,7 @@ export default async function LessonPlayerPage({ params, searchParams }: LessonP
                 metadata: a.metadata
               }))
             };
-          }));
+          });
 
           // Automatic lesson completion when passed
           if (quizReviewAttempt && quizReviewAttempt.scorePercent !== null && quizReviewAttempt.scorePercent >= quizTest.passingScore && bundle.enrollment) {

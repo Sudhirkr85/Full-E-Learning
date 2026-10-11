@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Lock, Eye, CheckCircle, HelpCircle } from "lucide-react";
+import { ChevronRight, Lock, Eye, CheckCircle, HelpCircle, PlayCircle } from "lucide-react";
 
 type LessonItem = {
   id: string;
@@ -34,7 +34,7 @@ function toLessonTypeLabel(type: string) {
 }
 
 export function CourseDetailClient({ slug, description, sections, isEnrolled, outcomes }: CourseDetailClientProps) {
-  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
+  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(sections[0]?.id || null);
   const [expandedDescription, setExpandedDescription] = useState(false);
   const hasLongDescription = description.length > 220;
 
@@ -155,18 +155,18 @@ export function CourseDetailClient({ slug, description, sections, isEnrolled, ou
                           {lesson.isPreview ? (
                             <Link
                               href={`/courses/${slug}/lessons/${lesson.slug}`}
-                              className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/25 transition-all duration-200 hover:scale-[1.02]"
                             >
-                              Start Preview
-                              <ChevronRight className="h-3 w-3 ml-1" />
+                              <PlayCircle className="h-3.5 w-3.5" />
+                              <span>टेस्ट शुरू करें</span>
                             </Link>
                           ) : isEnrolled ? (
                             <Link
                               href={`/courses/${slug}/lessons/${lesson.slug}`}
-                              className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/25 transition-all duration-200 hover:scale-[1.02]"
                             >
-                              Learn Now
-                              <ChevronRight className="h-3 w-3 ml-1" />
+                              <PlayCircle className="h-3.5 w-3.5" />
+                              <span>टेस्ट शुरू करें</span>
                             </Link>
                           ) : (
                             <button

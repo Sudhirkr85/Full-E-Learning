@@ -85,7 +85,7 @@ export function LessonPlayerClient({
   // Automatically refresh route data when URL searchParams don't match the current rendered state
   useEffect(() => {
     const renderedAttemptId = quizReviewAttempt?.id || quizActiveAttempt?.id || null;
-    if (urlAttemptId !== renderedAttemptId) {
+    if (urlAttemptId && urlAttemptId !== renderedAttemptId) {
       router.refresh();
     }
   }, [urlAttemptId, quizReviewAttempt?.id, quizActiveAttempt?.id, router]);

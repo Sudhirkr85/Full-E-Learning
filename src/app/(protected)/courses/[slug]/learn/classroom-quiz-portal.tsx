@@ -252,7 +252,7 @@ export default function ClassroomQuizPortal({
   useEffect(() => {
     if (isGuest) return; // Skip in guest mode
     const renderedAttemptId = reviewAttempt?.id || activeAttempt?.id || null;
-    if (urlAttemptId !== renderedAttemptId) {
+    if (urlAttemptId && urlAttemptId !== renderedAttemptId) {
       router.refresh();
     }
   }, [urlAttemptId, reviewAttempt?.id, activeAttempt?.id, router, isGuest]);

@@ -10,12 +10,12 @@ import { EnrollButton } from "./enroll-button";
 import { WishlistButton } from "@/components/wishlist-button";
 import { makeMetadata, siteConfig } from "@/lib/site";
 import { prisma } from "@/lib/prisma";
-import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, UserCircle2 } from "lucide-react";
+import { BookOpen, Clapperboard, Clock3, Globe, Award, Smartphone, Infinity, UserCircle2, PlayCircle, ChevronRight } from "lucide-react";
 import { CourseDetailClient } from "./course-detail-client";
 import { CourseReviewsClient } from "./course-reviews-client";
 
 export const dynamicParams = true;
-export const revalidate = 86400; // Cache on Edge CDN for 24 hours
+export const revalidate = 60; // Dynamic revalidation every 60 seconds
 
 type CourseDetailsPageProps = {
   params: Promise<{
@@ -287,6 +287,18 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
                 )}
                 <span>Instructor: {teacher?.name ?? "TBA"}</span>
               </div>
+
+              {course.sections?.[0]?.lessons?.[0] && (
+                <div className="pt-2">
+                  <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black shadow-lg shadow-indigo-500/30 rounded-xl px-6 py-6 text-sm flex items-center gap-2">
+                    <Link href={`/courses/${course.slug}/lessons/${course.sections[0].lessons[0].slug}`}>
+                      <PlayCircle className="h-5 w-5" />
+                      <span>पहला टेस्ट शुरू करें ({course.sections[0].lessons[0].title.split('-')[0].trim() || 'Start Test'})</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </div>
 
             <CourseDetailClient

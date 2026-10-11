@@ -36,7 +36,7 @@ export const metadata: Metadata = makeMetadata({
   path: "/"
 });
 
-export const revalidate = 86400; // Cache on Edge CDN for 24 hours
+export const revalidate = 60; // Dynamic revalidation every 60 seconds
 
 export default async function HomePage() {
   const [coursesResult, dbProductsResult, dbReviewsResult] = await Promise.all([
@@ -266,6 +266,8 @@ export default async function HomePage() {
                   const price = course.priceCents !== null ? Math.round(course.priceCents / 100) : 0;
                   const categoryName = course.categories?.[0]?.category?.name ?? "Scholarship Exams";
                   const sectionsCount = course._count?.sections ?? 0;
+                  const firstLessonSlug = (course as any).sections?.[0]?.lessons?.[0]?.slug;
+                  const testHref = firstLessonSlug ? `/courses/${course.slug}/lessons/${firstLessonSlug}` : `/courses/${course.slug}`;
 
                   return (
                     <div
@@ -332,7 +334,7 @@ export default async function HomePage() {
                         </div>
 
                         <Button asChild size="sm" className="bg-indigo-600 text-white font-bold hover:bg-indigo-700 rounded-xl shadow-md hover:shadow-indigo-500/25 transition-all duration-300">
-                          <Link href={`/courses/${course.slug}`} className="flex items-center gap-1">
+                          <Link href={testHref} className="flex items-center gap-1">
                             टेस्ट दें
                             <ChevronRight className="h-3.5 w-3.5" />
                           </Link>

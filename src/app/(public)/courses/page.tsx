@@ -17,7 +17,7 @@ export const metadata: Metadata = makeMetadata({
   path: "/courses"
 });
 
-export const revalidate = 86400; // Cache on Edge CDN for 24 hours
+export const revalidate = 60; // Dynamic revalidation every 60 seconds
 
 type CoursesPageProps = {
   searchParams?: Promise<{
@@ -119,7 +119,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
               const categoryName = course.categories[0]?.category.name;
               const teacherName = course.teachers[0]?.teacher.name ?? "Unknown Teacher";
               const isEnrolled = enrolledCourseIds.includes(course.id);
-              const sectionsCount = (course as { sections?: Array<{ id: string }>; _count: { sections: number } }).sections?.length ?? course._count.sections;
+              const sectionsCount = course._count.sections;
               const shortDescription = course.subtitle ?? course.excerpt ?? course.description;
               const price = course.priceCents !== null ? Math.round(course.priceCents / 100) : 0;
 

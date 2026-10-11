@@ -23,8 +23,16 @@ export async function registerAction(formData: FormData) {
     confirmPassword: formData.get("confirmPassword")
   });
 
+  const rawCallbackUrl = formData.get("callbackUrl");
+  const callbackUrl = typeof rawCallbackUrl === "string" && rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+    ? rawCallbackUrl
+    : "/dashboard";
+
   if (!parsed.success) {
-    redirect("/register?error=invalid_input");
+    const errorRedirect = callbackUrl !== "/dashboard"
+      ? `/register?error=invalid_input&callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "/register?error=invalid_input";
+    redirect(errorRedirect);
   }
 
   const email = parsed.data.email.toLowerCase();
@@ -33,12 +41,18 @@ export async function registerAction(formData: FormData) {
   });
 
   if (existingUser) {
-    redirect("/register?error=email_exists");
+    const errorRedirect = callbackUrl !== "/dashboard"
+      ? `/register?error=email_exists&callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "/register?error=email_exists";
+    redirect(errorRedirect);
   }
 
   // Block reserved admin email from public registration
   if (email === SUPER_ADMIN_EMAIL.toLowerCase()) {
-    redirect("/register?error=email_reserved");
+    const errorRedirect = callbackUrl !== "/dashboard"
+      ? `/register?error=email_reserved&callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "/register?error=email_reserved";
+    redirect(errorRedirect);
   }
 
   const passwordHash = await hashPassword(parsed.data.password);
@@ -67,6 +81,6 @@ export async function registerAction(formData: FormData) {
   await signIn("credentials", {
     email,
     password: parsed.data.password,
-    redirectTo: "/dashboard"
+    redirectTo: callbackUrl
   });
 }

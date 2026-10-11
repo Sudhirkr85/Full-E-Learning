@@ -11,9 +11,10 @@ import { loginWithGoogleAction } from "@/app/(public)/login/actions";
 
 interface RegisterFormProps {
   errorMessage?: string | null;
+  callbackUrl?: string;
 }
 
-export function RegisterForm({ errorMessage }: RegisterFormProps) {
+export function RegisterForm({ errorMessage, callbackUrl = "/dashboard" }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -88,7 +89,7 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
 
     startGoogleTransition(async () => {
       try {
-        await loginWithGoogleAction();
+        await loginWithGoogleAction(callbackUrl);
       } catch (err) {
         console.error("Google Auth error:", err);
       }
@@ -117,6 +118,7 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
         
         {/* Full Name Input */}
         <div className="space-y-1.5">
@@ -348,7 +350,7 @@ export function RegisterForm({ errorMessage }: RegisterFormProps) {
       <p className="text-center text-sm text-slate-400 font-sans">
         Already have an account?{" "}
         <Link
-          href="/login"
+          href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"}
           className="font-bold text-indigo-400 hover:text-indigo-300 hover:underline underline-offset-4 transition"
         >
           Sign in

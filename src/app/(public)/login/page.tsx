@@ -19,17 +19,23 @@ type LoginPageProps = {
   searchParams?: Promise<{
     error?: string;
     registered?: string;
+    callbackUrl?: string;
   }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = searchParams ? await searchParams : undefined;
+  const rawCallback = params?.callbackUrl;
+  const callbackUrl = typeof rawCallback === "string" && rawCallback.startsWith("/") && !rawCallback.startsWith("//")
+    ? rawCallback
+    : "/dashboard";
+
   const session = await auth();
 
   if (session?.user?.id) {
-    redirect("/dashboard");
+    redirect(callbackUrl);
   }
 
-  const params = searchParams ? await searchParams : undefined;
   const errorMessage = params?.error === "invalid_credentials" 
     ? "Invalid email or password." 
     : params?.error === "invalid_input" 
@@ -171,7 +177,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 <div className="w-full h-full animate-cyber-line-x bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
               </div>
               
-              <LoginForm errorMessage={errorMessage} successMessage={successMessage} />
+              <LoginForm 
+                errorMessage={errorMessage} 
+                successMessage={successMessage} 
+                callbackUrl={callbackUrl} 
+              />
 
             </div>
 

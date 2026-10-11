@@ -11,46 +11,71 @@ export async function loginAction(formData: FormData) {
     password: formData.get("password")
   });
 
+  const rawCallbackUrl = formData.get("callbackUrl");
+  const callbackUrl = typeof rawCallbackUrl === "string" && rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+    ? rawCallbackUrl
+    : "/dashboard";
+
   if (!parsed.success) {
-    redirect("/login?error=invalid_input");
+    const errorRedirect = callbackUrl !== "/dashboard"
+      ? `/login?error=invalid_input&callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "/login?error=invalid_input";
+    redirect(errorRedirect);
   }
 
   try {
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/dashboard"
+      redirectTo: callbackUrl
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      redirect("/login?error=invalid_credentials");
+      const errorRedirect = callbackUrl !== "/dashboard"
+        ? `/login?error=invalid_credentials&callbackUrl=${encodeURIComponent(callbackUrl)}`
+        : "/login?error=invalid_credentials";
+      redirect(errorRedirect);
     }
 
     throw error;
   }
 }
 
-export async function loginWithGoogleAction() {
+export async function loginWithGoogleAction(callbackUrl: string = "/dashboard") {
+  const safeCallbackUrl = typeof callbackUrl === "string" && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+    ? callbackUrl
+    : "/dashboard";
+
   try {
     await signIn("google", {
-      redirectTo: "/dashboard"
+      redirectTo: safeCallbackUrl
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      redirect("/login?error=oauth_error");
+      const errorRedirect = safeCallbackUrl !== "/dashboard"
+        ? `/login?error=oauth_error&callbackUrl=${encodeURIComponent(safeCallbackUrl)}`
+        : "/login?error=oauth_error";
+      redirect(errorRedirect);
     }
     throw error;
   }
 }
 
-export async function loginWithGithubAction() {
+export async function loginWithGithubAction(callbackUrl: string = "/dashboard") {
+  const safeCallbackUrl = typeof callbackUrl === "string" && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+    ? callbackUrl
+    : "/dashboard";
+
   try {
     await signIn("github", {
-      redirectTo: "/dashboard"
+      redirectTo: safeCallbackUrl
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      redirect("/login?error=oauth_error");
+      const errorRedirect = safeCallbackUrl !== "/dashboard"
+        ? `/login?error=oauth_error&callbackUrl=${encodeURIComponent(safeCallbackUrl)}`
+        : "/login?error=oauth_error";
+      redirect(errorRedirect);
     }
     throw error;
   }

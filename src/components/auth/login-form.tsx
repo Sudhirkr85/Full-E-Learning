@@ -11,9 +11,10 @@ import { loginAction, loginWithGoogleAction } from "@/app/(public)/login/actions
 interface LoginFormProps {
   errorMessage?: string | null;
   successMessage?: string | null;
+  callbackUrl?: string;
 }
 
-export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
+export function LoginForm({ errorMessage, successMessage, callbackUrl = "/dashboard" }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +44,7 @@ export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
 
     startGoogleTransition(async () => {
       try {
-        await loginWithGoogleAction();
+        await loginWithGoogleAction(callbackUrl);
       } catch (err) {
         console.error("Google Auth error:", err);
       }
@@ -79,6 +80,7 @@ export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
         
         {/* Email Input */}
         <div className="space-y-2">
@@ -200,7 +202,7 @@ export function LoginForm({ errorMessage, successMessage }: LoginFormProps) {
       <p className="text-center text-sm text-slate-400 font-sans">
         New here?{" "}
         <Link
-          href="/register"
+          href={callbackUrl !== "/dashboard" ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"}
           className="font-bold text-indigo-400 hover:text-indigo-300 hover:underline underline-offset-4 transition"
         >
           Create an account

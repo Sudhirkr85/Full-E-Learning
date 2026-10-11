@@ -18,17 +18,22 @@ export const metadata: Metadata = makeMetadata({
 type RegisterPageProps = {
   searchParams?: Promise<{
     error?: string;
+    callbackUrl?: string;
   }>;
 };
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+  const params = searchParams ? await searchParams : undefined;
+  const rawCallback = params?.callbackUrl;
+  const callbackUrl = typeof rawCallback === "string" && rawCallback.startsWith("/") && !rawCallback.startsWith("//")
+    ? rawCallback
+    : "/dashboard";
+
   const session = await auth();
 
   if (session?.user?.id) {
-    redirect("/dashboard");
+    redirect(callbackUrl);
   }
-
-  const params = searchParams ? await searchParams : undefined;
   const errorMessage = params?.error === "email_exists" 
     ? "An account with that email already exists." 
     : params?.error === "invalid_input" 
@@ -169,7 +174,10 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
                 <div className="w-full h-full animate-cyber-line-x bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
               </div>
               
-              <RegisterForm errorMessage={errorMessage} />
+              <RegisterForm 
+                errorMessage={errorMessage} 
+                callbackUrl={callbackUrl} 
+              />
 
             </div>
 

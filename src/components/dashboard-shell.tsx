@@ -92,8 +92,9 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         <Link
           key={`${item.label}-${item.href}`}
           href={item.href}
+          prefetch={true}
           onClick={closeMobileMenu}
-          className={linkClasses(item)}
+          className={cn(linkClasses(item), "touch-manipulation active:scale-[0.98]")}
         >
           <span className="flex items-center gap-2.5">
             {getNavIcon(item.label)}

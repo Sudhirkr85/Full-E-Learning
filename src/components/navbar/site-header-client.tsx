@@ -98,11 +98,12 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
           </Link>
 
           {/* Center Section: Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+          <nav className="hidden lg:flex items-center gap-6 lg:gap-8">
             {navLinks.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={true}
                 className={cn(
                   "relative text-sm font-medium transition-colors duration-200 py-1 flex items-center gap-1.5 group",
                   isActive(item.href)
@@ -131,20 +132,22 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
           <div className="flex items-center gap-4">
             {user ? (
               /* Logged In View (Desktop) */
-              <div className="hidden md:flex items-center gap-4">
+              <div className="hidden lg:flex items-center gap-4">
                 <AvatarDropdown user={user} onLogoutClick={() => setIsLogoutModalOpen(true)} />
               </div>
             ) : (
               /* Public View (Desktop) */
-              <div className="hidden md:flex items-center gap-4">
+              <div className="hidden lg:flex items-center gap-4">
                 <Link
                   href="/login"
+                  prefetch={true}
                   className="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
+                  prefetch={true}
                   className="inline-flex h-9 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-4 text-sm font-semibold text-white shadow-[0_4px_20px_-4px_rgba(99,102,241,0.4)] border border-white/10 transition-all duration-300 hover:scale-[1.02] hover:from-indigo-500 hover:to-cyan-500 active:scale-[0.98]"
                 >
                   Get Started
@@ -152,11 +155,11 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
               </div>
             )}
 
-            {/* Hamburger Menu (Mobile Only) */}
+            {/* Hamburger Menu (Mobile & Tablet) */}
             <button
               onClick={() => setIsDrawerOpen(true)}
-              className="flex md:hidden h-9 w-9 items-center justify-center rounded-xl border border-white/5 bg-slate-950/20 text-slate-400 hover:text-white hover:border-white/10 transition-all duration-300"
-              aria-label="Open mobile navigation drawer"
+              className="flex lg:hidden h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-slate-900/60 text-slate-300 hover:text-white hover:border-white/20 active:scale-95 touch-manipulation transition-all duration-150"
+              aria-label="Open navigation menu"
             >
               <Menu className="h-5 w-5" />
             </button>

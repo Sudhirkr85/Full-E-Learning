@@ -155,7 +155,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
       {/* Backdrop overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:hidden",
+          "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
@@ -165,14 +165,14 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
       <div
         ref={drawerRef}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-[320px] flex-col bg-[#0d1117] border-r border-white/10 transition-transform duration-300 ease-in-out md:hidden shadow-2xl overscroll-contain",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-[320px] flex-col bg-[#0d1117] border-r border-white/10 transition-transform duration-300 ease-in-out lg:hidden shadow-2xl overscroll-contain",
+          isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
       >
         {/* Drawer Header & User Profile Info at top */}
         <div className="flex flex-col border-b border-white/10 p-5 gap-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group" onClick={onClose} title="Sagar Coaching Centre — Home" aria-label="Sagar Coaching Centre Logo">
+            <Link href="/" prefetch={true} className="flex items-center gap-2 group" onClick={onClose} title="Sagar Coaching Centre — Home" aria-label="Sagar Coaching Centre Logo">
               <div className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#0b0f1e]">
                 <img src="/logo-navbar.png" alt="Sagar Coaching Centre Logo" className="h-full w-full object-cover" />
               </div>
@@ -233,12 +233,13 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center justify-between px-4 min-h-[44px] text-sm font-semibold rounded-lg transition-all duration-200 border border-transparent",
+                    "flex items-center justify-between px-4 min-h-[46px] text-sm font-semibold rounded-xl transition-all duration-150 border border-transparent touch-manipulation active:scale-[0.98]",
                     isActive(item.href)
-                      ? "bg-white/10 text-white border-white/5"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white"
+                      ? "bg-white/10 text-white border-white/5 font-bold"
+                      : "text-slate-300 hover:bg-white/5 hover:text-white"
                   )}
                 >
                   <span>{item.label}</span>
@@ -265,15 +266,16 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
                     <Link
                       key={item.label}
                       href={item.href}
+                      prefetch={true}
                       onClick={onClose}
                       className={cn(
-                        "flex items-center gap-3 px-4 min-h-[44px] text-sm font-semibold rounded-lg transition-all duration-200 border border-transparent",
+                        "flex items-center gap-3 px-4 min-h-[46px] text-sm font-semibold rounded-xl transition-all duration-150 border border-transparent touch-manipulation active:scale-[0.98]",
                         isActive(item.href)
-                          ? "bg-white/10 text-white border-white/5"
-                          : "text-slate-400 hover:bg-white/5 hover:text-white"
+                          ? "bg-white/10 text-white border-white/5 font-bold"
+                          : "text-slate-300 hover:bg-white/5 hover:text-white"
                       )}
                     >
-                      <Icon className="h-4 w-4 text-slate-500 shrink-0" />
+                      <Icon className="h-4 w-4 text-slate-400 shrink-0" />
                       {item.label}
                       {item.label === "Wishlist" && totalWishlistCount > 0 && (
                         <span className="ml-auto bg-gradient-to-br from-rose-500 to-pink-600 text-white text-[9px] font-black rounded-full h-5 w-5 flex items-center justify-center shadow-[0_0_10px_rgba(244,63,94,0.35)] border border-white/20">
@@ -302,15 +304,17 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
             <div className="flex flex-col gap-2">
               <Link
                 href="/login"
+                prefetch={true}
                 onClick={onClose}
-                className="w-full h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] text-sm font-semibold text-slate-300 hover:bg-white/[0.05] hover:text-white transition-all duration-200"
+                className="w-full h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] text-sm font-semibold text-slate-300 hover:bg-white/[0.05] hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation"
               >
                 Login
               </Link>
               <Link
                 href="/register"
+                prefetch={true}
                 onClick={onClose}
-                className="w-full h-11 flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-sm font-semibold text-white shadow-lg transition-all duration-200"
+                className="w-full h-11 flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-sm font-semibold text-white shadow-lg transition-all duration-150 active:scale-[0.98] touch-manipulation"
               >
                 Get Started
               </Link>

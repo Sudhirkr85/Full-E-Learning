@@ -236,12 +236,13 @@ export function LessonPlayerClient({
                       <Link
                         key={lesson.id}
                         href={getLessonHref(lesson.slug)}
+                        prefetch={true}
                         onClick={() => setIsMobileSyllabusOpen(false)}
                         className={cn(
-                          "w-full rounded-lg px-3 py-2 flex items-center justify-between text-left text-xs font-semibold border transition-all duration-200",
+                          "w-full rounded-lg px-3 py-2.5 flex items-center justify-between text-left text-xs font-semibold border transition-all duration-150 active:scale-[0.98] touch-manipulation",
                           isActive 
-                            ? "bg-indigo-600/10 text-indigo-300 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
-                            : "bg-transparent text-slate-400 border-transparent hover:border-white/5 hover:bg-white/5 hover:text-white"
+                            ? "bg-indigo-600/20 text-indigo-200 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.15)] font-bold"
+                            : "bg-transparent text-slate-300 border-transparent hover:border-white/10 hover:bg-white/5 hover:text-white"
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -367,14 +368,14 @@ export function LessonPlayerClient({
             </div>
           </div>
 
-          {/* Syllabus Drawer Trigger for Mobile */}
+          {/* Syllabus Drawer Trigger for Mobile, Tablet, and Smaller Laptops */}
           <Button
             onClick={() => setIsMobileSyllabusOpen(true)}
             variant="outline"
-            className="flex md:hidden bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:text-white rounded-xl text-xs h-10 px-4 font-bold uppercase tracking-wider items-center gap-2 transition-all"
+            className="flex xl:hidden bg-indigo-600/10 border border-indigo-500/30 text-white hover:bg-indigo-600/20 hover:text-white rounded-xl text-xs h-10 px-4 font-bold tracking-wide items-center gap-2 transition-all shadow-md active:scale-95 touch-manipulation"
           >
             <Menu className="h-4 w-4 text-indigo-400" />
-            Syllabus Outline
+            <span>पाठ्यक्रम व टेस्ट सूची (Menu)</span>
           </Button>
         </div>
       </div>
@@ -689,23 +690,26 @@ export function LessonPlayerClient({
         </div>
       )}
 
-      {/* Mobile Syllabus Outline Drawer Portal */}
+      {/* Syllabus Outline Drawer Portal for Mobile, Tablet, and Laptops */}
       {isMobileSyllabusOpen && mounted && createPortal(
-        <div className="fixed inset-0 z-[110] flex justify-end md:hidden">
+        <div className="fixed inset-0 z-[110] flex justify-end xl:hidden">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setIsMobileSyllabusOpen(false)}
           />
           {/* Drawer container */}
-          <div className="relative w-[85vw] max-w-[320px] bg-[#0d1224] border-l border-white/10 h-full p-5 overflow-y-auto shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-right duration-300">
+          <div className="relative w-[88vw] max-w-[340px] bg-[#0d1224] border-l border-white/10 h-full p-5 overflow-y-auto shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-right duration-200">
             <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Classroom Menu</span>
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Menu className="h-4 w-4 text-indigo-400" />
+                  पाठ्यक्रम व टेस्ट सूची
+                </span>
                 <Button 
                   onClick={() => setIsMobileSyllabusOpen(false)}
                   variant="ghost" 
-                  className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:text-white hover:bg-white/5"
+                  className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:text-white hover:bg-white/10"
                 >
                   <X className="h-4 w-4" />
                 </Button>

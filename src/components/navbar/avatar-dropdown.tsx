@@ -114,8 +114,9 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
           <nav className="flex flex-col gap-0.5">
             <Link
               href={role === "ADMIN" ? "/admin/profile" : "/profile"}
+              prefetch={true}
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+              className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
             >
               <UserIcon className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
               My Profile
@@ -128,56 +129,63 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
               <>
                 <Link
                   href="/admin/dashboard"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <LayoutDashboard className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Overview
                 </Link>
                 <Link
                   href="/admin/users"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <Users className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Users
                 </Link>
                 <Link
                   href="/admin/enrollments"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <GraduationCap className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Enrollments
                 </Link>
                 <Link
                   href="/admin/courses"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Courses
                 </Link>
                 <Link
                   href="/admin/categories"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <FolderOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Categories
                 </Link>
                 <Link
                   href="/admin/store"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <ShoppingBag className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Store
                 </Link>
                 <Link
                   href="/admin/store/orders"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <ShoppingBag className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Store Orders
@@ -189,40 +197,45 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
               <>
                 <Link
                   href="/student/dashboard"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <LayoutDashboard className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Overview
                 </Link>
                 <Link
                   href="/student/orders"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <ShoppingBag className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   My Orders
                 </Link>
                 <Link
                   href="/student/courses"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   My Courses
                 </Link>
                 <Link
                   href="/student/library"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <LayoutDashboard className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   My Library
                 </Link>
                 <Link
                   href="/student/wishlist"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <Heart className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Wishlist
@@ -234,13 +247,13 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
                 </Link>
                 <Link
                   href="/student/certificates"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <Award className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Certificates
                 </Link>
-
               </>
             )}
 
@@ -248,32 +261,36 @@ export function AvatarDropdown({ user, onLogoutClick }: AvatarDropdownProps) {
               <>
                 <Link
                   href="/teacher/dashboard"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <LayoutDashboard className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Overview
                 </Link>
                 <Link
                   href="/teacher/courses"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Courses
                 </Link>
                 <Link
                   href="/teacher/enrollments"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <Users className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   My Students
                 </Link>
                 <Link
                   href="/teacher/categories"
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 active:scale-[0.98] touch-manipulation group"
                 >
                   <FolderOpen className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition" />
                   Categories

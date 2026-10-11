@@ -573,7 +573,8 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
                         <Link
                           key={lesson.id}
                           href={href}
-                          className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left transition ${
+                          prefetch={true}
+                          className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left transition active:scale-[0.98] touch-manipulation ${
                             isLessonActive 
                               ? "bg-indigo-600/10 border border-indigo-500/20 text-white font-medium" 
                               : "hover:bg-white/[0.02] text-slate-400 hover:text-white"

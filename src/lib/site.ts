@@ -267,6 +267,7 @@ export const siteConfig = {
 
 export const mainNav = [
   { label: "Home", href: "/" },
+  { label: "PYQ & Blog", href: "/blog" },
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },
   { label: "VIP Alerts", href: "/vip-telegram" },
@@ -274,6 +275,7 @@ export const mainNav = [
 ];
 
 export const footerNav = [
+  { label: "PYQ & Study Material", href: "/blog" },
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },
   { label: "VIP Telegram Channel", href: "/vip-telegram" },

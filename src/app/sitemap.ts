@@ -3,12 +3,13 @@ import { siteConfig } from "@/lib/site";
 import { getPublishedCourseSlugs } from "@/lib/courses/queries";
 import { prisma } from "@/lib/prisma";
 import { CURATED_TOPIC_LIST } from "@/lib/seo/generator";
+import { BLOG_POSTS } from "@/lib/blog-data";
 
 // Caching configurations for Vercel static generation
 export const revalidate = 86400; // Cache sitemap for 24 hours
 export const dynamic = "force-static";
 
-const publicStaticPaths = ["/", "/courses", "/store", "/vip-telegram", "/privacy-policy", "/terms", "/refund-policy"];
+const publicStaticPaths = ["/", "/blog", "/courses", "/store", "/vip-telegram", "/privacy-policy", "/terms", "/refund-policy"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -66,6 +67,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.6
+    });
+  });
+
+  // 5. Educational PYQ & Blog Posts
+  BLOG_POSTS.forEach((post) => {
+    sitemapEntries.push({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.updatedAt),
+      changeFrequency: "weekly",
+      priority: 0.9
     });
   });
 

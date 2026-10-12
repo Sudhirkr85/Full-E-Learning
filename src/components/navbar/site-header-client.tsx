@@ -49,6 +49,7 @@ export function SiteHeaderClient({ user, unreadCount }: SiteHeaderClientProps) {
   // Nav links based on role
   const getNavLinks = () => {
     const base = [
+      { label: "PYQ & Blog", href: "/blog" },
       { label: "Courses", href: "/courses" },
       { label: "Store", href: "/store" },
       { label: "VIP Alerts", href: "/vip-telegram", isSpecial: true },

@@ -89,6 +89,7 @@ export function MobileDrawer({ isOpen, onClose, user, unreadCount, onLogoutClick
   // Main navigation links based on role
   const getNavLinks = () => {
     const base = [
+      { label: "PYQ & Blog", href: "/blog" },
       { label: "Courses", href: "/courses" },
       { label: "Store", href: "/store" },
       { label: "VIP Telegram Alerts", href: "/vip-telegram", isSpecial: true },

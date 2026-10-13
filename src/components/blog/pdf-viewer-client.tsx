@@ -83,20 +83,11 @@ export function PdfViewerClient({
             className="h-[600px] w-full border-0 sm:h-[750px]"
           />
 
-          {/* Mobile Fallback Overlay Note */}
+          {/* Mobile Overlay Note */}
           <div className="flex items-center justify-between border-t border-white/10 bg-slate-900/90 px-4 py-2 text-xs text-slate-400">
             <span>
-              💡 मोबाइल में पूरा प्रश्न पत्र साफ़ देखने के लिए "फुलस्क्रीन में देखें" पर क्लिक करें।
+              💡 मोबाइल में प्रश्न पत्र को स्पष्ट पढ़ने के लिए दो उंगलियों (Pinch to Zoom) से ज़ूम कर सकते हैं।
             </span>
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-indigo-400 hover:underline"
-            >
-              <span>नया टैब</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
           </div>
         </div>
       )}

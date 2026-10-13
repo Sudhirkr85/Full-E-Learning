@@ -462,24 +462,21 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                   </div>
                   <h4 className="mt-2 font-bold text-white">{post.year} Solved Paper</h4>
                   <p className="mt-1 text-xs text-slate-400">
-                    49 पृष्ठ • {post.pdfSize} • Answer Key Included
+                    {post.pdfPages} पृष्ठ • {post.pdfSize} • Answer Key Included
                   </p>
                   <div className="mt-4 flex flex-col gap-2">
+                    <PyqDownloadButton
+                      slug={post.slug}
+                      pdfTitle={post.pdfFileName}
+                      isAdmin={isAdmin}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3 text-xs font-bold text-slate-950 shadow transition hover:from-amber-400 hover:to-orange-400"
+                    />
                     <a
-                      href={downloadApiUrl}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white transition hover:bg-indigo-500"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>Download PDF Now</span>
-                    </a>
-                    <a
-                      href={post.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href="#pdf-viewer"
                       className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
                     >
                       <Eye className="h-4 w-4" />
-                      <span>View Fullscreen</span>
+                      <span>ऑनलाइन पढ़ें (निःशुल्क)</span>
                     </a>
                   </div>
                 </div>

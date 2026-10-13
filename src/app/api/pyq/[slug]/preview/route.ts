@@ -12,25 +12,23 @@ export async function GET(
     return new NextResponse("File not found", { status: 404 });
   }
 
-  // Prevent external hotlinking / direct browser access without referer
+  // Security: Check referer to block direct hotlinking from outside
   const referer = request.headers.get("referer") || "";
   const host = request.headers.get("host") || "";
-
-  // Allow if localhost or sagarcoaching.tech
-  const isAllowedHost =
+  const isAllowedOrigin =
     referer.includes(host) ||
     referer.includes("localhost") ||
     referer.includes("127.0.0.1") ||
     referer.includes("sagarcoaching.tech");
 
-  if (!isAllowedHost && process.env.NODE_ENV === "production") {
-    return new NextResponse("Direct access forbidden. Please view on website.", { status: 403 });
+  if (!isAllowedOrigin && referer !== "") {
+    return new NextResponse("Forbidden: Hotlinking blocked.", { status: 403 });
   }
 
   try {
     const upstream = await fetch(post.pdfUrl);
     if (!upstream.ok) {
-      return new NextResponse("Error fetching PDF stream", { status: upstream.status });
+      return new NextResponse("Error fetching preview", { status: upstream.status });
     }
 
     const arrayBuffer = await upstream.arrayBuffer();
@@ -40,13 +38,14 @@ export async function GET(
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "inline",
-        "Content-Length": arrayBuffer.byteLength.toString(),
-        "Cache-Control": "private, max-age=3600",
         "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Content-Security-Policy": "frame-ancestors 'self'",
+        "Cache-Control": "private, max-age=3600",
       },
     });
   } catch (error) {
-    console.error("PDF preview stream error:", error);
+    console.error("[PREVIEW_PROXY_ERROR]", error);
     return new NextResponse("Server Error", { status: 500 });
   }
 }

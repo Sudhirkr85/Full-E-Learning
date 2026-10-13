@@ -67,12 +67,12 @@ export default function BlogListingPage() {
             {/* Quick Metrics */}
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center backdrop-blur">
-                <div className="text-xl font-bold text-indigo-400 sm:text-2xl">3+</div>
+                <div className="text-xl font-bold text-indigo-400 sm:text-2xl">40+</div>
                 <div className="text-xs text-slate-400">ओरिजिनल पेपर्स</div>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center backdrop-blur">
-                <div className="text-xl font-bold text-amber-400 sm:text-2xl">100%</div>
-                <div className="text-xs text-slate-400">फ्री डाउनलोड</div>
+                <div className="text-xl font-bold text-amber-400 sm:text-2xl">100% Free</div>
+                <div className="text-xs text-slate-400">ऑनलाइन रीडिंग</div>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center backdrop-blur">
                 <div className="text-xl font-bold text-emerald-400 sm:text-2xl">MAT + SAT</div>

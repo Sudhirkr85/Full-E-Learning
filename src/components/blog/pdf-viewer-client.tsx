@@ -1,27 +1,35 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, Maximize2, ExternalLink, Download, Eye, EyeOff } from "lucide-react";
+import { FileText, Maximize2, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { PyqDownloadButton } from "@/components/blog/pyq-download-button";
 
 interface PdfViewerClientProps {
+  slug: string;
   pdfUrl: string;
   pdfFileName: string;
   downloadUrl: string;
   pdfPages: number;
   pdfSize: string;
+  isAdmin?: boolean;
 }
 
 export function PdfViewerClient({
+  slug,
   pdfUrl,
   pdfFileName,
   downloadUrl,
   pdfPages,
   pdfSize,
+  isAdmin = false,
 }: PdfViewerClientProps) {
   const [showViewer, setShowViewer] = useState(true);
 
   return (
-    <div className="my-8 overflow-hidden rounded-2xl border-2 border-indigo-500/30 bg-slate-900/90 shadow-2xl">
+    <div
+      onContextMenu={(e) => e.preventDefault()}
+      className="my-8 overflow-hidden rounded-2xl border-2 border-indigo-500/30 bg-slate-900/90 shadow-2xl select-none"
+    >
       {/* Viewer Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-gradient-to-r from-indigo-950/80 via-slate-900 to-slate-900 p-4">
         <div className="flex items-center gap-2.5">
@@ -30,7 +38,7 @@ export function PdfViewerClient({
           </div>
           <div>
             <h3 className="text-sm font-bold text-white sm:text-base">
-              लाइव PDF व्यूअर (Live PDF Viewer)
+              सुरक्षित PDF व्यूअर (Secure PDF Viewer)
             </h3>
             <p className="text-xs text-slate-400">
               पेज स्क्रॉल करके प्रश्न पत्र सीधे यहाँ पढ़ें ({pdfPages} पृष्ठ • {pdfSize})
@@ -57,23 +65,12 @@ export function PdfViewerClient({
             )}
           </button>
 
-          <a
-            href={pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow transition hover:bg-indigo-500"
-          >
-            <Maximize2 className="h-3.5 w-3.5" />
-            <span>फुलस्क्रीन में देखें</span>
-          </a>
-
-          <a
-            href={downloadUrl}
+          <PyqDownloadButton
+            slug={slug}
+            pdfTitle={pdfFileName}
+            isAdmin={isAdmin}
             className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-3.5 py-1.5 text-xs font-bold text-slate-950 shadow transition hover:from-amber-400 hover:to-orange-400"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>डाउनलोड</span>
-          </a>
+          />
         </div>
       </div>
 
@@ -81,7 +78,7 @@ export function PdfViewerClient({
       {showViewer && (
         <div className="relative w-full bg-slate-950">
           <iframe
-            src={`${pdfUrl}#toolbar=1&navpanes=0`}
+            src={`${pdfUrl}#toolbar=0&navpanes=0`}
             title={pdfFileName}
             className="h-[600px] w-full border-0 sm:h-[750px]"
           />

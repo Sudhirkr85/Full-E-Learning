@@ -25,6 +25,8 @@ import {
   Eye,
 } from "lucide-react";
 import { PdfViewerClient } from "@/components/blog/pdf-viewer-client";
+import { PyqDownloadButton } from "@/components/blog/pyq-download-button";
+import { auth } from "@/auth";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -62,6 +64,9 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
   if (!post) {
     notFound();
   }
+
+  const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const baseUrl = siteConfig.url.replace(/\/$/, "");
   const pageUrl = `${baseUrl}/blog/${post.slug}`;
@@ -251,34 +256,34 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
+                    <PyqDownloadButton
+                      slug={post.slug}
+                      pdfTitle={post.pdfFileName}
+                      isAdmin={isAdmin}
+                    />
                     <a
-                      href={downloadApiUrl}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:from-amber-400 hover:to-orange-400"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>डाउनलोड PDF</span>
-                    </a>
-                    <a
-                      href={post.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href="#pdf-viewer"
                       className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10"
                     >
-                      <span>ऑनलाइन देखें</span>
-                      <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+                      <BookOpen className="h-4 w-4 text-indigo-400" />
+                      <span>ऑनलाइन पढ़ें (निःशुल्क)</span>
                     </a>
                   </div>
                 </div>
               </div>
 
               {/* ── LIVE INTERACTIVE PDF VIEWER ── */}
-              <PdfViewerClient
-                pdfUrl={post.pdfUrl}
-                pdfFileName={post.pdfFileName}
-                downloadUrl={downloadApiUrl}
-                pdfPages={post.pdfPages}
-                pdfSize={post.pdfSize}
-              />
+              <div id="pdf-viewer">
+                <PdfViewerClient
+                  slug={post.slug}
+                  pdfUrl={post.pdfUrl}
+                  pdfFileName={post.pdfFileName}
+                  downloadUrl={downloadApiUrl}
+                  pdfPages={post.pdfPages}
+                  pdfSize={post.pdfSize}
+                  isAdmin={isAdmin}
+                />
+              </div>
 
               {/* ── Quick Overview Table ── */}
               <section className="mt-10">
@@ -377,13 +382,11 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 </p>
 
                 <div className="mt-6 flex flex-wrap justify-center gap-4">
-                  <a
-                    href={downloadApiUrl}
-                    className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3.5 text-sm font-bold text-slate-950 shadow-xl shadow-amber-500/20 transition hover:bg-amber-400"
-                  >
-                    <Download className="h-5 w-5" />
-                    <span>डाउनलोड करें ({post.pdfSize})</span>
-                  </a>
+                  <PyqDownloadButton
+                    slug={post.slug}
+                    pdfTitle={post.pdfFileName}
+                    isAdmin={isAdmin}
+                  />
                   <a
                     href={whatsappShareUrl}
                     target="_blank"

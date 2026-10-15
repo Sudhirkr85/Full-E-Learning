@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -66,6 +67,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hi" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4373347511629887"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-[#0a0a0f] text-foreground overflow-x-hidden`}>
         <ThemeProvider>
           {children}

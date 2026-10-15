@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -58,6 +57,9 @@ export const metadata: Metadata = {
     title:       "Sagar Coaching Centre Bhagwanpur",
     description: "India's Trusted Online Scholarship Exam Coaching — NMMS, Navodaya, Sainik School",
   },
+  other: {
+    "google-adsense-account": "ca-pub-4373347511629887",
+  },
 };
 
 export default function RootLayout({
@@ -68,11 +70,10 @@ export default function RootLayout({
   return (
     <html lang="hi" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
-        <Script
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4373347511629887"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
       </head>
       <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-[#0a0a0f] text-foreground overflow-x-hidden`}>

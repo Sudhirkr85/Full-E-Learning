@@ -1,4 +1,5 @@
-import VipTelegramPage, { metadata } from "../vip-telegram/page";
+import { permanentRedirect } from "next/navigation";
 
-export { metadata };
-export default VipTelegramPage;
+export default function NmmsTelegramRedirectPage() {
+  permanentRedirect("/vip-telegram");
+}

@@ -26,8 +26,8 @@ export const siteConfig = {
   phone: "+919110113671",
   phoneDisplay: "+91 91101 13671",
   whatsapp: "https://wa.me/919110113671",
-  email: "noreply@sagarcoaching.tech",
-  supportEmail: "support@sagarcoaching.tech",
+  email: "codingwithsudhir@gmail.com",
+  supportEmail: "codingwithsudhir@gmail.com",
   address: "NH 106, Bhagwanpur, Supaul, Bihar — 854338",
   city: "Bhagwanpur, Supaul",
   state: "Bihar",
@@ -267,14 +267,18 @@ export const siteConfig = {
 
 export const mainNav = [
   { label: "Home", href: "/" },
+  { label: "About Us", href: "/about" },
   { label: "PYQ & Blog", href: "/blog" },
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },
   { label: "VIP Alerts", href: "/vip-telegram" },
+  { label: "Contact Us", href: "/contact" },
   { label: "Login", href: "/login" }
 ];
 
 export const footerNav = [
+  { label: "About Us", href: "/about" },
+  { label: "Contact Us", href: "/contact" },
   { label: "PYQ & Study Material", href: "/blog" },
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },

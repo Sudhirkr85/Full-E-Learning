@@ -69,13 +69,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hi" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <head>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4373347511629887"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body className={`${spaceGrotesk.variable} ${manrope.variable} font-sans bg-[#0a0a0f] text-foreground overflow-x-hidden`}>
         <ThemeProvider>
           {children}

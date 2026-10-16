@@ -56,7 +56,8 @@ export async function generateMetadata({ params }: TopicPageProps): Promise<Meta
   return makeMetadata({
     title: pageTitle,
     description: pageDesc,
-    path: `/topic/${slug}`
+    path: `/topic/${slug}`,
+    noIndex: true
   });
 }
 

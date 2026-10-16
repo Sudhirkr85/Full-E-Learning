@@ -2,14 +2,25 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site";
 import { getPublishedCourseSlugs } from "@/lib/courses/queries";
 import { prisma } from "@/lib/prisma";
-import { CURATED_TOPIC_LIST } from "@/lib/seo/generator";
 import { BLOG_POSTS } from "@/lib/blog-data";
 
 // Caching configurations for Vercel static generation
 export const revalidate = 86400; // Cache sitemap for 24 hours
 export const dynamic = "force-static";
 
-const publicStaticPaths = ["/", "/blog", "/courses", "/store", "/vip-telegram", "/privacy-policy", "/terms", "/refund-policy"];
+const publicStaticPaths = [
+  "/", 
+  "/about", 
+  "/contact", 
+  "/disclaimer", 
+  "/blog", 
+  "/courses", 
+  "/store", 
+  "/vip-telegram", 
+  "/privacy-policy", 
+  "/terms", 
+  "/refund-policy"
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -60,17 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   });
 
-  // 4. Curated distinct educational topic study guides
-  CURATED_TOPIC_LIST.forEach((topicItem) => {
-    sitemapEntries.push({
-      url: `${baseUrl}/topic/${topicItem.slug}`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6
-    });
-  });
-
-  // 5. Educational PYQ & Blog Posts
+  // 4. Educational PYQ & Blog Posts
   BLOG_POSTS.forEach((post) => {
     sitemapEntries.push({
       url: `${baseUrl}/blog/${post.slug}`,

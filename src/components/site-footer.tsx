@@ -38,7 +38,7 @@ export function SiteFooter() {
             </div>
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-              <a href="mailto:noreply@sagarcoaching.tech" className="hover:text-white transition">✉️ noreply@sagarcoaching.tech</a>
+              <a href="mailto:codingwithsudhir@gmail.com" className="hover:text-white transition">✉️ codingwithsudhir@gmail.com</a>
             </div>
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4 text-indigo-400 flex-shrink-0" />
@@ -105,15 +105,16 @@ export function SiteFooter() {
       </Container>
 
       <div className="relative z-10 mt-12 border-t border-white/5 pt-8">
-        <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 max-w-7xl mx-auto px-4">
+        <Container className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 max-w-7xl mx-auto px-4 text-center sm:text-left">
           <p>
             © {new Date().getFullYear()} Sagar Coaching Centre Bhagwanpur. All rights reserved. <br className="sm:hidden" />
             Founder: Shrvan Kumar Sagar | जिला सुपौल, बिहार | Online Classes — All India
           </p>
-          <div className="flex flex-wrap gap-4 sm:gap-6">
+          <div className="flex flex-wrap justify-center sm:justify-start gap-4 sm:gap-6">
             <Link href="/privacy-policy" className="hover:text-slate-300 transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-slate-300 transition">Terms of Service</Link>
             <Link href="/refund-policy" className="hover:text-slate-300 transition">Refund Policy</Link>
+            <Link href="/disclaimer" className="hover:text-slate-300 transition">Disclaimer</Link>
           </div>
         </Container>
       </div>

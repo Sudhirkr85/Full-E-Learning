@@ -223,7 +223,7 @@ export default async function ProgrammaticLandingPage({ params }: LandingPagePro
           "streetAddress": "Bhagwanpur",
           "addressLocality": "Supaul",
           "addressRegion": "Bihar",
-          "postalCode": "852131",
+          "postalCode": "854338",
           "addressCountry": "IN"
         }
       }

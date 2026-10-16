@@ -38,7 +38,7 @@ export default function TermsPage() {
           <p className="text-xs text-slate-400 mt-2 font-mono">Effective Date: September 2026 | Sagar Coaching Centre</p>
         </div>
 
-        <div className="bg-[#0b0e22]/80 border border-white/10 rounded-3xl p-6 sm:p-10 space-y-8 text-slate-300 leading-relaxed text-sm backdrop-blur-md">
+        <div className="bg-[#0b0e22]/80 border border-white/10 rounded-3xl p-5 sm:p-8 md:p-10 space-y-8 text-slate-300 leading-relaxed text-sm backdrop-blur-md">
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-white">1. Agreement to Terms</h2>
             <p>
@@ -79,7 +79,7 @@ export default function TermsPage() {
             <div className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-2 mt-2 font-mono text-xs">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-purple-400 shrink-0" />
-                <span>NH 106, Bhagwanpur, Supaul, Bihar — 852131</span>
+                <span>NH 106, Bhagwanpur, Supaul, Bihar — 854338</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-purple-400 shrink-0" />
@@ -87,7 +87,7 @@ export default function TermsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-purple-400 shrink-0" />
-                <span>support@sagarcoaching.tech</span>
+                <span>codingwithsudhir@gmail.com</span>
               </div>
             </div>
           </section>

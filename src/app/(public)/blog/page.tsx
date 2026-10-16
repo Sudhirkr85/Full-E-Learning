@@ -17,6 +17,7 @@ import {
   Smartphone,
   Award,
 } from "lucide-react";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 export const metadata: Metadata = {
   ...makeMetadata({
@@ -167,6 +168,9 @@ export default function BlogListingPage() {
               </article>
             ))}
           </div>
+
+          {/* Policy-Safe Ad Placement (Rendered only when AdSense is approved & enabled) */}
+          <AdSlot format="horizontal" minHeight={120} className="mt-12" />
 
           {/* ── Community / Support Banner ── */}
           <div className="mt-16 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-indigo-950/40 to-slate-900 p-8">

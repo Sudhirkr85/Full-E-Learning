@@ -25,12 +25,16 @@ type CourseDetailsPageProps = {
 
 function categoryGradient(categoryName?: string) {
   switch (categoryName) {
-    case "Web Development":
-      return "from-blue-500 to-purple-600";
-    case "Mobile Development":
+    case "MAT (Reasoning)":
+    case "Reasoning":
+      return "from-indigo-500 to-purple-600";
+    case "SAT (Science & Math)":
+    case "Science":
       return "from-green-500 to-teal-600";
-    case "Backend":
-      return "from-orange-500 to-red-600";
+    case "Social Science":
+      return "from-amber-500 to-orange-600";
+    case "Hindi & English Grammar":
+      return "from-cyan-500 to-blue-600";
     default:
       return "from-gray-600 to-gray-800";
   }
@@ -400,7 +404,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
                 "streetAddress": "NH 106, Bhagwanpur",
                 "addressLocality": "Supaul",
                 "addressRegion": "Bihar",
-                "postalCode": "852131",
+                "postalCode": "854338",
                 "addressCountry": "IN"
               }
             }

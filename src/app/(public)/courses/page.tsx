@@ -12,8 +12,8 @@ import { EnrollButton } from "./[slug]/enroll-button";
 import { WishlistButton } from "@/components/wishlist-button";
 
 export const metadata: Metadata = makeMetadata({
-  title: "Courses - Learning Paths",
-  description: "Browse the published course catalog and discover learning paths for every role.",
+  title: "Scholarship Courses & Online Mock Test Series | Sagar Coaching Centre",
+  description: "Enroll in comprehensive online preparation batches and mock test series for NMMS, Navodaya (JNVST), Sainik School (AISSEE), and Shrestha NETS exams by Shrvan Kumar Sagar.",
   path: "/courses"
 });
 
@@ -27,12 +27,16 @@ type CoursesPageProps = {
 
 function categoryGradient(categoryName?: string) {
   switch (categoryName) {
-    case "Web Development":
-      return "from-blue-600 to-purple-700";
-    case "Mobile Development":
+    case "MAT (Reasoning)":
+    case "Reasoning":
+      return "from-indigo-600 to-purple-700";
+    case "SAT (Science & Math)":
+    case "Science":
       return "from-emerald-600 to-teal-700";
-    case "Backend":
-      return "from-orange-600 to-red-700";
+    case "Social Science":
+      return "from-amber-600 to-orange-700";
+    case "Hindi & English Grammar":
+      return "from-cyan-600 to-blue-700";
     default:
       return "from-slate-700 to-slate-900";
   }
@@ -84,7 +88,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
             Explore Courses
           </h1>
           <p className="text-sm sm:text-base text-slate-400">
-            Browse live published courses, organized by professional category and ready to accelerate your tech career.
+            Browse live scholarship preparation courses, mock test series, and study batches for NMMS, Navodaya, Sainik School, and Shrestha NETS exams.
           </p>
         </div>
 
@@ -183,7 +187,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                         </h3>
                       </Link>
                       <p className="line-clamp-2 text-xs text-slate-400 font-medium leading-relaxed">
-                        {shortDescription ?? "Immersive published EdTech course pathway ready for immediate enrollment."}
+                        {shortDescription ?? "Comprehensive scholarship preparation course pathway ready for immediate enrollment."}
                       </p>
                       <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider pt-1">
                         {sectionsCount} sections <span className="text-slate-700">•</span> by {teacherName}

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { razorpay } from "@/lib/razorpay";
 import { OrderStatus } from "@prisma/client";
+import { siteConfig } from "@/lib/site";
 
 export async function POST(request: Request) {
   try {
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
       data: {
         orderNumber: rzpOrder.id, // Store Razorpay Order ID as the unique orderNumber key
         userId: session.user.id,
-        billingEmail: session.user.email || "billing@example.com",
+        billingEmail: session.user.email || siteConfig.email,
         status: OrderStatus.PENDING,
         subtotalCents: priceCents,
         discountCents: 0,

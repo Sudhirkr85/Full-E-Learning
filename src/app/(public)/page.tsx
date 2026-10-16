@@ -749,7 +749,7 @@ export default async function HomePage() {
                 "streetAddress": "NH 106, Bhagwanpur",
                 "addressLocality": "Supaul",
                 "addressRegion": "Bihar",
-                "postalCode": "852131",
+                "postalCode": "854338",
                 "addressCountry": "IN"
               },
               "contactPoint": {

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { PdfViewerClient } from "@/components/blog/pdf-viewer-client";
 import { PyqDownloadButton } from "@/components/blog/pyq-download-button";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { auth } from "@/auth";
 
 interface PageProps {
@@ -290,8 +291,8 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 <h3 className="text-xl font-bold text-white">
                   1. परीक्षा का संक्षिप्त विवरण (Quick Overview)
                 </h3>
-                <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-slate-900/50">
-                  <table className="w-full text-left text-sm">
+                <div className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-slate-900/50">
+                  <table className="w-full min-w-[320px] text-left text-sm">
                     <tbody className="divide-y divide-white/5">
                       {post.overview.map((item, idx) => (
                         <tr key={idx} className={idx % 2 === 0 ? "bg-white/[0.02]" : ""}>
@@ -314,7 +315,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                   2. परीक्षा पैटर्न एवं अंक विभाजन (Exam Pattern)
                 </h3>
                 <div className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-slate-900/50">
-                  <table className="w-full text-left text-sm">
+                  <table className="w-full min-w-[540px] text-left text-sm">
                     <thead className="border-b border-white/10 bg-indigo-950/40 text-xs font-semibold text-indigo-300">
                       <tr>
                         <th className="p-3.5">प्रश्न पत्र</th>
@@ -371,6 +372,9 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                   </section>
                 ))}
               </div>
+
+              {/* Policy-Compliant In-Article Ad Slot (Active only when approved) */}
+              <AdSlot format="horizontal" minHeight={120} className="my-8" />
 
               {/* ── BOTTOM DOWNLOAD BOX ── */}
               <div className="my-10 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-slate-900 to-indigo-950/40 p-6 text-center sm:p-8">

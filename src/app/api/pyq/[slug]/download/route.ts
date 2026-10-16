@@ -2,6 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBlogPostBySlug } from "@/lib/blog-data";
 import { auth } from "@/auth";
 import { verifyDownloadToken } from "@/lib/pyq-download-token";
+import https from "node:https";
+
+async function getPdfBuffer(url: string): Promise<Buffer> {
+  try {
+    const upstream = await fetch(url);
+    if (upstream.ok) {
+      const arrayBuffer = await upstream.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    }
+  } catch (err) {
+    console.warn("[DOWNLOAD_PROXY] Standard fetch failed, attempting https fallback:", err);
+  }
+
+  return new Promise<Buffer>((resolve, reject) => {
+    https
+      .get(url, { rejectUnauthorized: false }, (res) => {
+        if (res.statusCode && res.statusCode >= 400) {
+          return reject(new Error(`Upstream returned ${res.statusCode}`));
+        }
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+        res.on("end", () => resolve(Buffer.concat(chunks)));
+        res.on("error", reject);
+      })
+      .on("error", reject);
+  });
+}
 
 export async function GET(
   request: NextRequest,
@@ -34,24 +61,20 @@ export async function GET(
   }
 
   try {
-    const upstream = await fetch(post.pdfUrl);
-    if (!upstream.ok) {
-      return new NextResponse("Error fetching PDF", { status: upstream.status });
-    }
+    const buffer = await getPdfBuffer(post.pdfUrl);
 
-    const arrayBuffer = await upstream.arrayBuffer();
-
-    return new NextResponse(arrayBuffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${encodeURIComponent(post.pdfFileName)}"`,
-        "Content-Length": arrayBuffer.byteLength.toString(),
+        "Content-Length": buffer.length.toString(),
         "Cache-Control": "public, max-age=86400, s-maxage=86400",
       },
     });
   } catch (error) {
     console.error("PDF download proxy error:", error);
-    return new NextResponse("Server Error", { status: 500 });
+    return NextResponse.redirect(post.pdfUrl, 302);
   }
 }
+

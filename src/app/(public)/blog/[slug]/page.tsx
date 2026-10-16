@@ -274,7 +274,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               </div>
 
               {/* ── LIVE INTERACTIVE PDF VIEWER ── */}
-              <div id="pdf-viewer">
+              <div id="pdf-viewer" className="scroll-mt-24">
                 <PdfViewerClient
                   slug={post.slug}
                   pdfUrl={post.pdfUrl}

@@ -248,6 +248,12 @@ export default async function StudentDashboardPage() {
                 <h3 className="font-display text-lg font-bold text-white leading-tight">{continueEnrollment.course.title}</h3>
                 <p className="text-xs text-slate-400 mt-1">
                   Active Lesson: <span className="text-slate-200 font-semibold">{continueEnrollment.progress?.lastLesson?.title ?? "Overview & First Module"}</span>
+                  <span className="mx-2 text-slate-600">•</span>
+                  <span className="text-cyan-400 font-medium">
+                    {continueEnrollment.expiresAt
+                      ? `Valid till: ${new Date(continueEnrollment.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                      : "Lifetime Access"}
+                  </span>
                 </p>
               </div>
 
@@ -270,10 +276,10 @@ export default async function StudentDashboardPage() {
                     <Link href={`/courses/${continueEnrollment.course.slug}`}>Resume Enrollment</Link>
                   </Button>
                 ) : (
-                  <Button asChild className="bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold hover:from-indigo-500 hover:to-cyan-500 rounded-xl px-6 py-5 shadow-[0_0_20px_rgba(99,102,241,0.3)] transition duration-300 hover:scale-[1.02] active:scale-[0.98] group">
-                    <Link href={continueHref} className="flex items-center gap-1.5">
-                      <Play className="h-3.5 w-3.5 fill-white" />
-                      {continueLabel}
+                  <Button asChild className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white font-extrabold hover:from-indigo-500 hover:to-cyan-400 rounded-xl px-6 py-5 shadow-[0_0_20px_rgba(99,102,241,0.3)] transition duration-300 hover:scale-[1.02] active:scale-[0.98] group">
+                    <Link href={continueHref} className="flex items-center gap-2">
+                      <Play className="h-4 w-4 fill-white" />
+                      <span>Start Learning / पढ़ाई जारी रखें</span>
                       <ArrowRight className="h-4 w-4 transition duration-200 group-hover:translate-x-0.5" />
                     </Link>
                   </Button>

@@ -24,7 +24,8 @@ import {
   BookOpen,
   GraduationCap,
   Heart,
-  Award
+  Award,
+  FileSpreadsheet
 } from "lucide-react";
 import { LogoutModal } from "@/components/navbar/logout-modal";
 import { useWishlistStore } from "@/store/wishlist-store";
@@ -71,6 +72,7 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
     if (l.includes("password")) return <Lock className="h-4 w-4 shrink-0" />;
     if (l.includes("wishlist")) return <Heart className="h-4 w-4 shrink-0" />;
     if (l.includes("certificate")) return <Award className="h-4 w-4 shrink-0" />;
+    if (l.includes("report")) return <FileSpreadsheet className="h-4 w-4 shrink-0" />;
     return <LayoutDashboard className="h-4 w-4 shrink-0" />;
   };
 
@@ -124,7 +126,8 @@ export function DashboardShell({ title, description, nav, children, role }: Dash
         { label: "Store", href: "/admin/store" },
         { label: "Store Orders", href: "/admin/store/orders" },
         { label: "Coupons", href: "/admin/coupons" },
-        { label: "Certificates", href: "/admin/certificates" }
+        { label: "Certificates", href: "/admin/certificates" },
+        { label: "Reports & Export", href: "/admin/reports" }
       ];
 
       return (

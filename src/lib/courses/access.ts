@@ -64,8 +64,14 @@ function isStaff(role?: UserRole | null) {
   return role === "TEACHER" || role === "ADMIN";
 }
 
-function isEnrollmentActive(status?: EnrollmentStatus | null) {
-  return status === EnrollmentStatus.ACTIVE || status === EnrollmentStatus.COMPLETED;
+function isEnrollmentActive(status?: EnrollmentStatus | null, expiresAt?: Date | null) {
+  if (status !== EnrollmentStatus.ACTIVE && status !== EnrollmentStatus.COMPLETED) {
+    return false;
+  }
+  if (expiresAt && new Date(expiresAt).getTime() < Date.now()) {
+    return false;
+  }
+  return true;
 }
 
 function flattenLessons(course: LearningCourse) {
@@ -371,7 +377,7 @@ export async function getLearningCourseOverview(courseSlug: string, userId?: str
     firstLesson,
     continueHref,
     canBypass,
-    isEnrolled: isEnrollmentActive(enrollment?.status)
+    isEnrolled: isEnrollmentActive(enrollment?.status, enrollment?.expiresAt)
   };
 }
 
@@ -396,7 +402,7 @@ export async function getLessonPlayerBundle(courseSlug: string, lessonSlug: stri
   const lessonEntries = flattenLessons(course);
   const lessonEntry = lessonEntries.find((entry) => entry.lesson.slug === lessonSlug) ?? null;
   const enrollment = await getCurrentCourseEnrollment(course.id, userId ?? user?.id ?? null);
-  const isEnrolled = isEnrollmentActive(enrollment?.status);
+  const isEnrolled = isEnrollmentActive(enrollment?.status, enrollment?.expiresAt);
 
   if (!lessonEntry) {
     return {
@@ -451,8 +457,8 @@ export function isPrivilegedLearningRole(role?: UserRole | null) {
   return isStaff(role);
 }
 
-export function isActiveEnrollmentStatus(status?: EnrollmentStatus | null) {
-  return isEnrollmentActive(status);
+export function isActiveEnrollmentStatus(status?: EnrollmentStatus | null, expiresAt?: Date | null) {
+  return isEnrollmentActive(status, expiresAt);
 }
 
 export function getFirstLessonFromCourse(course: LearningCourse | null) {

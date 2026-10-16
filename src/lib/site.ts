@@ -308,6 +308,7 @@ export const adminNav = [
   { label: "Courses", href: "/admin/courses" },
   { label: "Categories", href: "/admin/categories" },
   { label: "Store", href: "/admin/store" },
+  { label: "Reports & Export", href: "/admin/reports" },
   { label: "Audit Logs", href: "/admin/audit-logs" },
   { label: "Change Password", href: "/admin/settings/change-password" },
   { label: "Platform Config", href: "/admin/settings/platform" }

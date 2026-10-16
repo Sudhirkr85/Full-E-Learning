@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,9 +17,19 @@ import {
   ShoppingBag, 
   ArrowRight,
   ExternalLink,
-  Truck
+  Truck,
+  Share2,
+  Clock,
+  Sparkles,
+  Check,
+  X,
+  Loader2,
+  UserPlus
 } from "lucide-react";
 import Link from "next/link";
+import { GrantAccessModal } from "./grant-access-modal";
+import { adminExtendEnrollmentAction, adminRevokeEnrollmentAction } from "./actions";
+import { UserDetailsModal, type UserDetailData } from "@/components/admin/user-details-modal";
 
 type User = {
   id: string;
@@ -32,6 +43,7 @@ type User = {
 type Course = {
   id: string;
   title: string;
+  slug?: string;
   priceCents: number;
 };
 
@@ -42,6 +54,11 @@ type CourseProgress = {
 type EnrollmentItem = {
   id: string;
   createdAt: Date;
+  status: string;
+  paymentStatus?: string | null;
+  amountPaid?: number | null;
+  expiresAt?: Date | null;
+  metadata?: any;
   user: User;
   course: Course;
   progress: CourseProgress | null;
@@ -77,6 +94,14 @@ type OrderItemData = {
   metadata?: any;
 };
 
+type CourseOption = {
+  id: string;
+  title: string;
+  slug: string;
+  priceCents: number;
+  status: string;
+};
+
 type EnrollmentsClientProps = {
   enrollments: EnrollmentItem[];
   orders: OrderItemData[];
@@ -88,19 +113,64 @@ type EnrollmentsClientProps = {
     totalRevenue: number;
     pendingDispatch: number;
   };
+  courses?: CourseOption[];
 };
 
-export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsClientProps) {
+export function EnrollmentsClient({ enrollments, orders, metrics, courses = [] }: EnrollmentsClientProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"enrollments" | "orders">("enrollments");
   const [search, setSearch] = useState("");
   const [enrollmentFilter, setEnrollmentFilter] = useState("all"); // all, active, completed
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState("all");
   const [orderFilter, setOrderFilter] = useState("all"); // all, succeeded, pending, failed
-  
-  // Shipping Desk Modal States and Handlers removed (moved to dedicated /admin/store/orders page)
+
+  // Extend Validity modal states
+  const [selectedForExtend, setSelectedForExtend] = useState<EnrollmentItem | null>(null);
+  const [extendPlan, setExtendPlan] = useState<"30_DAYS" | "90_DAYS" | "180_DAYS" | "365_DAYS" | "LIFETIME">("90_DAYS");
+  const [isExtending, startExtendingTransition] = useTransition();
+
+  // User Details Popup state
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<UserDetailData | null>(null);
 
   // Formats paise (from Razorpay) to INR Rupees representation
   const formatINR = (paise: number) => {
     return "₹" + (paise / 100).toLocaleString("en-IN");
+  };
+
+  const handleShareWhatsApp = (e: EnrollmentItem) => {
+    const studentName = e.user.name || `${e.user.firstName || ""} ${e.user.lastName || ""}`.trim() || "Student";
+    const courseTitle = e.course.title;
+    const courseSlug = e.course.slug || "";
+    const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://sagarcoaching.tech";
+    const courseUrl = `${siteUrl}/courses/${courseSlug}/learn`;
+    
+    let validityText = "आजीवन (Lifetime Access)";
+    if (e.expiresAt) {
+      const d = new Date(e.expiresAt);
+      validityText = d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    let msg = `नमस्ते ${studentName}! 🎓\n\n`;
+    msg += `सागर कोचिंग सेंटर के कोर्स *${courseTitle}* में आपका एक्सेस एक्टिव है।\n\n`;
+    msg += `📌 *कोर्स वैधता (Validity):* ${validityText}\n`;
+    msg += `▶️ *पढ़ाई जारी रखने के लिए यहाँ क्लिक करें:*\n${courseUrl}\n\n`;
+    msg += `धन्यवाद! - सागर सर 🙏`;
+
+    const text = encodeURIComponent(msg);
+    const phone = e.user.phone ? e.user.phone.replace(/[^0-9]/g, "") : "";
+    const url = phone ? `https://api.whatsapp.com/send?phone=91${phone}&text=${text}` : `https://api.whatsapp.com/send?text=${text}`;
+    window.open(url, "_blank");
+  };
+
+  const handleConfirmExtend = () => {
+    if (!selectedForExtend) return;
+    startExtendingTransition(async () => {
+      const res = await adminExtendEnrollmentAction(selectedForExtend.id, extendPlan);
+      if (res.success) {
+        setSelectedForExtend(null);
+        router.refresh();
+      }
+    });
   };
 
   // Helper to hash initials to colors
@@ -136,6 +206,10 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
       const query = search.toLowerCase();
       const matchesSearch = name.includes(query) || email.includes(query);
 
+      if (selectedCourseFilter !== "all" && e.course.id !== selectedCourseFilter) {
+        return false;
+      }
+
       const progress = e.progress?.progressPercent ?? 0;
       if (enrollmentFilter === "completed") {
         return matchesSearch && progress === 100;
@@ -145,7 +219,7 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
       }
       return matchesSearch;
     });
-  }, [enrollments, search, enrollmentFilter]);
+  }, [enrollments, search, enrollmentFilter, selectedCourseFilter]);
   // Filter & Search Orders
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
@@ -287,23 +361,49 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
             </button>
           </div>
 
-          {/* Search bar */}
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search student name or email..."
-              className="pl-10 rounded-xl bg-slate-950/60 border-white/5 text-white placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-indigo-500/40"
-            />
+          {/* Search bar & Grant Access Button */}
+          <div className="flex items-center gap-3 flex-wrap flex-1 sm:justify-end">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search student, email..."
+                className="pl-10 rounded-xl bg-slate-950/60 border-white/5 text-white placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-indigo-500/40"
+              />
+            </div>
+
+            {courses && courses.length > 0 && (
+              <GrantAccessModal courses={courses} onSuccess={() => router.refresh()} />
+            )}
           </div>
         </div>
 
         {/* Content Tab 1: Enrollments */}
         {activeTab === "enrollments" && (
           <div className="space-y-4">
-            {/* Enrollment Filter Pills */}
+            {/* Enrollment Filter: Course & Status */}
             <div className="flex items-center gap-2 flex-wrap">
+              {courses && courses.length > 0 && (
+                <div className="flex items-center gap-1.5 bg-black/40 px-2.5 py-1 rounded-xl border border-white/5">
+                  <BookOpen className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                  <select
+                    value={selectedCourseFilter}
+                    onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                    className="h-6 bg-transparent text-[11px] font-semibold text-slate-200 focus:outline-none cursor-pointer max-w-[220px] truncate"
+                  >
+                    <option value="all" className="bg-slate-900 text-white">
+                      All Courses (सभी कोर्स)
+                    </option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                        {c.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 px-1">Filter status:</span>
               {[
                 { label: "All Enrollments", val: "all" },
@@ -331,11 +431,12 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                   <tr className="border-b border-white/5 bg-white/[0.01] text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-4">Student</th>
                     <th className="p-4">Course</th>
-                    <th className="p-4">Mobile</th>
+                    <th className="p-4">Payment</th>
+                    <th className="p-4">Validity</th>
                     <th className="p-4">Progress</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">Enrolled On</th>
-                    <th className="p-4 text-center">Action</th>
+                    <th className="p-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-slate-300 font-medium">
@@ -345,22 +446,93 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                       const isCompleted = progress === 100;
                       const isNew = daysSince(e.createdAt) < 7;
                       const studentName = e.user.name || `${e.user.firstName || ""} ${e.user.lastName || ""}`.trim() || "Student";
+                      const isExpired = Boolean(e.expiresAt && new Date(e.expiresAt).getTime() < Date.now());
+
                       return (
                         <tr key={e.id} className="hover:bg-white/[0.01] transition-colors duration-150">
                           <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(studentName || e.user.email)}`}>
+                            <div 
+                              onClick={() => {
+                                const userEnrollments = enrollments
+                                  .filter(enr => enr.user.id === e.user.id)
+                                  .map(enr => ({
+                                    id: enr.id,
+                                    createdAt: enr.createdAt,
+                                    status: enr.status,
+                                    expiresAt: enr.expiresAt,
+                                    paymentStatus: enr.paymentStatus,
+                                    amountPaid: enr.amountPaid,
+                                    course: enr.course,
+                                    progress: enr.progress
+                                  }));
+
+                                setSelectedUserForDetails({
+                                  id: e.user.id,
+                                  name: studentName,
+                                  email: e.user.email,
+                                  phone: e.user.phone,
+                                  role: "STUDENT",
+                                  createdAt: e.createdAt,
+                                  enrollments: userEnrollments
+                                });
+                              }}
+                              className="flex items-center gap-3 cursor-pointer group"
+                              title="Click to view student full details & mobile number"
+                            >
+                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 group-hover:border-indigo-400 transition ${getAvatarColor(studentName || e.user.email)}`}>
                                 {getInitials(studentName, e.user.email)}
                               </div>
                               <div>
-                                <p className="font-semibold text-white">{studentName}</p>
+                                <p className="font-semibold text-white group-hover:text-indigo-400 group-hover:underline underline-offset-4 transition">{studentName}</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">{e.user.email}</p>
+                                {e.user.phone && (
+                                  <p className="text-[10px] text-indigo-400/80 font-mono">{e.user.phone}</p>
+                                )}
                               </div>
                             </div>
                           </td>
                           <td className="p-4 font-semibold text-slate-200">{e.course.title}</td>
-                          <td className="p-4 text-slate-400">{e.user.phone || <span className="text-slate-600 italic">Not set</span>}</td>
-                          <td className="p-4 w-40">
+
+                          {/* Payment Column */}
+                          <td className="p-4">
+                            {e.paymentStatus === "FREE" ? (
+                              <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-bold text-[9px] uppercase tracking-wide">
+                                Free
+                              </Badge>
+                            ) : e.paymentStatus === "MANUAL_PAID" ? (
+                              <Badge className="bg-indigo-500/15 text-indigo-300 border-indigo-500/30 font-bold text-[9px] uppercase tracking-wide">
+                                Offline ₹{e.amountPaid ?? 0}
+                              </Badge>
+                            ) : e.paymentStatus === "COMPLETED" || e.paymentStatus === "PAID" ? (
+                              <Badge className="bg-cyan-500/15 text-cyan-300 border-cyan-500/30 font-bold text-[9px] uppercase tracking-wide">
+                                Online ₹{e.amountPaid ?? 0}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-slate-500/15 text-slate-400 border-slate-500/30 font-bold text-[9px] uppercase tracking-wide">
+                                {e.paymentStatus || "Free"}
+                              </Badge>
+                            )}
+                          </td>
+
+                          {/* Validity / Expiry Column */}
+                          <td className="p-4">
+                            {!e.expiresAt ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-400">
+                                <Clock className="h-3 w-3" /> Lifetime
+                              </span>
+                            ) : isExpired ? (
+                              <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/30 font-bold text-[9px] uppercase tracking-widest">
+                                Expired
+                              </Badge>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-300">
+                                <Clock className="h-3 w-3 text-emerald-400" />
+                                {new Date(e.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-4 w-36">
                             {progress === 0 && isNew ? (
                               <Badge className="bg-slate-500/10 text-slate-400 border-slate-500/20 font-bold text-[9px] uppercase tracking-widest">Not started</Badge>
                             ) : (
@@ -380,6 +552,8 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                           <td className="p-4">
                             {isCompleted ? (
                               <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 font-bold text-[9px] uppercase tracking-widest">Completed</Badge>
+                            ) : isExpired ? (
+                              <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/30 font-bold text-[9px] uppercase tracking-widest">Expired</Badge>
                             ) : (
                               <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold text-[9px] uppercase tracking-widest">Active</Badge>
                             )}
@@ -392,12 +566,35 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                             })}
                           </td>
                           <td className="p-4 text-center">
-                            <Link href={`/admin/courses/${e.course.id}`}>
-                              <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-bold border-indigo-500/20 text-indigo-400 hover:text-white bg-indigo-500/5 hover:bg-indigo-500/10 uppercase tracking-wider gap-1">
-                                View
-                                <ArrowRight className="h-3 w-3" />
-                              </Button>
-                            </Link>
+                            <div className="flex items-center justify-center gap-1.5">
+                              {/* WhatsApp Share Button */}
+                              <button
+                                type="button"
+                                title="Send Course Access on WhatsApp"
+                                onClick={() => handleShareWhatsApp(e)}
+                                className="h-8 w-8 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center transition-colors"
+                              >
+                                <Share2 className="h-3.5 w-3.5" />
+                              </button>
+
+                              {/* Extend Validity Button */}
+                              <button
+                                type="button"
+                                title="Extend Course Validity"
+                                onClick={() => setSelectedForExtend(e)}
+                                className="h-8 px-2.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center gap-1 text-[10px] font-bold uppercase transition-colors"
+                              >
+                                <Clock className="h-3 w-3" />
+                                <span>Extend</span>
+                              </button>
+
+                              <Link href={`/admin/courses/${e.course.id}`}>
+                                <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-bold border-white/10 text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 uppercase tracking-wider gap-1">
+                                  View
+                                  <ArrowRight className="h-3 w-3" />
+                                </Button>
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -484,13 +681,44 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
                       return (
                         <tr key={o.id} className="hover:bg-white/[0.01] transition-colors duration-150">
                           <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarColor(studentName || o.user?.email || "Student")}`}>
+                            <div 
+                              onClick={() => {
+                                if (!o.user) return;
+                                const userEnrollments = enrollments
+                                  .filter(enr => enr.user.id === o.user!.id)
+                                  .map(enr => ({
+                                    id: enr.id,
+                                    createdAt: enr.createdAt,
+                                    status: enr.status,
+                                    expiresAt: enr.expiresAt,
+                                    paymentStatus: enr.paymentStatus,
+                                    amountPaid: enr.amountPaid,
+                                    course: enr.course,
+                                    progress: enr.progress
+                                  }));
+
+                                setSelectedUserForDetails({
+                                  id: o.user.id,
+                                  name: studentName,
+                                  email: o.user.email,
+                                  phone: o.user.phone,
+                                  role: "STUDENT",
+                                  createdAt: o.createdAt,
+                                  enrollments: userEnrollments
+                                });
+                              }}
+                              className="flex items-center gap-3 cursor-pointer group"
+                              title="Click to view student full details & mobile number"
+                            >
+                              <div className={`h-8 w-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 group-hover:border-indigo-400 transition ${getAvatarColor(studentName || o.user?.email || "Student")}`}>
                                 {getInitials(studentName, o.user?.email || "Student")}
                               </div>
                               <div>
-                                <p className="font-semibold text-white">{studentName}</p>
+                                <p className="font-semibold text-white group-hover:text-indigo-400 group-hover:underline underline-offset-4 transition">{studentName}</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">{o.user?.email}</p>
+                                {o.user?.phone && (
+                                  <p className="text-[10px] text-indigo-400/80 font-mono">{o.user.phone}</p>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -559,7 +787,124 @@ export function EnrollmentsClient({ enrollments, orders, metrics }: EnrollmentsC
         )}
       </div>
 
-      {/* Modal removed (moved to dedicated /admin/store/orders shipping desk) */}
+      {/* Extend Validity Modal */}
+      {selectedForExtend && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+            onClick={() => !isExtending && setSelectedForExtend(null)}
+          />
+
+          <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#070b18] p-6 text-white shadow-2xl z-10 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-indigo-400" />
+                <h3 className="font-display text-base font-bold text-white">Extend Course Validity</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => !isExtending && setSelectedForExtend(null)}
+                className="h-7 w-7 rounded-full text-slate-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <p>
+                Student: <strong className="text-white">{selectedForExtend.user.name || selectedForExtend.user.email}</strong>
+              </p>
+              <p>
+                Course: <strong className="text-indigo-400">{selectedForExtend.course.title}</strong>
+              </p>
+              <p>
+                Current Validity:{" "}
+                <span className="font-semibold text-cyan-400">
+                  {selectedForExtend.expiresAt
+                    ? new Date(selectedForExtend.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                    : "Lifetime"}
+                </span>
+              </p>
+
+              <div className="space-y-2 pt-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Choose Extension Plan:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: "30_DAYS", label: "+1 Month (30 Din)" },
+                    { id: "90_DAYS", label: "+3 Months (90 Din)" },
+                    { id: "180_DAYS", label: "+6 Months (180 Din)" },
+                    { id: "365_DAYS", label: "+1 Year (365 Din)" },
+                    { id: "LIFETIME", label: "Make Lifetime (आजीवन)" }
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setExtendPlan(opt.id as any)}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition text-left ${
+                        extendPlan === opt.id
+                          ? "bg-indigo-600/20 border-indigo-500/60 text-indigo-300 shadow-sm"
+                          : "bg-white/[0.02] border-white/5 text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-white/10 gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={isExtending}
+                onClick={async () => {
+                  if (confirm("Are you sure you want to revoke / cancel this enrollment?")) {
+                    startExtendingTransition(async () => {
+                      await adminRevokeEnrollmentAction(selectedForExtend.id);
+                      setSelectedForExtend(null);
+                      router.refresh();
+                    });
+                  }
+                }}
+                className="text-[11px] text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 h-9 px-3 font-semibold"
+              >
+                Revoke Access
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={isExtending}
+                  onClick={() => setSelectedForExtend(null)}
+                  className="text-xs text-slate-400 hover:text-white h-9"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isExtending}
+                  onClick={handleConfirmExtend}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl h-9 px-4 flex items-center gap-1.5"
+                >
+                  {isExtending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  <span>Save Extension</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Student Details Popup Modal */}
+      <UserDetailsModal
+        user={selectedUserForDetails}
+        isOpen={!!selectedUserForDetails}
+        onClose={() => setSelectedUserForDetails(null)}
+      />
     </div>
   );
 }

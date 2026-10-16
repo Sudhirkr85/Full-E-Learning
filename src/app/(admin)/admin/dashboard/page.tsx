@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { makeMetadata } from "@/lib/site";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import { DashboardCharts } from "@/components/admin/dashboard-charts";
-import { ArrowUpRight, GraduationCap, Users as UsersIcon, BookOpen, IndianRupee } from "lucide-react";
+import { ArrowUpRight, GraduationCap, Users as UsersIcon, BookOpen, IndianRupee, FileSpreadsheet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = makeMetadata({
@@ -209,14 +210,26 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col gap-1">
-        <Badge variant="secondary" className="w-fit">Admin area</Badge>
-        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-white">
-          Welcome back, {user.name ?? user.email}
-        </h1>
-        <p className="text-xs text-slate-400">
-          Monitor platform metrics, revenues, student ratios, and checkouts at a single glance. All trends calculated dynamically.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <Badge variant="secondary" className="w-fit">Admin area</Badge>
+          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-white">
+            Welcome back, {user.name ?? user.email}
+          </h1>
+          <p className="text-xs text-slate-400">
+            Monitor platform metrics, revenues, student ratios, and checkouts at a single glance. All trends calculated dynamically.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/reports"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600/90 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-[0_0_15px_rgba(99,102,241,0.25)] border border-white/10"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            <span>Reports & Downloads</span>
+          </Link>
+        </div>
       </div>
 
       {/* Top row — 4 stat cards */}

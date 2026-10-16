@@ -141,7 +141,8 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
       })
     : null;
 
-  const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED"));
+  const isExpired = Boolean(enrollment?.expiresAt && new Date(enrollment.expiresAt).getTime() < Date.now());
+  const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED") && !isExpired);
 
   const userWishlisted = session?.user?.id && session.user.role === "STUDENT"
     ? await prisma.wishlist.findUnique({

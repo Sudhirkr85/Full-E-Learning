@@ -53,7 +53,11 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
           .findMany({
             where: { 
               userId: session.user.id, 
-              status: { in: ["ACTIVE", "COMPLETED"] } 
+              status: { in: ["ACTIVE", "COMPLETED"] },
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } }
+              ]
             },
             select: { courseId: true }
           })

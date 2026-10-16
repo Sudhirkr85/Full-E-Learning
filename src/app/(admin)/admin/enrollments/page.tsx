@@ -17,9 +17,9 @@ export default async function AdminEnrollmentsPage() {
   // Enforce ADMIN role check on the server
   await requireRole(["ADMIN"]);
 
-  // Fetch enrollments and store orders using withRetry wrapper for connection safety
+  // Fetch enrollments, store orders, and courses using withRetry wrapper for connection safety
   // Filter out COURSE_ACCESS from Store Orders to avoid double counting course purchases
-  const [enrollments, orders] = await Promise.all([
+  const [enrollments, orders, courses] = await Promise.all([
     withRetry(() =>
       prisma.enrollment.findMany({
         include: {
@@ -58,6 +58,18 @@ export default async function AdminEnrollmentsPage() {
           payments: true
         },
         orderBy: { createdAt: "desc" }
+      })
+    ),
+    withRetry(() =>
+      prisma.course.findMany({
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          priceCents: true,
+          status: true
+        },
+        orderBy: { title: "asc" }
       })
     )
   ]);
@@ -121,6 +133,7 @@ export default async function AdminEnrollmentsPage() {
         enrollments={enrollments} 
         orders={orders} 
         metrics={metrics} 
+        courses={courses}
       />
     </div>
   );

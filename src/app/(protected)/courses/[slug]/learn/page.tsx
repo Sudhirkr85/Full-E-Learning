@@ -112,7 +112,8 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
       })
     : null;
 
-  const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED"));
+  const isExpired = Boolean(enrollment?.expiresAt && new Date(enrollment.expiresAt).getTime() < Date.now());
+  const isEnrolled = Boolean(enrollment && (enrollment.status === "ACTIVE" || enrollment.status === "COMPLETED") && !isExpired);
   const canFullAccess = isStaff || isEnrolled;
 
   // 3. Flat lessons hierarchy for navigation
@@ -334,21 +335,38 @@ export default async function LearnPage({ params, searchParams }: LearnPageProps
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Active Content Viewer */}
             {!canFullAccess ? (
-              <div className="w-full aspect-video rounded-2xl border border-white/10 bg-[#0c0c16]/80 flex flex-col items-center justify-center p-8 text-center backdrop-blur-md relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-40 pointer-events-none" />
-                <div className="h-14 w-14 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-5 animate-pulse">
-                  <Lock className="h-7 w-7" />
+              isExpired ? (
+                <div className="w-full aspect-video rounded-2xl border border-rose-500/20 bg-[#12080f]/80 flex flex-col items-center justify-center p-8 text-center backdrop-blur-md relative overflow-hidden group">
+                  <div className="h-14 w-14 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-5 animate-pulse">
+                    <Lock className="h-7 w-7" />
+                  </div>
+                  <h3 className="text-lg font-extrabold text-white tracking-wide">Course Validity Expired</h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-sm leading-relaxed">
+                    Aapke is course ki validity samapt ho gayi hai. Padhai dobara shuru karne ke liye niche button par click karein ya coaching se sampark karein.
+                  </p>
+                  <Button asChild className="mt-6 bg-rose-600 hover:bg-rose-500 text-white rounded-xl h-11 px-6 text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(244,63,94,0.25)]">
+                    <Link href={`/courses/${course.slug}`}>
+                      Renew Course Access
+                    </Link>
+                  </Button>
                 </div>
-                <h3 className="text-lg font-extrabold text-white tracking-wide">Locked Curriculum Resource</h3>
-                <p className="text-xs text-slate-400 mt-2 max-w-sm leading-relaxed">
-                  This lesson requires enrollment. Enroll in this course to gain lifetime access to all learning assets and modules.
-                </p>
-                <Button asChild className="mt-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl h-11 px-6 text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.25)]">
-                  <Link href={loggedIn ? `/courses/${course.slug}?checkout=true` : `/login?callbackUrl=${encodeURIComponent(`/courses/${course.slug}/learn`)}`}>
-                    {loggedIn ? "Buy Course to Unlock" : "Sign In to Enroll"}
-                  </Link>
-                </Button>
-              </div>
+              ) : (
+                <div className="w-full aspect-video rounded-2xl border border-white/10 bg-[#0c0c16]/80 flex flex-col items-center justify-center p-8 text-center backdrop-blur-md relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-40 pointer-events-none" />
+                  <div className="h-14 w-14 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-5 animate-pulse">
+                    <Lock className="h-7 w-7" />
+                  </div>
+                  <h3 className="text-lg font-extrabold text-white tracking-wide">Locked Curriculum Resource</h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-sm leading-relaxed">
+                    This lesson requires enrollment. Enroll in this course to gain lifetime access to all learning assets and modules.
+                  </p>
+                  <Button asChild className="mt-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl h-11 px-6 text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(99,102,241,0.25)]">
+                    <Link href={loggedIn ? `/courses/${course.slug}?checkout=true` : `/login?callbackUrl=${encodeURIComponent(`/courses/${course.slug}/learn`)}`}>
+                      {loggedIn ? "Buy Course to Unlock" : "Sign In to Enroll"}
+                    </Link>
+                  </Button>
+                </div>
+              )
             ) : activeLesson.contentType === "QUIZ" ? (
               quizTest ? (
                 <ClassroomQuizPortal

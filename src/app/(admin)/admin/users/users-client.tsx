@@ -5,8 +5,11 @@ import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, Eye, GraduationCap, Phone, Share2 } from "lucide-react";
 import { promoteToTeacherAction } from "./actions";
+import { UserDetailsModal, UserDetailData } from "@/components/admin/user-details-modal";
+import { GrantAccessModal } from "../enrollments/grant-access-modal";
 
 export function UsersSearchFilter() {
   const router = useRouter();
@@ -229,5 +232,200 @@ function ConfirmModal({
       </div>
     </div>,
     document.body
+  );
+}
+
+interface UsersTableClientProps {
+  users: any[];
+  courses: any[];
+  currentUserEmail: string;
+}
+
+export function UsersTableClient({ users, courses, currentUserEmail }: UsersTableClientProps) {
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<UserDetailData | null>(null);
+  const [selectedUserForGrant, setSelectedUserForGrant] = useState<any | null>(null);
+
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm text-slate-200 border-collapse">
+          <thead>
+            <tr className="border-b border-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider">
+              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">Mobile</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Role</th>
+              <th className="px-4 py-3">Courses</th>
+              <th className="px-4 py-3">Joined Date</th>
+              <th className="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {users.map((u) => {
+              const isSelf = u.email === currentUserEmail;
+              const cleanPhone = u.phone ? u.phone.replace(/[^0-9]/g, "") : "";
+              const whatsappUrl = cleanPhone 
+                ? `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${encodeURIComponent(`नमस्ते ${u.name || "Student"}! सागर कोचिंग सेंटर से संपर्क करने के लिए धन्यवाद।`)}`
+                : null;
+
+              return (
+                <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                  {/* Name cell - Clickable to open full details */}
+                  <td 
+                    onClick={() => setSelectedUserForDetails(u)}
+                    className="px-4 py-3.5 font-semibold text-white cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs uppercase group-hover:border-indigo-400 transition">
+                        {(u.name || u.email).slice(0, 2)}
+                      </div>
+                      <span className="group-hover:text-indigo-400 transition underline-offset-4 group-hover:underline">
+                        {u.name || "N/A"}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Mobile cell - with quick WhatsApp & Call link */}
+                  <td className="px-4 py-3.5">
+                    {u.phone ? (
+                      <div className="flex items-center gap-1.5 font-mono text-xs text-white">
+                        <Phone className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+                        <span 
+                          onClick={() => setSelectedUserForDetails(u)}
+                          className="cursor-pointer hover:underline text-slate-200"
+                        >
+                          {u.phone}
+                        </span>
+                        {whatsappUrl && (
+                          <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Chat on WhatsApp"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-emerald-400 hover:text-emerald-300 ml-1 p-0.5 rounded hover:bg-emerald-500/10"
+                          >
+                            <Share2 className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-600 italic">Not set</span>
+                    )}
+                  </td>
+
+                  {/* Email cell */}
+                  <td className="px-4 py-3.5 font-mono text-slate-300 text-xs">
+                    {u.email}
+                  </td>
+
+                  {/* Role cell */}
+                  <td className="px-4 py-3.5">
+                    <Badge
+                      variant={
+                        u.role === "ADMIN"
+                          ? "default"
+                          : u.role === "TEACHER"
+                          ? "secondary"
+                          : "outline"
+                      }
+                      className={
+                        u.role === "ADMIN"
+                          ? "bg-rose-500/20 text-rose-300 border-rose-500/30 font-bold"
+                          : u.role === "TEACHER"
+                          ? "bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold"
+                          : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
+                      }
+                    >
+                      {u.role}
+                    </Badge>
+                  </td>
+
+                  {/* Enrolled Courses count badge */}
+                  <td className="px-4 py-3.5 text-xs text-slate-300">
+                    <span 
+                      onClick={() => setSelectedUserForDetails(u)}
+                      className="cursor-pointer hover:underline text-indigo-400 font-semibold"
+                    >
+                      {u.enrollments?.length ?? 0} Courses
+                    </span>
+                  </td>
+
+                  {/* Joined Date */}
+                  <td className="px-4 py-3.5 text-xs text-slate-400">
+                    {new Date(u.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    })}
+                  </td>
+
+                  {/* Actions cell */}
+                  <td className="px-4 py-3.5 text-right">
+                    {isSelf ? (
+                      <span className="text-xs text-indigo-400 font-bold">Logged In</span>
+                    ) : (
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* Eye / View Details button */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setSelectedUserForDetails(u)}
+                          className="h-8 px-2.5 rounded-xl text-[10px] font-bold text-slate-300 hover:text-white hover:bg-white/10 gap-1 uppercase"
+                          title="View Full Profile & Mobile Details"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-indigo-400" />
+                          <span>Details</span>
+                        </Button>
+
+                        {/* Grant Course button */}
+                        {u.role === "STUDENT" && courses.length > 0 && (
+                          <GrantAccessModal
+                            courses={courses}
+                            preSelectedStudent={u}
+                            triggerButton={
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 rounded-xl text-[10px] font-bold border-cyan-500/30 text-cyan-300 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 gap-1 uppercase"
+                              >
+                                <GraduationCap className="h-3.5 w-3.5" />
+                                <span>Grant Course</span>
+                              </Button>
+                            }
+                          />
+                        )}
+
+                        <PromoteButton userId={u.id} userRole={u.role} />
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* User Details Modal */}
+      <UserDetailsModal
+        user={selectedUserForDetails}
+        isOpen={!!selectedUserForDetails}
+        onClose={() => setSelectedUserForDetails(null)}
+        onGrantCourseClick={(userToGrant) => {
+          setSelectedUserForGrant(userToGrant);
+        }}
+      />
+
+      {/* Trigger GrantAccessModal when opened from inside UserDetailsModal */}
+      {selectedUserForGrant && (
+        <GrantAccessModal
+          courses={courses}
+          preSelectedStudent={selectedUserForGrant}
+          triggerButton={<span className="hidden" />}
+          onSuccess={() => setSelectedUserForGrant(null)}
+        />
+      )}
+    </>
   );
 }

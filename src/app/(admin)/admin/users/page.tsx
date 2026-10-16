@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { makeMetadata } from "@/lib/site";
-import { UsersSearchFilter, PromoteButton } from "./users-client";
+import { UsersSearchFilter, UsersTableClient } from "./users-client";
 
 export const metadata: Metadata = makeMetadata({
   title: "User Management - Admin Desk",
@@ -48,15 +48,40 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
     ];
   }
 
-  // Fetch paginated users and total count
-  const [users, totalCount] = await Promise.all([
+  // Fetch paginated users, total count, and all available courses
+  const [users, totalCount, courses] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: 20,
-      skip: currentPage * 20
+      skip: currentPage * 20,
+      include: {
+        enrollments: {
+          include: {
+            course: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              }
+            },
+            progress: true
+          },
+          orderBy: { createdAt: "desc" }
+        }
+      }
     }),
-    prisma.user.count({ where })
+    prisma.user.count({ where }),
+    prisma.course.findMany({
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        priceCents: true,
+        status: true
+      },
+      orderBy: { title: "asc" }
+    })
   ]);
 
   const hasNextPage = (currentPage + 1) * 20 < totalCount;
@@ -87,64 +112,11 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
         </CardHeader>
         <CardContent className="px-0 md:px-6">
           {users.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-200 border-collapse">
-                <thead>
-                  <tr className="border-b border-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                    <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Role</th>
-                    <th className="px-4 py-3">Joined Date</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {users.map((u) => {
-                    const isSelf = u.email === session.user.email;
-                    return (
-                      <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 py-3.5 font-semibold text-white">{u.name || "N/A"}</td>
-                        <td className="px-4 py-3.5 font-mono text-slate-300 text-xs">{u.email}</td>
-                        <td className="px-4 py-3.5">
-                          <Badge
-                            variant={
-                              u.role === "ADMIN"
-                                ? "default"
-                                : u.role === "TEACHER"
-                                ? "secondary"
-                                : "outline"
-                            }
-                            className={
-                              u.role === "ADMIN"
-                                ? "bg-rose-500/20 text-rose-300 border-rose-500/30 font-bold"
-                                : u.role === "TEACHER"
-                                ? "bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold"
-                                : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
-                            }
-                          >
-                            {u.role}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-400">
-                          {new Date(u.createdAt).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric"
-                          })}
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          {isSelf ? (
-                            <span className="text-xs text-indigo-400 font-bold">Logged In</span>
-                          ) : (
-                            <PromoteButton userId={u.id} userRole={u.role} />
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <UsersTableClient
+              users={users}
+              courses={courses}
+              currentUserEmail={session.user.email!}
+            />
           ) : (
             <div className="py-12 text-center text-slate-400 text-sm">
               No students or matching user accounts found. Try adjusting filters or search query terms.

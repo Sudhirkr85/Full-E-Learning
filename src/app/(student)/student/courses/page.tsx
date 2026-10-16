@@ -12,17 +12,17 @@ function getLessonHref(enrollment: Awaited<ReturnType<typeof getStudentCourseEnr
   const lastLesson = enrollment.progress?.lastLesson;
 
   if (lastLesson?.section?.course?.slug === enrollment.course.slug) {
-    return `/courses/${enrollment.course.slug}/lessons/${lastLesson.slug}`;
+    return `/courses/${enrollment.course.slug}/learn?lesson=${lastLesson.slug}`;
   }
 
   for (const section of enrollment.course.sections) {
     const firstLesson = section.lessons[0];
     if (firstLesson) {
-      return `/courses/${enrollment.course.slug}/lessons/${firstLesson.slug}`;
+      return `/courses/${enrollment.course.slug}/learn?lesson=${firstLesson.slug}`;
     }
   }
 
-  return `/courses/${enrollment.course.slug}`;
+  return `/courses/${enrollment.course.slug}/learn`;
 }
 
 export const metadata: Metadata = makeMetadata({
@@ -41,18 +41,30 @@ export default async function StudentCoursesPage() {
       <div className="max-w-3xl">
         <Badge variant="secondary">My courses</Badge>
         <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight text-white">Your enrolled courses</h1>
-        <p className="mt-4 text-lg leading-8 text-slate-300">Course access is evaluated server-side, free preview lessons remain public, and your progress is saved as you complete lessons.</p>
+        <p className="mt-4 text-lg leading-8 text-slate-300">Apne sabhi active courses aur mock test series yaha se 1-click me open karein aur padhai shuru karein.</p>
       </div>
 
       <div className="mt-10 grid gap-6 xl:grid-cols-2">
         {enrollments.length ? (
           enrollments.map((enrollment) => {
+            const isExpired = Boolean(enrollment.expiresAt && new Date(enrollment.expiresAt).getTime() < Date.now());
             const progressPercent = enrollment.progress?.progressPercent ?? 0;
             const totalLessonsCount = enrollment.progress?.totalLessonsCount ?? enrollment.course.sections.reduce((count, section) => count + section.lessons.length, 0);
             const completedLessonsCount = enrollment.progress?.completedLessonsCount ?? 0;
             const isCompleted = enrollment.status === EnrollmentStatus.COMPLETED || progressPercent === 100;
-            const resumeHref = enrollment.status === EnrollmentStatus.PAUSED ? `/courses/${enrollment.course.slug}` : getLessonHref(enrollment);
-            const primaryLabel = enrollment.status === EnrollmentStatus.PAUSED ? "Resume enrollment" : isCompleted ? "Review course" : "Continue learning";
+            const resumeHref = isExpired
+              ? `/courses/${enrollment.course.slug}`
+              : enrollment.status === EnrollmentStatus.PAUSED
+              ? `/courses/${enrollment.course.slug}`
+              : getLessonHref(enrollment);
+
+            const primaryLabel = isExpired
+              ? "Validity Expired / रीन्यू करें"
+              : enrollment.status === EnrollmentStatus.PAUSED
+              ? "Resume enrollment"
+              : isCompleted
+              ? "Review course"
+              : "▶ Start Learning / पढ़ाई शुरू करें";
 
             const hasCoverImage = !!enrollment.course.coverImageUrl;
             const getCoverGradient = (title: string) => {
@@ -88,9 +100,19 @@ export default async function StudentCoursesPage() {
                     <div className={`absolute inset-0 ${hasCoverImage ? "bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-transparent" : "bg-gradient-to-tr from-transparent via-white/5 to-white/10"} z-0 pointer-events-none`}></div>
                     
                     <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2 z-10">
-                      <Badge className={isCompleted ? "bg-purple-600 hover:bg-purple-500 text-white font-bold border-none" : enrollment.status === EnrollmentStatus.PAUSED ? "bg-slate-700 text-white font-bold border-none" : "bg-indigo-600 hover:bg-indigo-500 text-white font-bold border-none"}>
-                        {enrollment.status.toLowerCase()}
-                      </Badge>
+                      {isExpired ? (
+                        <Badge className="bg-rose-600 text-white font-bold border-none shadow-md">
+                          Expired
+                        </Badge>
+                      ) : !enrollment.expiresAt ? (
+                        <Badge className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold border-none shadow-md">
+                          Lifetime Access
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold border-none shadow-md">
+                          Valid till {new Date(enrollment.expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </Badge>
+                      )}
                       <Badge className="bg-white/10 backdrop-blur-md text-white border-white/10 font-bold">{progressPercent}% complete</Badge>
                     </div>
                   </div>
@@ -102,18 +124,18 @@ export default async function StudentCoursesPage() {
                   <CardContent className="space-y-4 pt-1">
                     <div className="space-y-2 text-sm text-slate-300">
                       <p>{completedLessonsCount}/{totalLessonsCount} lessons completed</p>
-                      <p className="text-slate-300/80 italic text-xs">{enrollment.progress?.lastLesson?.title ?? "No lesson progress yet"}</p>
+                      <p className="text-slate-300/80 italic text-xs">{enrollment.progress?.lastLesson?.title ?? "Overview & first module"}</p>
                     </div>
                   </CardContent>
                 </div>
 
                 <div className="p-6 pt-0">
-                  <div className="flex flex-wrap gap-3">
-                    <Button asChild>
+                  <div className="flex flex-wrap gap-3 items-center">
+                    <Button asChild size="lg" className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-extrabold shadow-lg shadow-indigo-600/25 rounded-xl px-5 h-11">
                       <Link href={resumeHref}>{primaryLabel}</Link>
                     </Button>
-                    <Button asChild variant="outline">
-                      <Link href={`/courses/${enrollment.course.slug}`}>Course details</Link>
+                    <Button asChild variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl h-11">
+                      <Link href={`/courses/${enrollment.course.slug}`}>Details</Link>
                     </Button>
                     <div className="flex items-center gap-1.5 border border-white/10 bg-white/5 rounded-xl px-3 h-10 shadow-inner" title="Rate Course Now">
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mr-1">Rate:</span>

@@ -44,7 +44,7 @@ export function AdSlot({
   const isPushed = useRef(false);
 
   const { eligible } = canServeAds(pathname || "", context);
-  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-4373347511629887";
+  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-8160370419154141";
 
   useEffect(() => {
     // Only attempt push if eligible, publisherId configured, and slot not already pushed

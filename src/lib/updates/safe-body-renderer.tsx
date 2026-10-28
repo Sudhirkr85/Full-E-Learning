@@ -14,7 +14,7 @@ function renderInline(text: string): React.ReactNode[] {
   return parts.map((part, index) => {
     if (index % 2 === 1) {
       return (
-        <strong key={index} className="font-semibold text-white">
+        <strong key={index} className="font-bold text-slate-900">
           {part}
         </strong>
       );
@@ -50,7 +50,7 @@ export function SafeBodyRenderer({ body, className = "" }: SafeBodyRendererProps
       blocks.push(
         <ul
           key={`list-${blockIndex++}`}
-          className="my-3 space-y-1.5 list-disc list-inside text-slate-300 text-sm sm:text-base leading-relaxed pl-1"
+          className="my-3 space-y-2 list-disc list-inside text-slate-700 text-sm sm:text-base leading-relaxed pl-1"
         >
           {items.map((item, i) => (
             <li key={i} className="leading-relaxed">
@@ -72,7 +72,7 @@ export function SafeBodyRenderer({ body, className = "" }: SafeBodyRendererProps
         blocks.push(
           <p
             key={`p-${blockIndex++}`}
-            className="my-3 text-sm sm:text-base text-slate-300 leading-relaxed"
+            className="my-3 text-sm sm:text-base text-slate-700 leading-relaxed"
           >
             {renderInline(text)}
           </p>
@@ -97,7 +97,7 @@ export function SafeBodyRenderer({ body, className = "" }: SafeBodyRendererProps
       blocks.push(
         <h2
           key={`h2-${blockIndex++}`}
-          className="mt-6 mb-2.5 text-lg sm:text-xl font-bold text-white border-b border-white/10 pb-1.5"
+          className="mt-7 mb-3 text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-200 pb-2 font-display"
         >
           {renderInline(headingText)}
         </h2>
@@ -112,7 +112,7 @@ export function SafeBodyRenderer({ body, className = "" }: SafeBodyRendererProps
       blocks.push(
         <h3
           key={`h3-${blockIndex++}`}
-          className="mt-5 mb-2 text-base sm:text-lg font-bold text-indigo-300"
+          className="mt-5 mb-2 text-base sm:text-lg font-bold text-indigo-700"
         >
           {renderInline(headingText)}
         </h3>

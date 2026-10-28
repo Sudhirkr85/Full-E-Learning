@@ -3,7 +3,7 @@ import { makeMetadata } from "@/lib/site";
 import { Container } from "@/components/ui/container";
 import { getPublicUpdatesList } from "@/lib/updates/queries";
 import { UpdatesFilterClient } from "@/components/updates/updates-filter-client";
-import { Bell, Sparkles } from "lucide-react";
+import { Bell } from "lucide-react";
 
 export const metadata: Metadata = makeMetadata({
   title: "परीक्षा अपडेट्स एवं सूचनाएं (Exam Updates & Alerts) | Sagar Coaching Centre",
@@ -18,20 +18,20 @@ export default async function UpdatesListingPage() {
   const posts = await getPublicUpdatesList();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-12 sm:py-16">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 py-10 sm:py-14">
       <Container>
         {/* Header Hero */}
         <div className="max-w-3xl mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1 text-xs font-semibold text-indigo-300 mb-4">
-            <Bell className="h-3.5 w-3.5 text-indigo-400" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-1 text-xs font-bold text-indigo-700 mb-4 shadow-xs">
+            <Bell className="h-3.5 w-3.5 text-indigo-600" />
             <span>आधिकारिक सूचनाएं एवं परीक्षा अलर्ट्स</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-display tracking-tight">
             ताज़ा परीक्षा अपडेट्स (Exam Alerts & Updates)
           </h1>
 
-          <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed">
+          <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
             NMMS, Navodaya, Sainik School और अन्य छात्रवृत्ति परीक्षाओं के नवीनतम एडमिट कार्ड,
             आवेदन तिथियां, उत्तर कुंजी एवं परिणाम की समयबद्ध व प्रामाणिक जानकारी।
           </p>

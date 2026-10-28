@@ -36,26 +36,26 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "ADMIT_CARD":
-        return "bg-rose-500/20 text-rose-300 border-rose-500/30";
+        return "bg-rose-50 text-rose-800 border-rose-200";
       case "RESULT":
-        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+        return "bg-emerald-50 text-emerald-800 border-emerald-200";
       case "APPLY":
-        return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+        return "bg-amber-50 text-amber-900 border-amber-200";
       case "ANSWER_KEY":
-        return "bg-sky-500/20 text-sky-300 border-sky-500/30";
+        return "bg-sky-50 text-sky-800 border-sky-200";
       case "GUIDE":
-        return "bg-purple-500/20 text-purple-300 border-purple-500/30";
+        return "bg-purple-50 text-purple-800 border-purple-200";
       default:
-        return "bg-indigo-500/20 text-indigo-300 border-indigo-500/30";
+        return "bg-indigo-50 text-indigo-800 border-indigo-200";
     }
   };
 
   return (
     <div className="space-y-8">
       {/* Filter Controls */}
-      <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/60 p-4 sm:p-6 backdrop-blur">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-wider">
-          <Filter className="h-3.5 w-3.5 text-indigo-400" />
+      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <Filter className="h-3.5 w-3.5 text-indigo-600" />
           <span>अपडेट्स फ़िल्टर करें</span>
         </div>
 
@@ -66,10 +66,10 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
               key={key}
               type="button"
               onClick={() => setSelectedType(key)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
                 selectedType === key
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "bg-slate-950/70 text-slate-400 hover:text-white hover:bg-slate-800 border border-white/5"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200 border border-slate-200"
               }`}
             >
               {label}
@@ -79,17 +79,17 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
 
         {/* Exam Filter Chips (if more than 1 exam) */}
         {exams.length > 2 && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
-            <span className="text-xs text-slate-400">परीक्षा:</span>
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-medium">परीक्षा:</span>
             {exams.map((ex) => (
               <button
                 key={ex}
                 type="button"
                 onClick={() => setSelectedExam(ex)}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
                   selectedExam === ex
-                    ? "bg-amber-500 text-slate-950 font-bold"
-                    : "bg-slate-950/70 text-slate-400 hover:text-white border border-white/5"
+                    ? "bg-amber-500 text-slate-950 font-bold shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200"
                 }`}
               >
                 {ex === "ALL" ? "सभी परीक्षाएं" : ex}
@@ -101,7 +101,7 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
 
       {/* Posts Grid */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-12 text-center text-slate-400">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-500 shadow-xs">
           <p className="text-sm">चयनित फ़िल्टर के लिए कोई अपडेट उपलब्ध नहीं है।</p>
           <button
             type="button"
@@ -109,7 +109,7 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
               setSelectedType("ALL");
               setSelectedExam("ALL");
             }}
-            className="mt-3 text-xs text-indigo-400 hover:underline"
+            className="mt-3 text-xs font-bold text-indigo-600 hover:underline"
           >
             फ़िल्टर रीसेट करें
           </button>
@@ -119,13 +119,13 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
           {filtered.map((post) => (
             <article
               key={post.id}
-              className="flex flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900/80 to-slate-950/80 p-6 shadow-xl transition hover:border-indigo-500/40 hover:shadow-2xl hover:shadow-indigo-950/20"
+              className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition hover:border-indigo-400 hover:shadow-md"
             >
               <div>
                 {/* Meta Header */}
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <span
-                    className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold border ${getTypeBadge(
+                    className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold border ${getTypeBadge(
                       post.type
                     )}`}
                   >
@@ -133,34 +133,34 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
                   </span>
 
                   {post.state && (
-                    <span className="inline-flex items-center rounded-lg bg-white/5 border border-white/10 px-2 py-0.5 text-[10px] text-slate-300 font-medium">
+                    <span className="inline-flex items-center rounded-lg bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-slate-700 font-medium">
                       {post.state}
                     </span>
                   )}
 
                   {post.status === "EXPIRED" && (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                      <AlertTriangle className="h-3 w-3" />
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                      <AlertTriangle className="h-3 w-3 text-amber-600" />
                       <span>पुराना अपडेट</span>
                     </span>
                   )}
                 </div>
 
                 {/* Title */}
-                <h2 className="text-base sm:text-lg font-bold text-white hover:text-indigo-300 transition leading-snug">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 hover:text-indigo-600 transition leading-snug font-display">
                   <Link href={`/updates/${post.slug}`}>{post.title}</Link>
                 </h2>
 
                 {/* Summary */}
-                <p className="mt-2.5 text-xs sm:text-sm text-slate-400 line-clamp-3 leading-relaxed">
+                <p className="mt-2.5 text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
                   {post.summary}
                 </p>
               </div>
 
               {/* Card Footer */}
-              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
-                <span className="inline-flex items-center gap-1.5 text-[11px]">
-                  <Calendar className="h-3.5 w-3.5 text-slate-500" />
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+                  <Calendar className="h-3.5 w-3.5 text-slate-400" />
                   <span>
                     {new Date(post.publishedAt || post.createdAt).toLocaleDateString("hi-IN", {
                       day: "numeric",
@@ -172,7 +172,7 @@ export function UpdatesFilterClient({ initialPosts }: UpdatesFilterClientProps) 
 
                 <Link
                   href={`/updates/${post.slug}`}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition group"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition group"
                 >
                   <span>विस्तार से पढ़ें</span>
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />

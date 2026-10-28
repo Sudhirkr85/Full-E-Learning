@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // 4. Educational PYQ & Blog Posts
-  BLOG_POSTS.forEach((post) => {
+  BLOG_POSTS.filter((post) => !post.canonicalSlug).forEach((post) => {
     sitemapEntries.push({
       url: `${baseUrl}/blog/${post.slug}`,
       lastModified: new Date(post.updatedAt),

@@ -11,8 +11,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-manrope)", "sans-serif"],
-        display: ["var(--font-space-grotesk)", "sans-serif"]
+        sans: ["var(--font-poppins)", "sans-serif"],
+        display: ["var(--font-poppins)", "var(--font-space-grotesk)", "sans-serif"]
       },
       borderRadius: {
         xl: "1rem",

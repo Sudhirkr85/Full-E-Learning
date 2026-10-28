@@ -666,7 +666,7 @@ export default async function HomePage() {
                 सफल विद्यार्थियों के <span className="text-indigo-600">प्रेरक अनुभव</span>
               </h2>
               <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-                जानिए कैसे बिहार के विभिन्न जिलों के छात्रों ने सागर कोचिंग सेंटर की गाइड बुक्स व ऑनलाइन मार्गदर्शन से सफलता पाई।
+                जानिए कैसे बिहार और उत्तर प्रदेश के छात्रों ने सागर कोचिंग सेंटर की गाइड बुक्स, मॉक टेस्ट व ऑनलाइन मार्गदर्शन से सफलता पाई।
               </p>
             </div>
 
@@ -727,6 +727,69 @@ export default async function HomePage() {
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">अमित शर्मा</h4>
                     <p className="text-[10px] text-slate-500">Class 8th Aspirant (मधुबनी)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review 4 - UP NMMS */}
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 text-left space-y-4 shadow-sm">
+                <div className="flex items-center gap-1 text-amber-500">
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                </div>
+                <p className="text-xs leading-relaxed text-slate-700">
+                  &quot;यूपी NMMS के लिए सही स्टडी मैटेरियल मिलना बहुत मुश्किल था। सागर सर की रीजनिंग ट्रिक्स और वेबसाइट के प्रैक्टिस सेट्स से MAT में मेरा स्कोर और कॉन्फिडेंस बहुत बढ़ गया।&quot;
+                </p>
+                <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
+                  <div className="h-8 w-8 rounded-full bg-rose-600 flex items-center justify-center font-bold text-white text-xs">RV</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">रोहित वर्मा</h4>
+                    <p className="text-[10px] text-slate-500">NMMS अभ्यर्थी (वाराणसी, UP)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review 5 - Book Delivery & OMR */}
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 text-left space-y-4 shadow-sm">
+                <div className="flex items-center gap-1 text-amber-500">
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                </div>
+                <p className="text-xs leading-relaxed text-slate-700">
+                  &quot;राघव प्रकाशन की NMMS गाइड बुक ऑर्डर की थी, 4 दिन में स्पीड पोस्ट से घर आ गई। किताब में 6 वर्षों के सॉल्व्ड पेपर्स और OMR मॉडल सेट्स सबसे मददगार साबित हुए।&quot;
+                </p>
+                <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
+                  <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-white text-xs">SK</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">सुनैना कुमारी</h4>
+                    <p className="text-[10px] text-slate-500">NMMS क्वालीफायर (समस्तीपुर)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review 6 - Navodaya / Basic Coaching */}
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 text-left space-y-4 shadow-sm">
+                <div className="flex items-center gap-1 text-amber-500">
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                </div>
+                <p className="text-xs leading-relaxed text-slate-700">
+                  &quot;सागर सर के पढ़ाने का तरीका बहुत ही सरल और व्यावहारिक है। गांव और छोटे कस्बों के बच्चों के लिए यह ऑनलाइन कोचिंग और मार्गदर्शन सबसे भरोसेमंद है।&quot;
+                </p>
+                <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
+                  <div className="h-8 w-8 rounded-full bg-amber-600 flex items-center justify-center font-bold text-white text-xs">VY</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">विकास यादव</h4>
+                    <p className="text-[10px] text-slate-500">नवोदय प्रवेश परीक्षा (दरभंगा)</p>
                   </div>
                 </div>
               </div>

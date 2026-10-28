@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { makeMetadata, siteConfig } from "@/lib/site";
 import { BLOG_POSTS } from "@/lib/blog-data";
+import { getPublishedUpdates } from "@/lib/updates/queries";
 import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,6 +17,7 @@ import {
   Send,
   Smartphone,
   Award,
+  Bell,
 } from "lucide-react";
 import { AdSlot } from "@/components/ads/AdSlot";
 
@@ -40,7 +42,11 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function BlogListingPage() {
+export const revalidate = 60; // ISR 1 minute
+
+export default async function BlogListingPage() {
+  const recentUpdates = await getPublishedUpdates(5);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       {/* ── Hero Banner ── */}
@@ -91,6 +97,56 @@ export default function BlogListingPage() {
       {/* ── Main Articles List ── */}
       <section className="py-12 md:py-16">
         <Container>
+          {/* ── ताज़ा अपडेट Strip ── */}
+          {recentUpdates && recentUpdates.length > 0 && (
+            <div className="mb-10 rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 p-4 sm:p-5 shadow-xl">
+              <div className="flex items-center justify-between gap-3 mb-3 border-b border-white/10 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                    ताज़ा अपडेट (Latest Updates & Alerts)
+                  </span>
+                </div>
+                <Link
+                  href="/updates"
+                  className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                >
+                  <span>सभी अपडेट्स देखें</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {recentUpdates.map((up) => (
+                  <Link
+                    key={up.id}
+                    href={`/updates/${up.slug}`}
+                    className="flex flex-col justify-between p-3 rounded-xl bg-slate-950/60 border border-white/5 hover:border-indigo-500/40 hover:bg-slate-950 transition group"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-300 mb-1">
+                        <span className="rounded bg-indigo-500/20 px-1.5 py-0.5">
+                          {up.type}
+                        </span>
+                        {up.state && <span className="text-slate-400">{up.state}</span>}
+                      </div>
+                      <h4 className="text-xs font-semibold text-white group-hover:text-indigo-300 line-clamp-2 leading-snug">
+                        {up.title}
+                      </h4>
+                    </div>
+                    <span className="mt-2 text-[10px] text-slate-400">
+                      {new Date(up.publishedAt || up.createdAt).toLocaleDateString("hi-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mb-8 flex flex-col justify-between gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-center">
             <div>
               <h2 className="text-2xl font-bold text-white">उपलब्ध प्रश्न पत्र व गाइड्स</h2>
@@ -98,116 +154,61 @@ export default function BlogListingPage() {
                 प्रत्येक पेपर के पेज पर संपूर्ण विश्लेषण, सिलेबस और डायरेक्ट PDF डाउनलोड बटन दिया गया है।
               </p>
             </div>
-            <Badge className="w-fit border-indigo-500/40 bg-indigo-500/10 text-indigo-300">
-              {BLOG_POSTS.length} लेख उपलब्ध
-            </Badge>
+            
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="border-indigo-500/40 bg-indigo-500/10 text-indigo-300">
+                Total 40 PYQ Papers
+              </Badge>
+            </div>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {BLOG_POSTS.map((post) => (
               <article
                 key={post.slug}
-                className="group flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-6 shadow-xl transition-all hover:border-indigo-500/50 hover:bg-slate-900/90 hover:shadow-2xl hover:shadow-indigo-500/10"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/40 hover:bg-slate-900 hover:shadow-2xl hover:shadow-indigo-950/40"
               >
                 <div>
-                  {/* Top Badges */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-300">
+                  {/* Category & Year */}
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span className="font-semibold text-indigo-400">{post.category}</span>
+                    <span className="rounded-full bg-white/5 px-2.5 py-0.5 font-medium text-slate-300 border border-white/10">
                       {post.year} Paper
-                    </span>
-                    <span className="rounded-full bg-indigo-500/15 px-3 py-1 text-xs font-medium text-indigo-300">
-                      {post.state} SCERT
                     </span>
                   </div>
 
                   {/* Title */}
-                  <h3 className="mt-4 text-lg font-bold text-white transition group-hover:text-indigo-400">
-                    <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+                  <h3 className="mt-3 text-lg font-bold leading-snug text-white transition-colors group-hover:text-indigo-300">
+                    <Link href={`/blog/${post.slug}`}>
+                      <span className="absolute inset-0" />
+                      {post.title}
+                    </Link>
                   </h3>
 
-                  <p className="mt-2 text-xs font-medium text-amber-300/80">
-                    {post.hindiTitle}
-                  </p>
-
-                  <p className="mt-3 line-clamp-3 text-sm text-slate-300">
+                  {/* Excerpt */}
+                  <p className="mt-2.5 text-xs text-slate-400 line-clamp-3 leading-relaxed">
                     {post.excerpt}
                   </p>
-
-                  {/* Meta Specs */}
-                  <div className="mt-5 rounded-lg border border-white/5 bg-white/5 p-3 text-xs text-slate-300">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">कुल पृष्ठ:</span>
-                      <span className="font-semibold text-white">{post.pdfPages} Pages</span>
-                    </div>
-                    <div className="mt-1 flex items-center justify-between">
-                      <span className="text-slate-400">फ़ाइल साइज:</span>
-                      <span className="font-semibold text-white">{post.pdfSize}</span>
-                    </div>
-                    <div className="mt-1 flex items-center justify-between">
-                      <span className="text-slate-400">आंसर की:</span>
-                      <span className="font-semibold text-emerald-400">संलग्न (Included)</span>
-                    </div>
-                  </div>
                 </div>
 
-                {/* Footer Buttons */}
-                <div className="mt-6 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{post.readTime}</span>
+                <div className="mt-6 border-t border-white/5 pt-4">
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span className="flex items-center gap-1.5 text-[11px]">
+                      <FileText className="h-3.5 w-3.5 text-indigo-400" />
+                      <span>{post.pdfPages} Pages • {post.pdfSize}</span>
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold text-indigo-400 group-hover:text-indigo-300">
+                      <span>पढ़ें</span>
+                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                    </span>
                   </div>
-
-                  <Link
-                    href={`/blog/${post.slug}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500"
-                  >
-                    <span>विस्तार से देखें</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
                 </div>
               </article>
             ))}
           </div>
 
-          {/* Policy-Safe Ad Placement (Rendered only when AdSense is approved & enabled) */}
+          {/* Policy-Compliant Blog Feed Bottom Ad Slot */}
           <AdSlot format="horizontal" minHeight={120} className="mt-12" />
-
-          {/* ── Community / Support Banner ── */}
-          <div className="mt-16 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-indigo-950/40 to-slate-900 p-8">
-            <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-              <div className="text-center md:text-left">
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-400">
-                  <Award className="h-4 w-4" />
-                  <span>Sagar Coaching Centre Bhagwanpur</span>
-                </div>
-                <h3 className="mt-2 text-2xl font-bold text-white">
-                  NMMS 2026-27 के आगामी पेपर्स और अलर्ट सबसे पहले पाना चाहते हैं?
-                </h3>
-                <p className="mt-2 max-w-xl text-sm text-slate-300">
-                  हमारे VIP Telegram चैनल और मोबाइल ऐप से जुड़ें। एडमिट कार्ड, नोटिफिकेशन, लाइव क्लासेस और रिजल्ट अपडेट तुरंत प्राप्त करें।
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href="/vip-telegram"
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-400"
-                >
-                  <Send className="h-4 w-4" />
-                  <span>VIP Telegram ज्वाइन करें</span>
-                </Link>
-                <a
-                  href={siteConfig.appPlayStoreUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  <Smartphone className="h-4 w-4 text-emerald-400" />
-                  <span>App डाउनलोड करें</span>
-                </a>
-              </div>
-            </div>
-          </div>
         </Container>
       </section>
     </div>

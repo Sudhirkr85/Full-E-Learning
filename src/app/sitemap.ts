@@ -3,6 +3,7 @@ import { siteConfig } from "@/lib/site";
 import { getPublishedCourseSlugs } from "@/lib/courses/queries";
 import { prisma } from "@/lib/prisma";
 import { BLOG_POSTS } from "@/lib/blog-data";
+import { getPublicSlugs } from "@/lib/updates/queries";
 
 // Caching configurations for Vercel static generation
 export const revalidate = 86400; // Cache sitemap for 24 hours
@@ -14,6 +15,7 @@ const publicStaticPaths = [
   "/contact", 
   "/disclaimer", 
   "/blog", 
+  "/updates",
   "/courses", 
   "/store", 
   "/vip-telegram", 
@@ -78,6 +80,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(post.updatedAt),
       changeFrequency: "weekly",
       priority: 0.9
+    });
+  });
+
+  // 5. Published & Expired Updates Posts
+  let updateSlugs: Array<{ slug: string; updatedAt: Date }> = [];
+  try {
+    updateSlugs = await getPublicSlugs();
+  } catch {
+    updateSlugs = [];
+  }
+
+  updateSlugs.forEach((post) => {
+    sitemapEntries.push({
+      url: `${baseUrl}/updates/${post.slug}`,
+      lastModified: post.updatedAt || now,
+      changeFrequency: "daily",
+      priority: 0.9,
     });
   });
 

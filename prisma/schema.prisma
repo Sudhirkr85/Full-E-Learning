@@ -841,3 +841,44 @@ model Review {
   @@map("reviews")
 }
 
+
+enum UpdateType {
+  ADMIT_CARD
+  APPLY
+  RESULT
+  ANSWER_KEY
+  SYLLABUS
+  GUIDE
+  NEWS
+}
+
+enum UpdateStatus {
+  DRAFT
+  PUBLISHED
+  EXPIRED
+}
+
+model UpdatePost {
+  id             String       @id @default(cuid())
+  slug           String       @unique
+  title          String
+  summary        String
+  body           String
+  type           UpdateType
+  exam           String       @default("NMMS")
+  state          String?
+  status         UpdateStatus @default(DRAFT)
+  links          Json
+  importantDates Json
+  faqs           Json
+  sources        Json
+  seoTitle       String?
+  seoDescription String?
+  showAds        Boolean      @default(true)
+  publishedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status, publishedAt])
+  @@map("update_posts")
+}

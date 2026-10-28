@@ -269,6 +269,7 @@ export const mainNav = [
   { label: "Home", href: "/" },
   { label: "About Us", href: "/about" },
   { label: "PYQ & Blog", href: "/blog" },
+  { label: "अपडेट्स", href: "/updates" },
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },
   { label: "VIP Alerts", href: "/vip-telegram" },
@@ -280,6 +281,7 @@ export const footerNav = [
   { label: "About Us", href: "/about" },
   { label: "Contact Us", href: "/contact" },
   { label: "PYQ & Study Material", href: "/blog" },
+  { label: "ताज़ा अपडेट्स", href: "/updates" },
   { label: "Courses", href: "/courses" },
   { label: "Store", href: "/store" },
   { label: "VIP Telegram Channel", href: "/vip-telegram" },
@@ -303,6 +305,7 @@ export const teacherNav = [
 export const adminNav = [
   { label: "My Profile", href: "/admin/profile" },
   { label: "Overview", href: "/admin/dashboard" },
+  { label: "Updates", href: "/admin/updates" },
   { label: "Users", href: "/admin/users" },
   { label: "Enrollments", href: "/admin/enrollments" },
   { label: "Courses", href: "/admin/courses" },

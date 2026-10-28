@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   Info,
   CheckCircle2,
+  MessageCircle,
 } from "lucide-react";
 
 interface PageProps {
@@ -413,13 +414,23 @@ export default async function UpdateDetailPage({ params }: PageProps) {
 
                 <div className="flex flex-wrap justify-center gap-3 pt-2">
                   <a
+                    href="https://whatsapp.com/channel/0029Va5PJaVGE56lMwsSzs0g"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>WhatsApp चैनल फॉलो करें</span>
+                  </a>
+
+                  <a
                     href="https://t.me/ShrvanKumarSagar"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition"
                   >
                     <Send className="h-4 w-4" />
-                    <span>फ्री टेलीग्राम चैनल जॉइन करें</span>
+                    <span>फ्री टेलीग्राम चैनल</span>
                   </a>
 
                   <Link
@@ -443,6 +454,29 @@ export default async function UpdateDetailPage({ params }: PageProps) {
 
             {/* Sidebar Column */}
             <aside className="lg:col-span-4 space-y-6">
+              {/* WhatsApp Channel Card */}
+              <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/70 to-white p-5 space-y-3 shadow-xs">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                  <MessageCircle className="h-4 w-4 text-emerald-600" />
+                  <span>Official WhatsApp Channel</span>
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm">
+                  ताज़ा परीक्षा नोटिस सीधे WhatsApp पर
+                </h4>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  एडमिट कार्ड, रिजल्ट, फॉर्म डेट और परीक्षा तिथियों की त्वरित सूचना तुरंत प्राप्त करें।
+                </p>
+                <a
+                  href="https://whatsapp.com/channel/0029Va5PJaVGE56lMwsSzs0g"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 text-xs font-bold text-white transition shadow-xs"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>WhatsApp चैनल से जुड़ें</span>
+                </a>
+              </div>
+
               {/* Exam Help Card */}
               <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
                 <h4 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3 font-display">

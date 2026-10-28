@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { footerNav, siteConfig } from "@/lib/site";
-import { Zap, Youtube, Facebook, Instagram, Send, Phone, MapPin, Mail, Globe, Play } from "lucide-react";
+import { Zap, Youtube, Facebook, Instagram, Send, Phone, MapPin, Mail, Globe, Play, MessageCircle } from "lucide-react";
 
 export function SiteFooter() {
   return (
@@ -68,7 +68,7 @@ export function SiteFooter() {
             ))}
           </ul>
 
-          <div className="flex gap-4 pt-3">
+          <div className="flex gap-4 pt-3 items-center">
             <a href={siteConfig.socials.facebookPage} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-white transition duration-300" aria-label="Facebook Page">
               <Facebook className="h-5 w-5" />
             </a>
@@ -77,6 +77,16 @@ export function SiteFooter() {
             </a>
             <a href={siteConfig.socials.telegram} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-white transition duration-300" aria-label="Telegram">
               <Send className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://whatsapp.com/channel/0029Va5PJaVGE56lMwsSzs0g" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-slate-500 hover:text-emerald-400 transition duration-300" 
+              aria-label="WhatsApp Channel"
+              title="Official WhatsApp Channel"
+            >
+              <MessageCircle className="h-5 w-5" />
             </a>
             <a href={siteConfig.socials.app} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-white transition duration-300 flex items-center gap-1 text-xs font-semibold" aria-label="Google Play Store App">
               <Play className="h-4 w-4 text-green-400 fill-green-400/20" /> App
@@ -97,8 +107,17 @@ export function SiteFooter() {
                 {item.label}
               </Link>
             ))}
+            <a 
+              href="https://whatsapp.com/channel/0029Va5PJaVGE56lMwsSzs0g" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-sm font-bold text-emerald-400 hover:text-emerald-300 transition duration-300 flex items-center gap-1.5 md:justify-end"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              <span>WhatsApp Channel</span>
+            </a>
             <a href="https://wa.me/919110113671" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-slate-400 hover:text-white transition duration-300">
-              WhatsApp Contact
+              WhatsApp Support
             </a>
           </nav>
         </div>

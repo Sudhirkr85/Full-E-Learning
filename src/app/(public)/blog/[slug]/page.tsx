@@ -29,6 +29,7 @@ import {
   GraduationCap,
   AlertCircle,
   CheckSquare,
+  MessageCircle,
 } from "lucide-react";
 import { PdfViewerClient } from "@/components/blog/pdf-viewer-client";
 import { PyqDownloadButton } from "@/components/blog/pyq-download-button";
@@ -773,7 +774,30 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                   </Link>
                 </div>
 
-                {/* 4. Coaching Support Card */}
+                {/* 4. Official WhatsApp Channel Card */}
+                <div className="rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white p-5 shadow-xs">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                    <MessageCircle className="h-4 w-4 text-emerald-600" />
+                    <span>Official WhatsApp Channel</span>
+                  </div>
+                  <h4 className="mt-2 text-base font-bold text-slate-900">
+                    NMMS Daily Study Alerts
+                  </h4>
+                  <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">
+                    नए मॉडल पेपर, PYQ और डेली क्विज के सीधे लिंक पाने के लिए हमारा आधिकारिक WhatsApp चैनल फॉलो करें।
+                  </p>
+                  <a
+                    href="https://whatsapp.com/channel/0029Va5PJaVGE56lMwsSzs0g"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 text-xs font-bold text-white transition shadow-xs"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    <span>WhatsApp चैनल जॉइन करें</span>
+                  </a>
+                </div>
+
+                {/* 5. Coaching Support Card */}
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 text-xs text-slate-600 shadow-xs">
                   <div className="font-bold text-slate-900 text-sm">सहायता व मार्गदर्शन:</div>
                   <div className="mt-1.5 text-slate-500">

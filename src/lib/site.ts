@@ -26,6 +26,7 @@ export const siteConfig = {
   phone: "+919110113671",
   phoneDisplay: "+91 91101 13671",
   whatsapp: "https://wa.me/919110113671",
+  whatsappChannel: "https://whatsapp.com/channel/0029Va5PJaVGE56lMwsSzs0g",
   email: "codingwithsudhir@gmail.com",
   supportEmail: "codingwithsudhir@gmail.com",
   address: "NH 106, Bhagwanpur, Supaul, Bihar — 854338",
@@ -80,6 +81,7 @@ export const siteConfig = {
       "https://www.instagram.com/sagarcoachingcentrebhagwanpur/",
     telegram: "https://t.me/ShrvanKumarSagar",
     whatsapp: "https://wa.me/919110113671",
+  whatsappChannel: "https://whatsapp.com/channel/0029Va5PJaVGE56lMwsSzs0g",
     app: "https://play.google.com/store/apps/details?id=com.lct.pbxwdta",
   },
 

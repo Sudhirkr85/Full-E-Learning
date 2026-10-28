@@ -388,63 +388,6 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 ))}
               </div>
 
-              {/* ── Solved Sample Questions Section ── */}
-              {post.sampleQuestions && post.sampleQuestions.length > 0 && (
-                <section className="mt-10 rounded-2xl border border-indigo-500/30 bg-gradient-to-b from-indigo-950/20 via-slate-900/60 to-slate-900/40 p-6 sm:p-8">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                    <h3 className="text-xl font-bold text-white">
-                      3. महत्वपूर्ण हल सहित मॉडल प्रश्न (Solved Sample Questions & Step-by-Step Solutions)
-                    </h3>
-                  </div>
-                  <p className="mt-2 text-xs sm:text-sm text-slate-300">
-                    छात्रों के अभ्यास के लिए इस प्रश्न पत्र से संबंधित सबसे महत्वपूर्ण प्रश्नों के विस्तृत हल और शॉर्टकट ट्रिक्स नीचे दिए गए हैं:
-                  </p>
-
-                  <div className="mt-6 space-y-6">
-                    {post.sampleQuestions.map((q) => (
-                      <div
-                        key={q.questionNumber}
-                        className="rounded-xl border border-white/10 bg-slate-950/70 p-5 shadow-sm transition hover:border-indigo-500/40"
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-600/30 text-xs font-bold text-indigo-300 border border-indigo-500/30">
-                            Q{q.questionNumber}
-                          </span>
-                          <div className="w-full">
-                            <p className="font-semibold text-white text-sm sm:text-base leading-relaxed">
-                              {q.questionText}
-                            </p>
-
-                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
-                              {q.options.map((opt, optIdx) => (
-                                <div
-                                  key={optIdx}
-                                  className="rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-slate-300"
-                                >
-                                  {opt}
-                                </div>
-                              ))}
-                            </div>
-
-                            <div className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-3 text-xs sm:text-sm">
-                              <div className="font-bold text-emerald-400 flex items-center gap-1.5">
-                                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                                <span>सही उत्तर: {q.correctAnswer}</span>
-                              </div>
-                              <p className="mt-1.5 text-slate-300 leading-relaxed">
-                                <strong className="text-slate-200">व्याख्या: </strong>
-                                {q.explanation}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
               {/* Policy-Compliant In-Article Ad Slot (Active only when approved) */}
               <AdSlot format="horizontal" minHeight={120} className="my-8" />
 

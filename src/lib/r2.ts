@@ -64,4 +64,30 @@ export async function getDownloadPresignedUrl(
   return await getSignedUrl(r2Client, command, { expiresIn: 900 });
 }
 
+/**
+ * Read an object directly from Cloudflare R2 as a Buffer using S3 credentials.
+ * Server-only helper: keeps PDF bucket private and avoids leaking public R2 URLs.
+ */
+export async function getR2ObjectBuffer(key: string): Promise<Buffer> {
+  const command = new GetObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: key,
+  });
 
+  const response = await r2Client.send(command);
+
+  if (!response.Body) {
+    throw new Error(`R2 object Body is empty for key: ${key}`);
+  }
+
+  if (typeof (response.Body as any).transformToByteArray === "function") {
+    const bytes = await (response.Body as any).transformToByteArray();
+    return Buffer.from(bytes);
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of response.Body as any) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}

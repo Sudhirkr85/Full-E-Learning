@@ -74,7 +74,7 @@ export default async function BlogListingPage() {
             {/* Quick Metrics */}
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center backdrop-blur">
-                <div className="text-xl font-bold text-indigo-400 sm:text-2xl">40+</div>
+                <div className="text-xl font-bold text-indigo-400 sm:text-2xl">{BLOG_POSTS.length}+</div>
                 <div className="text-xs text-slate-400">ओरिजिनल पेपर्स</div>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center backdrop-blur">
@@ -157,7 +157,7 @@ export default async function BlogListingPage() {
             
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="border-indigo-500/40 bg-indigo-500/10 text-indigo-300">
-                Total 40 PYQ Papers
+                Total {BLOG_POSTS.length} PYQ Papers
               </Badge>
             </div>
           </div>

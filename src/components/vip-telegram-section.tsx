@@ -177,16 +177,16 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
   };
 
   return (
-    <section className={`relative overflow-hidden ${isStandalone ? "py-12 md:py-20" : "py-16 md:py-24"}`}>
+    <section className={`relative overflow-hidden ${isStandalone ? "py-8 sm:py-12 md:py-20" : "py-10 sm:py-16 md:py-24"}`}>
       {/* Background Ambience */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-[#0d0a21] to-slate-950 -z-10" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
       <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none -z-10" />
 
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
         
         {/* Main Banner Card */}
-        <div className="relative rounded-3xl border border-purple-500/30 bg-gradient-to-br from-slate-900/90 via-[#151033]/90 to-slate-950/95 p-6 sm:p-10 lg:p-12 shadow-[0_20px_60px_-15px_rgba(108,71,255,0.3)] backdrop-blur-xl overflow-hidden">
+        <div className="relative rounded-2xl sm:rounded-3xl border border-purple-500/30 bg-gradient-to-br from-slate-900/90 via-[#151033]/90 to-slate-950/95 p-4 sm:p-8 lg:p-12 shadow-[0_20px_60px_-15px_rgba(108,71,255,0.3)] backdrop-blur-xl overflow-hidden">
           
           {/* Top Decorative Laser Line */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
@@ -194,44 +194,44 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
           {/* Floating Telegram Emblem Glow */}
           <div className="absolute -right-16 -top-16 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
+          <div className="grid gap-6 lg:gap-10 lg:grid-cols-12 lg:items-center">
             
             {/* LEFT COLUMN: Main Offer & Value Prop */}
-            <div className="lg:col-span-7 space-y-6 text-left">
+            <div className="lg:col-span-7 space-y-4 sm:space-y-6 text-left">
               
               {/* Badges Bar */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Badge className="bg-purple-600/20 border-purple-500/40 text-purple-300 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold flex items-center gap-1.5 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-purple-600/20 border-purple-500/40 text-purple-300 text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider font-bold flex items-center gap-1.5 shadow-sm">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
                   </span>
                   VIP Telegram Alert Channel
                 </Badge>
-                <span className="text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-0.5 rounded-full uppercase tracking-wide">
+                <span className="text-[10px] sm:text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2.5 sm:px-3 py-0.5 rounded-full uppercase tracking-wide">
                   NMMS 2026-27 Special
                 </span>
-                <span className="text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 sm:px-2.5 py-0.5 rounded-full">
                   All States Covered (सभी राज्य)
                 </span>
               </div>
 
               {/* Title & Subtitle */}
-              <div className="space-y-3">
-                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
+              <div className="space-y-2 sm:space-y-3">
+                <h2 className="font-display text-xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
                   NMMS 2026-27 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300">VIP Telegram Alert Channel</span>
                 </h2>
-                <p className="text-sm sm:text-base text-slate-300 font-medium leading-relaxed">
+                <p className="text-xs sm:text-base text-slate-300 font-medium leading-relaxed">
                   सभी राज्यों (All States) के Official Notifications, Admit Cards, Results, Answer Keys और Model Papers सबसे पहले पाएं।
                 </p>
               </div>
 
               {/* 5 Key Features Grid */}
-              <div className="grid gap-3 sm:grid-cols-2 pt-2">
+              <div className="grid gap-2.5 sm:gap-3 grid-cols-1 sm:grid-cols-2 pt-1">
                 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
-                  <div className="h-8 w-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0 mt-0.5">
-                    <Bell className="h-4 w-4" />
+                <div className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0 mt-0.5">
+                    <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-white">Real-Time SCERT & NSP Alerts</h4>
@@ -239,9 +239,9 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
-                  <div className="h-8 w-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shrink-0 mt-0.5">
-                    <FileText className="h-4 w-4" />
+                <div className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shrink-0 mt-0.5">
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-white">1-Click PDF Downloads</h4>
@@ -249,9 +249,9 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
-                  <div className="h-8 w-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300 shrink-0 mt-0.5">
-                    <AlertTriangle className="h-4 w-4" />
+                <div className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300 shrink-0 mt-0.5">
+                    <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-white">Urgent Last Date Reminders</h4>
@@ -259,9 +259,9 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
-                  <div className="h-8 w-8 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0 mt-0.5">
-                    <Target className="h-4 w-4" />
+                <div className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/20 transition-all">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0 mt-0.5">
+                    <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-white">Sagar Coaching Guidance</h4>
@@ -272,20 +272,20 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
               </div>
 
               {/* Verified Ad-Free Note */}
-              <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3.5 py-2 rounded-xl w-fit">
-                <MessageSquare className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>💬 100% Verified, Spam-Free & Ad-Free Direct Updates</span>
+              <div className="flex items-center justify-center sm:justify-start gap-2 text-[11px] sm:text-xs font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl w-full sm:w-fit">
+                <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400 shrink-0" />
+                <span>100% Verified, Spam-Free & Ad-Free Direct Updates</span>
               </div>
 
             </div>
 
             {/* RIGHT COLUMN: Price Card & Immediate Action */}
             <div className="lg:col-span-5">
-              <div className="relative rounded-2xl border border-purple-500/40 bg-gradient-to-b from-purple-950/60 via-slate-900/90 to-slate-950 p-6 sm:p-8 text-center space-y-6 shadow-2xl">
+              <div className="relative rounded-xl sm:rounded-2xl border border-purple-500/30 bg-purple-950/40 sm:bg-gradient-to-b sm:from-purple-950/60 sm:via-slate-900/90 sm:to-slate-950 p-4 sm:p-6 lg:p-8 text-center space-y-4 sm:space-y-6 shadow-xl">
                 
                 {/* Sagar Coaching Branding Header */}
-                <div className="flex items-center justify-center gap-2.5 pb-2 border-b border-white/10">
-                  <div className="relative h-8 w-8 rounded-full overflow-hidden border border-purple-400/40">
+                <div className="flex items-center justify-center gap-2 pb-2 border-b border-white/10">
+                  <div className="relative h-7 w-7 sm:h-8 sm:w-8 rounded-full overflow-hidden border border-purple-400/40">
                     <Image
                       src="/logo-circle-transparent.png"
                       alt="Sagar Coaching Centre"
@@ -294,52 +294,52 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
                       className="h-full w-full object-cover"
                     />
                   </div>
-                  <span className="font-display font-bold text-sm text-slate-200">
+                  <span className="font-display font-bold text-xs sm:text-sm text-slate-200">
                     Sagar Coaching Centre Bhagwanpur
                   </span>
                 </div>
 
                 {/* Price Display */}
-                <div className="space-y-1.5">
-                  <span className="text-xs font-bold text-purple-300 uppercase tracking-widest">
+                <div className="space-y-1">
+                  <span className="text-[11px] sm:text-xs font-bold text-purple-300 uppercase tracking-widest">
                     Lifetime VIP Access Pass
                   </span>
                   <div className="flex items-center justify-center gap-3">
-                    <span className="text-4xl sm:text-5xl font-black text-white font-display">
+                    <span className="text-3xl sm:text-5xl font-black text-white font-display">
                       ₹49
                     </span>
                     <div className="text-left">
-                      <span className="line-through text-slate-500 text-sm font-semibold block">₹199</span>
-                      <span className="text-[10px] font-bold text-emerald-400 uppercase bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                      <span className="line-through text-slate-500 text-xs sm:text-sm font-semibold block">₹199</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 uppercase bg-emerald-950/60 border border-emerald-500/30 px-1.5 sm:px-2 py-0.5 rounded-full">
                         75% OFF
                       </span>
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[10px] sm:text-[11px] text-slate-400">
                     एक बार ₹49 भुगतान करें और परीक्षा तक सभी अपडेट्स पाएं
                   </p>
                 </div>
 
                 {/* Main CTA Button */}
-                <div className="space-y-3 pt-1">
+                <div className="space-y-2.5 pt-1">
                   <Button
                     onClick={handleOpenModal}
-                    className="w-full h-14 rounded-2xl text-sm sm:text-base font-extrabold uppercase tracking-wide text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 shadow-[0_10px_30px_rgba(108,71,255,0.5)] hover:shadow-[0_15px_40px_rgba(108,71,255,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer"
+                    className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl text-xs sm:text-base font-extrabold uppercase tracking-wide text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 shadow-[0_10px_30px_rgba(108,71,255,0.5)] hover:shadow-[0_15px_40px_rgba(108,71,255,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer"
                   >
-                    <Send className="h-5 w-5 text-cyan-300 group-hover:translate-x-0.5 transition-transform" />
+                    <Send className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-300 group-hover:translate-x-0.5 transition-transform" />
                     <span>🚀 Pay ₹49 & Join VIP Channel</span>
                   </Button>
 
-                  <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5 font-medium">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                  <p className="text-[10px] sm:text-[11px] text-slate-400 flex items-center justify-center gap-1.5 font-medium">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                     <span>Instant Telegram Invite Link immediately after payment</span>
                   </p>
                 </div>
 
                 {/* Trust Badges & WhatsApp Support */}
-                <div className="pt-4 border-t border-white/10 space-y-2.5">
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] text-slate-400">
-                    <ShieldCheck className="h-3.5 w-3.5 text-purple-400" />
+                <div className="pt-3 sm:pt-4 border-t border-white/10 space-y-2">
+                  <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-slate-400">
+                    <ShieldCheck className="h-3.5 w-3.5 text-purple-400 shrink-0" />
                     <span>Secured by <strong>Razorpay</strong></span>
                     <span>•</span>
                     <span>UPI, PhonePe, Paytm, Cards</span>
@@ -349,10 +349,10 @@ export function VipTelegramSection({ isStandalone = false }: VipTelegramSectionP
                     href={WHATSAPP_SUPPORT_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    className="inline-flex items-center justify-center gap-1 text-[11px] sm:text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors py-0.5"
                   >
                     <span>💬 Payment Help / WhatsApp: <strong>+91 91101 13671</strong></span>
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3 w-3 shrink-0" />
                   </a>
                 </div>
 

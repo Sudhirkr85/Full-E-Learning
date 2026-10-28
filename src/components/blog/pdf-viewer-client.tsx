@@ -113,34 +113,57 @@ export function PdfViewerClient({
         setIsPdfLoading(true);
         setLoadError(null);
 
-        // Dynamically load PDF.js from trusted CDN if not present
-        if (!(window as any).pdfjsLib) {
+        // 1. Kick off fetching PDF data buffer immediately in parallel
+        const fetchPdfPromise = fetch(`/api/pyq/${slug}/preview`).then(
+          async (res) => {
+            if (!res.ok) {
+              throw new Error(`Failed to load document (${res.status})`);
+            }
+            return await res.arrayBuffer();
+          }
+        );
+
+        // 2. Concurrently ensure PDF.js script and worker are loaded
+        const loadScriptPromise = new Promise<any>((resolve, reject) => {
+          if ((window as any).pdfjsLib) {
+            return resolve((window as any).pdfjsLib);
+          }
+
+          const existingScript = document.querySelector<HTMLScriptElement>(
+            'script[src*="pdf.min.js"]'
+          );
+
+          if (existingScript) {
+            existingScript.addEventListener("load", () => {
+              resolve((window as any).pdfjsLib);
+            });
+            existingScript.addEventListener("error", () => {
+              reject(new Error("PDF reader library load failed"));
+            });
+            return;
+          }
+
           const script = document.createElement("script");
           script.src =
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js";
           script.async = true;
+          script.onload = () => resolve((window as any).pdfjsLib);
+          script.onerror = () =>
+            reject(new Error("PDF reader library load failed"));
           document.body.appendChild(script);
+        });
 
-          await new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = () =>
-              reject(new Error("PDF reader library load failed"));
-          });
-        }
-
-        const pdfjsLib = (window as any).pdfjsLib;
-        if (!pdfjsLib) throw new Error("PDF library not initialized");
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
-
-        // Fetch PDF data buffer via same-origin secure proxy
-        const res = await fetch(`/api/pyq/${slug}/preview`);
-        if (!res.ok) {
-          throw new Error(`Failed to load document (${res.status})`);
-        }
-        const data = await res.arrayBuffer();
+        // 3. Await both concurrently (cuts load time in half)
+        const [data, pdfjsLib] = await Promise.all([
+          fetchPdfPromise,
+          loadScriptPromise,
+        ]);
 
         if (!active) return;
+        if (!pdfjsLib) throw new Error("PDF library not initialized");
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
 
         const loadingTask = pdfjsLib.getDocument({ data });
         const doc = await loadingTask.promise;

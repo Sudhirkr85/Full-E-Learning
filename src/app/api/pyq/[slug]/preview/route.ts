@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBlogPostBySlug } from "@/lib/blog-data";
 import { getR2ObjectBuffer } from "@/lib/r2";
 
+// In-memory cache for fast PDF preview delivery without repeated R2 egress
+const bufferCache = new Map<string, { buffer: Buffer; etag: string }>();
+const MAX_CACHE_ENTRIES = 25;
+
+function pruneCacheIfNeeded() {
+  if (bufferCache.size > MAX_CACHE_ENTRIES) {
+    const oldestKey = bufferCache.keys().next().value;
+    if (oldestKey) bufferCache.delete(oldestKey);
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -27,19 +38,40 @@ export async function GET(
   }
 
   try {
-    const buffer = await getR2ObjectBuffer(post.pdfUrl);
+    let cached = bufferCache.get(post.pdfUrl);
 
-    return new NextResponse(new Uint8Array(buffer), {
+    if (!cached) {
+      const buffer = await getR2ObjectBuffer(post.pdfUrl);
+      const etag = `"${slug}-${buffer.length}"`;
+      cached = { buffer, etag };
+
+      pruneCacheIfNeeded();
+      bufferCache.set(post.pdfUrl, cached);
+    }
+
+    const clientEtag = request.headers.get("if-none-match");
+    if (clientEtag && clientEtag === cached.etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: cached.etag,
+          "Cache-Control": "private, max-age=86400, stale-while-revalidate=604800",
+        },
+      });
+    }
+
+    return new NextResponse(new Uint8Array(cached.buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "inline",
-        "Content-Length": buffer.length.toString(),
+        "Content-Length": cached.buffer.length.toString(),
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "SAMEORIGIN",
         "Content-Security-Policy": "frame-ancestors 'self'",
         "X-Robots-Tag": "noindex, nofollow",
-        "Cache-Control": "private, no-store",
+        "Cache-Control": "private, max-age=86400, stale-while-revalidate=604800",
+        ETag: cached.etag,
       },
     });
   } catch (error) {

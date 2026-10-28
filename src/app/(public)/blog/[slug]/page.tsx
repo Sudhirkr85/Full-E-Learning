@@ -299,19 +299,19 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
 
               {/* ── TOP HERO DOWNLOAD CARD (Tailored dynamically by paper category) ── */}
               {isOfficialScert && (
-                <div className="my-8 rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 via-white to-sky-50/40 p-6 md:p-7 shadow-sm">
-                  <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-                    <div>
+                <div className="my-8 rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 via-white to-sky-50/40 p-4 sm:p-6 md:p-7 shadow-sm overflow-hidden">
+                  <div className="flex flex-col items-start justify-between gap-4 sm:gap-5 sm:flex-row sm:items-center min-w-0 w-full">
+                    <div className="min-w-0 w-full flex-1">
                       <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 uppercase tracking-wider">
-                        <ShieldCheck className="h-4 w-4 text-amber-600" />
-                        <span>SCERT Bihar / UP आधिकारिक संग्रह</span>
+                        <ShieldCheck className="h-4 w-4 text-amber-600 shrink-0" />
+                        <span className="truncate">SCERT Bihar / UP आधिकारिक संग्रह</span>
                       </div>
-                      <h2 className="mt-1 text-xl sm:text-2xl font-extrabold text-slate-900 font-display">
+                      <h2 className="mt-1 text-base sm:text-xl md:text-2xl font-extrabold text-slate-900 font-display break-all sm:break-words [overflow-wrap:anywhere]">
                         {post.pdfFileName}
                       </h2>
-                      <p className="mt-1.5 text-xs text-slate-600 flex items-center gap-2">
+                      <p className="mt-1.5 text-xs text-slate-600 flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <span className="inline-flex items-center gap-1">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                           सत्यापित OMR उत्तर कुंजी सहित
                         </span>
                         <span>•</span>
@@ -321,7 +321,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                       <PyqDownloadButton
                         slug={post.slug}
                         pdfTitle={post.pdfFileName}
@@ -340,19 +340,19 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               )}
 
               {isModelSet && (
-                <div className="my-8 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50/60 via-white to-teal-50/40 p-6 md:p-7 shadow-sm">
-                  <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-                    <div>
+                <div className="my-8 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50/60 via-white to-teal-50/40 p-4 sm:p-6 md:p-7 shadow-sm overflow-hidden">
+                  <div className="flex flex-col items-start justify-between gap-4 sm:gap-5 sm:flex-row sm:items-center min-w-0 w-full">
+                    <div className="min-w-0 w-full flex-1">
                       <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider">
-                        <Target className="h-4 w-4 text-emerald-600" />
-                        <span>Sagar Sir High-Yield Mock Practice Set</span>
+                        <Target className="h-4 w-4 text-emerald-600 shrink-0" />
+                        <span className="truncate">Sagar Sir High-Yield Mock Practice Set</span>
                       </div>
-                      <h2 className="mt-1 text-xl sm:text-2xl font-extrabold text-slate-900 font-display">
+                      <h2 className="mt-1 text-base sm:text-xl md:text-2xl font-extrabold text-slate-900 font-display break-all sm:break-words [overflow-wrap:anywhere]">
                         {post.pdfFileName}
                       </h2>
-                      <p className="mt-1.5 text-xs text-slate-600 flex items-center gap-2">
+                      <p className="mt-1.5 text-xs text-slate-600 flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <span className="inline-flex items-center gap-1">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                           180 मिनट मॉक अभ्यास फ्रेमवर्क
                         </span>
                         <span>•</span>
@@ -362,7 +362,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                       <PyqDownloadButton
                         slug={post.slug}
                         pdfTitle={post.pdfFileName}
@@ -381,17 +381,17 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               )}
 
               {isSubjectSpecific && (
-                <div className="my-8 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/60 via-white to-blue-50/40 p-6 md:p-7 shadow-sm">
-                  <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-                    <div>
+                <div className="my-8 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/60 via-white to-blue-50/40 p-4 sm:p-6 md:p-7 shadow-sm overflow-hidden">
+                  <div className="flex flex-col items-start justify-between gap-4 sm:gap-5 sm:flex-row sm:items-center min-w-0 w-full">
+                    <div className="min-w-0 w-full flex-1">
                       <div className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-800 uppercase tracking-wider">
-                        <Sparkles className="h-4 w-4 text-indigo-600" />
-                        <span>Subject Specialist Revision Series</span>
+                        <Sparkles className="h-4 w-4 text-indigo-600 shrink-0" />
+                        <span className="truncate">Subject Specialist Revision Series</span>
                       </div>
-                      <h2 className="mt-1 text-xl sm:text-2xl font-extrabold text-slate-900 font-display">
+                      <h2 className="mt-1 text-base sm:text-xl md:text-2xl font-extrabold text-slate-900 font-display break-all sm:break-words [overflow-wrap:anywhere]">
                         {post.pdfFileName}
                       </h2>
-                      <p className="mt-1.5 text-xs text-slate-600 flex items-center gap-2">
+                      <p className="mt-1.5 text-xs text-slate-600 flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <span>{post.pdfPages} पृष्ठ</span>
                         <span>•</span>
                         <span>{post.pdfSize}</span>
@@ -400,7 +400,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                       <PyqDownloadButton
                         slug={post.slug}
                         pdfTitle={post.pdfFileName}

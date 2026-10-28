@@ -73,6 +73,8 @@ export default function RootLayout({
   return (
     <html lang="hi" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8160370419154141"

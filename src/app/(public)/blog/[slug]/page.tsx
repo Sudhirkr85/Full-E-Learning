@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { makeMetadata, siteConfig } from "@/lib/site";
 import { BLOG_POSTS, getBlogPostBySlug, getAllBlogSlugs } from "@/lib/blog-data";
+import { getDynamicBlogFaqs } from "@/lib/blog-faqs";
 import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -138,10 +139,12 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
     ],
   };
 
+  const dynamicFaqs = getDynamicBlogFaqs(post);
+
   const jsonLdFaq = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: post.faqs.map((faq) => ({
+    mainEntity: dynamicFaqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
@@ -661,7 +664,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 </div>
 
                 <div className="mt-5 space-y-3.5">
-                  {post.faqs.map((faq, idx) => (
+                  {dynamicFaqs.map((faq, idx) => (
                     <div
                       key={idx}
                       className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition hover:border-indigo-200"

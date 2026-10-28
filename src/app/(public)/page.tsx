@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { makeMetadata, siteConfig } from "@/lib/site";
 import { getPublishedCourses } from "@/lib/courses/queries";
+import { getPublishedUpdates } from "@/lib/updates/queries";
 import { prisma } from "@/lib/prisma";
 import { HeroSection } from "@/components/home/HeroSection";
 import { VipTelegramSection } from "@/components/vip-telegram-section";
@@ -38,8 +39,18 @@ export const metadata: Metadata = makeMetadata({
 
 export const revalidate = 60; // Dynamic revalidation every 60 seconds
 
+const typeBadgeStyles: Record<string, { label: string; bg: string; text: string; border: string }> = {
+  ADMIT_CARD: { label: "Admit Card", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+  APPLY: { label: "Apply Now", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  RESULT: { label: "Result", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  ANSWER_KEY: { label: "Answer Key", bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200" },
+  SYLLABUS: { label: "Syllabus", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  GUIDE: { label: "Official Guide", bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
+  NEWS: { label: "News / Helpline", bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+};
+
 export default async function HomePage() {
-  const [coursesResult, dbProductsResult, dbReviewsResult] = await Promise.all([
+  const [coursesResult, dbProductsResult, dbReviewsResult, latestUpdatesResult] = await Promise.all([
     getPublishedCourses().catch((err) => {
       console.error("[HOMEPAGE] Failed to fetch courses:", err);
       return [];
@@ -71,12 +82,14 @@ export default async function HomePage() {
           }
         }
       }
-    }).catch(() => [])
+    }).catch(() => []),
+    getPublishedUpdates(6).catch(() => [])
   ]);
   
   const displayCourses = Array.isArray(coursesResult) ? coursesResult : [];
   const dbProducts = Array.isArray(dbProductsResult) ? dbProductsResult : [];
   const dbReviews = Array.isArray(dbReviewsResult) ? dbReviewsResult : [];
+  const latestUpdates = Array.isArray(latestUpdatesResult) ? latestUpdatesResult : [];
 
   const featuredProducts = dbProducts.length > 0 ? dbProducts : [
     {
@@ -122,6 +135,96 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* 2.5. LATEST UPDATES & OFFICIAL SCHOLARSHIP GUIDES */}
+        {latestUpdates.length > 0 && (
+          <section className="py-14 md:py-20 bg-slate-50 border-b border-slate-200">
+            <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10">
+              
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div className="space-y-2 text-left">
+                  <Badge className="bg-rose-50 border-rose-200 text-rose-700 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold inline-flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                    Live Notifications & Guides
+                  </Badge>
+                  <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    ताज़ा अपडेट्स एवं <span className="text-indigo-600">छात्रवृत्ति सरकारी गाइड्स</span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+                    NMMS एडमिट कार्ड, स्कूल वेरिफिकेशन प्रोसेस, हेल्पलाइन नंबर और परीक्षा से जुड़ी नवीनतम प्रामाणिक जानकारी।
+                  </p>
+                </div>
+
+                <Button asChild variant="outline" className="border-slate-300 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-bold rounded-xl px-5 py-2.5 shadow-sm text-xs sm:text-sm shrink-0 self-start sm:self-auto">
+                  <Link href="/updates" className="flex items-center gap-2">
+                    सभी अपडेट्स देखें
+                    <ArrowRight className="h-4 w-4 text-indigo-600" />
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {latestUpdates.map((update) => {
+                  const badge = typeBadgeStyles[update.type] || {
+                    label: update.type,
+                    bg: "bg-slate-100",
+                    text: "text-slate-700",
+                    border: "border-slate-200",
+                  };
+                  const dateStr = update.publishedAt
+                    ? new Date(update.publishedAt).toLocaleDateString("hi-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : null;
+
+                  return (
+                    <Link
+                      key={update.id}
+                      href={`/updates/${update.slug}`}
+                      className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-indigo-300 hover:-translate-y-0.5 transition-all duration-200 text-left"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${badge.bg} ${badge.text} ${badge.border}`}
+                          >
+                            {badge.label}
+                          </span>
+                          {update.state && (
+                            <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                              {update.state}
+                            </span>
+                          )}
+                        </div>
+
+                        <h3 className="font-display text-base font-bold text-slate-900 group-hover:text-indigo-600 transition duration-200 leading-snug line-clamp-2">
+                          {update.title}
+                        </h3>
+
+                        <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                          {update.summary}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                        {dateStr ? <span>{dateStr}</span> : <span>अपडेट</span>}
+                        <span className="font-bold text-indigo-600 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
+                          पूरा पढ़ें →
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+
+            </div>
+          </section>
+        )}
 
         {/* 3. FEATURED PRODUCTS & STUDY MATERIALS (NMMS BOOK SHOWCASE) */}
         <section className="py-16 md:py-24 bg-white border-b border-slate-200">

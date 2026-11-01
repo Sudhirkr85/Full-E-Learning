@@ -21,11 +21,6 @@
       "label": "शिक्षा मंत्रालय - NMMSS आधिकारिक योजना",
       "url": "https://dsel.education.gov.in/scheme/nmmss",
       "kind": "official"
-    },
-    {
-      "label": "NMMSS आधिकारिक गाइडलाइन PDF (NSP 3061_G.pdf)",
-      "url": "https://scholarships.gov.in/public/schemeGuidelines/3061_G.pdf",
-      "kind": "download"
     }
   ],
   "sources": [
@@ -36,10 +31,6 @@
     {
       "label": "National Scholarship Portal Guidelines",
       "url": "https://scholarships.gov.in"
-    },
-    {
-      "label": "NSP NMMSS Scheme Guidelines PDF (3061_G.pdf)",
-      "url": "https://scholarships.gov.in/public/schemeGuidelines/3061_G.pdf"
     }
   ],
   "faqs": [

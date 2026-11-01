@@ -29,6 +29,7 @@ import { getPublishedCourses } from "@/lib/courses/queries";
 import { getPublishedUpdates } from "@/lib/updates/queries";
 import { prisma } from "@/lib/prisma";
 import { HeroSection } from "@/components/home/HeroSection";
+import { ScholarshipSchemesSection } from "@/components/home/ScholarshipSchemesSection";
 import { VipTelegramSection } from "@/components/vip-telegram-section";
 
 export const metadata: Metadata = makeMetadata({
@@ -135,6 +136,9 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* 2.4. MAJOR GOVERNMENT SCHOLARSHIP SCHEMES DIRECTORY */}
+        <ScholarshipSchemesSection />
 
         {/* 2.5. LATEST UPDATES & OFFICIAL SCHOLARSHIP GUIDES */}
         {latestUpdates.length > 0 && (
